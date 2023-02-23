@@ -1,0 +1,8 @@
+.DS_Store
+.bsp/
+.idea/
+null/
+project/
+target/
+*.class
+*.tasty
