@@ -1,0 +1,9 @@
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(compile, Some(672c6c76-2c1f-4a22-a84d-eaf12f8d61ad), Some(CommandSource(console0)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mEvaluating tasks: Compile / compile[0m
+[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[0mdebug[0m] [0m[0mjsonRpcNotify: JsonRpcNotificationMessage(2.0, build/taskStart, {"taskId":{"id":"16","parents":[]},"eventTime":1677180964535,"message":"Compiling root","dataKind":"compile-task","data":{"target":{"uri":"file:/Users/akravc/Desktop/persimmon/#root/Compile"}}})[0m
+[0m[[0m[0minfo[0m] [0m[0mcompiling 1 Scala source to /Users/akravc/Desktop/persimmon/target/scala-3.2.2/classes ...[0m
+[0m[[0m[0mdebug[0m] [0m[0mjsonRpcNotify: JsonRpcNotificationMessage(2.0, build/logMessage, {"type":3,"message":"compiling 1 Scala source to /Users/akravc/Desktop/persimmon/target/scala-3.2.2/classes ..."})[0m
+[0m[[0m[0mdebug[0m] [0m[0mjsonRpcNotify: JsonRpcNotificationMessage(2.0, build/taskFinish, {"taskId":{"id":"16","parents":[]},"eventTime":1677180965544,"message":"Compiled root","status":1,"dataKind":"compile-report","data":{"target":{"uri":"file:/Users/akravc/Desktop/persimmon/#root/Compile"},"errors":0,"warnings":0,"time":1009}})[0m
+[0m[[0m[32msuccess[0m] [0m[0mTotal time: 1 s, completed Feb 23, 2023, 2:36:05 PM[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(shell, None, None)[0m

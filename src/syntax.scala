@@ -147,13 +147,13 @@ object PersimmonSyntax {
   /* ======================== Values ======================== */
 
   // Values
-  def is_value(e: Expression): Boolean = e match {
+  def isValue(e: Expression): Boolean = e match {
     case NExp(n) => true
     case BExp(b) => true
     case Lam(v, t, body) => true
-    case Inst(t, rec) => rec.fields.forall { case (_, exp) => is_value(exp) }
-    case InstADT(t, cname, rec) => rec.fields.forall { case (_, exp) => is_value(exp) }
-    case Rec(fields) => fields.forall { case (_, exp) => is_value(exp) }
+    case Inst(t, rec) => rec.fields.forall { case (_, exp) => isValue(exp) }
+    case InstADT(t, cname, rec) => rec.fields.forall { case (_, exp) => isValue(exp) }
+    case Rec(fields) => fields.forall { case (_, exp) => isValue(exp) }
     case _ => false
   }
 }

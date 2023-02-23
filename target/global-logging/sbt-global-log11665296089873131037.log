@@ -1,0 +1,20 @@
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(compile, Some(8c5ad70c-1f92-44e4-a592-8895f13da7cc), Some(CommandSource(console0)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mEvaluating tasks: Compile / compile[0m
+[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[0mdebug[0m] [0m[0mjsonRpcNotify: JsonRpcNotificationMessage(2.0, build/taskStart, {"taskId":{"id":"15","parents":[]},"eventTime":1677180910793,"message":"Compiling root","dataKind":"compile-task","data":{"target":{"uri":"file:/Users/akravc/Desktop/persimmon/#root/Compile"}}})[0m
+[0m[[0m[0minfo[0m] [0m[0mcompiling 2 Scala sources to /Users/akravc/Desktop/persimmon/target/scala-3.2.2/classes ...[0m
+[0m[[0m[0mdebug[0m] [0m[0mjsonRpcNotify: JsonRpcNotificationMessage(2.0, build/logMessage, {"type":3,"message":"compiling 2 Scala sources to /Users/akravc/Desktop/persimmon/target/scala-3.2.2/classes ..."})[0m
+[0m[[0m[33mwarn[0m] [0m[0mthere was 1 deprecation warning; re-run with -deprecation for details[0m
+[0m[[0m[0mdebug[0m] [0m[0mjsonRpcNotify: JsonRpcNotificationMessage(2.0, build/logMessage, {"type":2,"message":"there was 1 deprecation warning; re-run with -deprecation for details"})[0m
+[0m[[0m[33mwarn[0m] [0m[0mone warning found[0m
+[0m[[0m[0mdebug[0m] [0m[0mjsonRpcNotify: JsonRpcNotificationMessage(2.0, build/logMessage, {"type":2,"message":"one warning found"})[0m
+[0m[[0m[0mdebug[0m] [0m[0mjsonRpcNotify: JsonRpcNotificationMessage(2.0, build/publishDiagnostics, {"textDocument":{"uri":"file:///Users/akravc/Desktop/persimmon/src/syntax.scala"},"buildTarget":{"uri":"file:/Users/akravc/Desktop/persimmon/#root/Compile"},"diagnostics":[],"reset":true})[0m
+[0m[[0m[0mdebug[0m] [0m[0mjsonRpcNotify: JsonRpcNotificationMessage(2.0, build/publishDiagnostics, {"textDocument":{"uri":"file:///Users/akravc/Desktop/persimmon/src/parser.scala"},"buildTarget":{"uri":"file:/Users/akravc/Desktop/persimmon/#root/Compile"},"diagnostics":[],"reset":true})[0m
+[0m[[0m[0mdebug[0m] [0m[0mjsonRpcNotify: JsonRpcNotificationMessage(2.0, build/taskFinish, {"taskId":{"id":"15","parents":[]},"eventTime":1677180914160,"message":"Compiled root","status":1,"dataKind":"compile-report","data":{"target":{"uri":"file:/Users/akravc/Desktop/persimmon/#root/Compile"},"errors":0,"warnings":0,"time":3367}})[0m
+[0m[[0m[32msuccess[0m] [0m[0mTotal time: 3 s, completed Feb 23, 2023, 2:35:14 PM[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(shell, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0mlsp-definition json request: {"textDocument":{"uri":"file:///Users/akravc/Desktop/persimmon/src/syntax.scala"},"position":{"line":153,"character":64}}[0m
+[0m[[0m[0mdebug[0m] [0m[0mlsp-definition found line:     case Inst(t, rec) => rec.fields.forall { case (_, exp) => is_value(exp) }[0m
+[0m[[0m[0mdebug[0m] [0m[0msymbol is_value[0m
+[0m[[0m[0mdebug[0m] [0m[0mlsp-definition potentials: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mlsp-definition locations Vector()[0m
