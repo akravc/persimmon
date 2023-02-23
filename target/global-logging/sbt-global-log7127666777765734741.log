@@ -1,0 +1,56 @@
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(compile, Some(f250fc0d-b4be-470d-8256-15d093ed2b0c), Some(CommandSource(console0)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mEvaluating tasks: Compile / compile[0m
+[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[0minfo[0m] [0m[0mcompiling 2 Scala sources to /Users/akravc/Desktop/persimmon/target/scala-3.2.2/classes ...[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E006] Not Found Error: /Users/akravc/Desktop/persimmon/src/parser.scala:420:29 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m420 |[0m[33mobject[0m [35mTestFamParser[0m [33mextends[0m [35mFamParser[0m {[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m                             ^^^^^^^^^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m                             Not found: type FamParser[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m longer explanation available when compiling with `-explain`[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E006] Not Found Error: /Users/akravc/Desktop/persimmon/src/parser.scala:421:19 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m421 |[0m  [33mdef[0m [36mparse0[0m[[35mT[0m]([36mp[0m: [35mPackratParser[0m[[35mT[0m], [36minp[0m: [35mString[0m): [35mParseResult[0m[[35mT[0m] = parseAll(phrase(p), removeComments(inp))[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m                   ^^^^^^^^^^^^^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m                   Not found: type PackratParser[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m longer explanation available when compiling with `-explain`[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E006] Not Found Error: /Users/akravc/Desktop/persimmon/src/parser.scala:421:51 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m421 |[0m  [33mdef[0m [36mparse0[0m[[35mT[0m]([36mp[0m: [35mPackratParser[0m[[35mT[0m], [36minp[0m: [35mString[0m): [35mParseResult[0m[[35mT[0m] = parseAll(phrase(p), removeComments(inp))[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m                                                   ^^^^^^^^^^^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m                                           Not found: type ParseResult[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m longer explanation available when compiling with `-explain`[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E006] Not Found Error: /Users/akravc/Desktop/persimmon/src/parser.scala:421:68 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m421 |[0m  [33mdef[0m [36mparse0[0m[[35mT[0m]([36mp[0m: [35mPackratParser[0m[[35mT[0m], [36minp[0m: [35mString[0m): [35mParseResult[0m[[35mT[0m] = parseAll(phrase(p), removeComments(inp))[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m                                                                    ^^^^^^^^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m                                                   Not found: parseAll[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m longer explanation available when compiling with `-explain`[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E006] Not Found Error: /Users/akravc/Desktop/persimmon/src/parser.scala:421:77 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m421 |[0m  [33mdef[0m [36mparse0[0m[[35mT[0m]([36mp[0m: [35mPackratParser[0m[[35mT[0m], [36minp[0m: [35mString[0m): [35mParseResult[0m[[35mT[0m] = parseAll(phrase(p), removeComments(inp))[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m                                                                             ^^^^^^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m                                                     Not found: phrase[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m longer explanation available when compiling with `-explain`[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E006] Not Found Error: /Users/akravc/Desktop/persimmon/src/parser.scala:421:88 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m421 |[0m  [33mdef[0m [36mparse0[0m[[35mT[0m]([36mp[0m: [35mPackratParser[0m[[35mT[0m], [36minp[0m: [35mString[0m): [35mParseResult[0m[[35mT[0m] = parseAll(phrase(p), removeComments(inp))[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m                                                                                        ^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m                                             Not found: removeComments[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m longer explanation available when compiling with `-explain`[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E006] Not Found Error: /Users/akravc/Desktop/persimmon/src/parser.scala:422:21 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m422 |[0m  [33mdef[0m [36mcanParse[0m[[35mT[0m]([36mp[0m: [35mPackratParser[0m[[35mT[0m], [36minp[0m: [35mString[0m): [35mBoolean[0m = parse0(p, inp).successful[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m                     ^^^^^^^^^^^^^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m                     Not found: type PackratParser[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m longer explanation available when compiling with `-explain`[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E006] Not Found Error: /Users/akravc/Desktop/persimmon/src/parser.scala:423:25 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m423 |[0m  [33mdef[0m [36mparseSuccess[0m[[35mT[0m]([36mp[0m: [35mPackratParser[0m[[35mT[0m], [36minp[0m: [35mString[0m): [35mT[0m = parse0(p, inp).get[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m                         ^^^^^^^^^^^^^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m                         Not found: type PackratParser[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m longer explanation available when compiling with `-explain`[0m
+[0m[[0m[31merror[0m] [0m[0m8 errors found[0m
+[0m[[0m[31merror[0m] [0m[0m(Compile / [31mcompileIncremental[0m) Compilation failed[0m
+[0m[[0m[31merror[0m] [0m[0mTotal time: 3 s, completed Feb 23, 2023, 11:52:52 AM[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(shell, None, None)[0m
