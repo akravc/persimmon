@@ -168,32 +168,41 @@ class ParserTesting extends AnyFunSuite {
     assert(canParse(
       pFamDef(Prog), "Family A { type T = {f: B = true, n: N = 3}}"
     ))
-    // assertResult(
-    //   "A" -> Linkage(
-    //     AbsoluteFamily(Sp(Prog), "A"),
-    //     SelfFamily(Sp(Prog), "A"),
-    //     None,
-    //     Map("T" -> TypeDefn("T", Eq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
-    //     Map("T" -> DefaultDefn("T", Eq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
-    //     Map(), Map(), Map(), Map()
-    //   )
-    // ){parseSuccess(pFamDef(Prog), "Family A { type T = {f: B = true, n: N = 3}}")}
+    assertResult(
+      "A" -> 
+      (TypingLinkage(
+        AbsoluteFamily(Sp(Prog), "A"),
+        SelfFamily(Sp(Prog), "A"),
+        None,
+        Map("T" -> TypeDefn("T", Eq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
+        Map("T" -> DefaultDefn("T", Eq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
+        Map(), Map(), Map(), Map()
+      ) -> OpSemLinkage(
+        AbsoluteFamily(Sp(Prog), "A"),
+        SelfFamily(Sp(Prog), "A"),
+        None, Map(), Map(), Map()
+      ))
+    ){parseSuccess(pFamDef(Prog), "Family A { type T = {f: B = true, n: N = 3}}")}
   }
 
   test("famdef extends") {
-    assert(canParse(
-      pFamDef(Prog), "Family A extends C { type T = {f: B = true, n: N = 3}}"
-    ))
-    // assertResult(
-    //   "A" -> Linkage(
-    //     AbsoluteFamily(Sp(Prog), "A"),
-    //     SelfFamily(Sp(Prog), "A"),
-    //     Some(AbsoluteFamily(Sp(Prog), "C")),
-    //     Map("T" -> TypeDefn("T", Eq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
-    //     Map("T" -> DefaultDefn("T", Eq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
-    //     Map(), Map(), Map(), Map()
-    //   )
-    // ){parseSuccess(pFamDef(Prog), "Family A extends C { type T = {f: B = true, n: N = 3}}")}
+    val fam = "Family A extends C { type T = {f: B = true, n: N = 3}}"
+    val map = "A" -> 
+      (TypingLinkage(
+        AbsoluteFamily(Sp(Prog), "A"),
+        SelfFamily(Sp(Prog), "A"),
+        Some(AbsoluteFamily(Sp(Prog), "C")),
+        Map("T" -> TypeDefn("T", Eq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
+        Map("T" -> DefaultDefn("T", Eq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
+        Map(), Map(), Map(), Map()
+      ) -> OpSemLinkage(
+        AbsoluteFamily(Sp(Prog), "A"),
+        SelfFamily(Sp(Prog), "A"),
+        Some(AbsoluteFamily(Sp(Prog), "C")), 
+        Map(), Map(), Map()
+      ))
+    assert(canParse(pFamDef(Prog), fam))
+    assertResult(map){parseSuccess(pFamDef(Prog), fam)}
   }
 
   test("famdef extends and plusEquals, missing defaults") {
@@ -203,19 +212,22 @@ class ParserTesting extends AnyFunSuite {
   }
 
   test("famdef extends and plusEquals") {
-    assert(canParse(
-      pFamDef(Prog), "Family A extends C {type T += {f: B = true, n: N = 3}}"
-    ))
-    // assertResult(
-    //   "A" -> Linkage(
-    //     AbsoluteFamily(Sp(Prog), "A"),
-    //     SelfFamily(Sp(Prog), "A"),
-    //     Some(AbsoluteFamily(Sp(Prog), "C")),
-    //     Map("T" -> TypeDefn("T", PlusEq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
-    //     Map("T" -> DefaultDefn("T", PlusEq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
-    //     Map(), Map(), Map(), Map()
-    //   )
-    // ){parseSuccess(pFamDef(Prog), "Family A extends C { type T += {f: B = true, n: N = 3}}")}
+    val fam = "Family A extends C {type T += {f: B = true, n: N = 3}}"
+    val map = "A" -> (TypingLinkage(
+        AbsoluteFamily(Sp(Prog), "A"),
+        SelfFamily(Sp(Prog), "A"),
+        Some(AbsoluteFamily(Sp(Prog), "C")),
+        Map("T" -> TypeDefn("T", PlusEq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
+        Map("T" -> DefaultDefn("T", PlusEq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
+        Map(), Map(), Map(), Map()
+      ), OpSemLinkage(
+        AbsoluteFamily(Sp(Prog), "A"),
+        SelfFamily(Sp(Prog), "A"),
+        Some(AbsoluteFamily(Sp(Prog), "C")),
+        Map(), Map(), Map()
+      ))
+    assert(canParse(pFamDef(Prog), fam))
+    assertResult(map){parseSuccess(pFamDef(Prog), fam)}
   }
 
   test("famdef multiple types") {
