@@ -183,7 +183,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
     | pExpIfThenElse | pExpLam | pExpBool | pExpNat
     | pExpFamFun | pExpFamCases
     | pExpVar
-    //| between("(", ")", pExp)
+    | between("(", ")", pExp)
 
   // MARKERS
   lazy val pMarker: PackratParser[Marker] =
@@ -269,13 +269,13 @@ class PersimmonParser extends RegexParsers with PackratParsers {
 
   lazy val pExtendedDef: PackratParser[(String, ExtendedDef)] =
     kwDef ~> pFunctionName ~ (("(" ~> repsep(pRecField, ",") <~ ")") | success(Nil)) ~ (":" ~> optBetween("(", ")", (pFamType ~ ("->" ~> pType)))) ~ pMarker >> {
-      case n~p~(f~t)~m => repsep(pExtendedDefCase, ";") >> {bs =>
+      case n~p~(f~t)~m => repsep(pExtendedDefCase, "") >> {bs =>
         extendedDef(n, p, f, t, m, bs)
       }
     }
 
   lazy val pExtendedDefCase: PackratParser[ExtendedDefCase] =
-    (kwCase ~> pConstructorName ~ ("{" ~> repsep(pRecField, ",") <~ "}" <~ "=") ~ pExp >> {
+    (kwCase ~> pConstructorName ~ ("(" ~> repsep(pRecField, ",") <~ ")" <~ "=") ~ pExp >> {
       case c~p~e => extendedDefCase(c, p, e)
     }) | (kwCase ~> "_" ~> "=" ~> pExp >> {e => extendedDefCase("_", Nil, e)})
 
