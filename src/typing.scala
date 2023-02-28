@@ -4,14 +4,15 @@ object PersimmonTyping {
     type TypingCtx = Map[String, Type] // Gamma
     type PathCtx = List[Path] // K
     
-    def getType(e: Expression): Option[Type] = e match {
+    def getType(k: PathCtx, gamma: TypingCtx, e: Expression): Option[Type] = e match {
         case NExp(n) => Some(NType)
         case BExp(b) => Some(BType)
-        // TODO: Get type of variable from context
-        case Var(id) => throw new Exception("Typing of variables not yet implemented.")
-        // TODO: Add 'v' to context and get type of 'b' within modified context
+        case Var(id) => gamma.get(id) match {
+            case Some(t) => Some(t)
+            case _ => None
+        }
         case Lam(v, t, b) => {
-            val bt = getType(b) match {
+            val bt = getType(k, gamma + (v.id -> t), b) match {
                 case Some(t) => t
                 case _ => return None
             }
@@ -21,11 +22,11 @@ object PersimmonTyping {
         case FamFun(path, name) => throw new Exception("Typing of family functions not yet implemented.")
         case FamCases(path, name) => throw new Exception("Typing of family functions not yet implemented.")
         case App(e1, e2) => {
-            val (input, output) = getType(e1) match {
+            val (input, output) = getType(k, gamma, e1) match {
                 case Some(FunType(input, output)) => (input, output)
                 case _ => return None
             }
-            val t2 = getType(e2) match {
+            val t2 = getType(k, gamma, e2) match {
                 case Some(t) => t
                 case _ => return None
             }
@@ -33,13 +34,13 @@ object PersimmonTyping {
             else None
         }
         case Rec(fields) => {
-            val option_types = fields.mapValues(field => getType(field)).toMap
+            val option_types = fields.mapValues(field => getType(k, gamma, field)).toMap
             if option_types.forall((_, t) => t.isEmpty) then None
             val types = option_types.mapValues(t => t.get).toMap
             Some(RecType(types))
         }
         case Proj(e, name) => {
-            val fields = getType(e) match {
+            val fields = getType(k, gamma, e) match {
                 case Some(RecType(fields)) => fields
                 case _ => return None
             }
@@ -54,12 +55,12 @@ object PersimmonTyping {
         case InstADT(t, cname, rec) => Some(t)
         case Match(e, c, r) => throw new Exception("Typing of match expressions not yet implemented.")
         case IfThenElse(condExpr, ifExpr, elseExpr) => {
-            if getType(condExpr) != BType then return None
-            val ifType = getType(ifExpr) match {
+            if getType(k, gamma, condExpr) != BType then return None
+            val ifType = getType(k, gamma, ifExpr) match {
                 case Some(t) => Some(t)
                 case _ => return None
             }
-            val elseType = getType(elseExpr) match {
+            val elseType = getType(k, gamma, elseExpr) match {
                 case Some(t) => Some(t)
                 case _ => return None
             }
