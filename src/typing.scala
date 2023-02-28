@@ -1,6 +1,9 @@
 import PersimmonSyntax.*
 
 object PersimmonTyping {
+    type TypingCtx = Map[String, Type] // Gamma
+    type PathCtx = List[Path] // K
+    
     def getType(e: Expression): Option[Type] = e match {
         case NExp(n) => Some(NType)
         case BExp(b) => Some(BType)

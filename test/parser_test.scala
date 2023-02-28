@@ -441,12 +441,25 @@ class ParserTesting extends AnyFunSuite {
       " def apply(e2: Exp) : Val -> OptionVal = " +
       "  case Lam(x: N, e: Exp) = eval (subst x e2 e)" + 
       "  case _ = NoneVal({})" + 
+      "}" +
+      "Family STLCIf extends STLCBase {" +
+      " type Ty += TBool {}" +
+      " type Val += True {} | False {}" +
+      " type Exp += EIf {e: Exp, e1: Exp, e2: Exp}" +
+      " def eval: Exp -> OptionVal += " +
+      "  case EIf(e:Exp, e1:Exp, e2:Exp) = " +
+      "   if some(eval e) then ((lam (v: Val). branch(e1, e2) v) (eval e).v) " +
+      "   else NoneVal({})" + 
+      " def branch(e1: Exp, e2: Exp): Val -> OptionVal = " +
+      "  case True() = eval e1 " +
+      "  case False() = eval e2 " +
+      "  case _ = NoneVal({})" +
       "}"
-    //print(parse0(pFamDef(Prog), fam))
-    assert(canParse(pFamDef(Prog), fam))
+    print(parse0(pProgram, fam))
+    assert(canParse(pProgram, fam))
   }
 
-  // The family definition that is parsed
+  // The family definition that is parsed for STLCBase
   // (STLCBase,
   //   Linkage(
   //     AbsoluteFamily(Sp(Prog),STLCBase),
