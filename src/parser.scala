@@ -280,7 +280,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
     }) | (kwCase ~> "_" ~> "=" ~> pExp >> {e => extendedDefCase("_", Nil, e)})
 
   // A family can extend another family. If it does not, the parent is None.
-  def pFamDef(selfPrefix: SelfPath): PackratParser[(String, Linkage)] = {
+  def pFamDef(selfPrefix: SelfPath): PackratParser[(String, (TypingLinkage, OpSemLinkage))] = {
     for {
       fam <- kwFamily ~> pFamilyName
       curSelfPath = SelfFamily(Sp(selfPrefix), fam)
@@ -315,27 +315,48 @@ class PersimmonParser extends RegexParsers with PackratParsers {
         val typedefs = typs.map { case (s, (m, (rt, r))) => s -> TypeDefn(s, m, DefnBody(Some(rt), None, None)) }.toMap
         val defaults = typs.collect{ case (s, (m, (rt, r))) => s -> DefaultDefn(s, m, DefnBody(Some(r), None, None)) }.toMap
 
-        fam -> Linkage(
+        val funHeaders = funs.map { 
+          case (s, fundefn) => s -> fundefn.t
+        }.toMap
+        val casesHeaders = cases.map { 
+          case (s, casedefn) => s -> (casedefn.matchType, casedefn.t)
+        }.toMap
+        val nestedTL = nested.map { case (s, (tl, osl)) => (s, tl)}.toMap
+        val nestedOSL = nested.map { case (s, (tl, osl)) => (s, osl)}.toMap
+        
+        fam -> (TypingLinkage(
           concretizePath(Sp(curSelfPath)),
           curSelfPath,
           supFam,
           typedefs,
           defaults,
           adts.toMap,
+          funHeaders,
+          casesHeaders,
+          nestedTL
+        ), OpSemLinkage(
+          concretizePath(Sp(curSelfPath)),
+          curSelfPath,
+          supFam,
           funs.toMap,
           cases.toMap,
-          nested.toMap
-        )
+          nestedOSL
+        ))
       }
     }
   }
 
-  lazy val pProgram: PackratParser[Linkage] =
+  lazy val pProgram: PackratParser[(TypingLinkage, OpSemLinkage)] =
     rep(pFamDef(Prog)) ^^ {
-      fams => Linkage(
-        Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
-        fams.toMap
-      )
+      fams => 
+        TypingLinkage(
+          Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
+          fams.map {case (s, (tl, osl)) => s -> tl}.toMap
+        ) ->
+        OpSemLinkage(
+          Sp(Prog), Prog, None, Map(), Map(),
+          fams.map {case (s, (tl, osl)) => s -> osl}.toMap
+        )
     }
 
   // Simple preprocessing to remove eol comments
