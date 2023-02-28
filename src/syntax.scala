@@ -114,35 +114,67 @@ object PersimmonSyntax {
     DefnBody[B](defn, extendsFrom, furtherBindsFrom, allDefns)
   }
 
+  sealed trait Definition
   // types
-  case class TypeDefn(name: String, marker: Marker, typeBody: DefnBody[RecType])
+  case class TypeDefn(name: String, marker: Marker, typeBody: DefnBody[RecType]) extends Definition
   
   // defaults
-  case class DefaultDefn(name: String, marker: Marker, defaultBody: DefnBody[Rec])
+  case class DefaultDefn(name: String, marker: Marker, defaultBody: DefnBody[Rec]) extends Definition
 
   // ADTs
-  case class AdtDefn(name: String, marker: Marker, adtBody: DefnBody[Map[String, RecType]])
+  case class AdtDefn(name: String, marker: Marker, adtBody: DefnBody[Map[String, RecType]]) extends Definition
 
   // Functions
-  case class FunDefn(name: String, t: FunType, funBody: DefnBody[Expression])
+  case class FunDefn(name: String, t: FunType, funBody: DefnBody[Expression]) extends Definition
 
   // Cases
-  case class CasesDefn(name: String, matchType: PathType, t: Type, ts: List[Type], marker: Marker, casesBody: DefnBody[Expression])
-  def CasesDefn(name: String, matchType: PathType, t: Type, marker: Marker, casesBody: DefnBody[Expression]): CasesDefn =
+  case class CasesDefn(name: String, matchType: PathType, t: FunType, ts: List[Type], marker: Marker, casesBody: DefnBody[Expression]) extends Definition
+  def CasesDefn(name: String, matchType: PathType, t: FunType, marker: Marker, casesBody: DefnBody[Expression]): CasesDefn =
     CasesDefn(name, matchType, t, List(t), marker, casesBody)
 
   /* ======================== LINKAGES ======================== */
 
-  case class Linkage(path: Path,
-                     self: SelfPath, // self
-                     sup: Option[Path], // super
-                     types: Map[String, TypeDefn],
-                     defaults: Map[String, DefaultDefn],
-                     adts: Map[String, AdtDefn],
-                     funs: Map[String, FunDefn],
-                     cases: Map[String, CasesDefn],
-                     nested: Map[String, Linkage]
-                    )
+  // case class Linkage(path: Path,
+  //                    self: SelfPath, // self
+  //                    sup: Option[Path], // super
+  //                    types: Map[String, TypeDefn],
+  //                    defaults: Map[String, DefaultDefn],
+  //                    adts: Map[String, AdtDefn],
+  //                    funs: Map[String, FunDefn],
+  //                    cases: Map[String, CasesDefn],
+  //                    nested: Map[String, Linkage]
+  //                   )
+
+
+  // This version of the linkage holds only
+  // information needed for typechecking -- 
+  // NO definitions.
+  case class TypingLinkage(
+    path: Path,
+    self: SelfPath, // self
+    sup: Option[Path], // super
+    types: Map[String, TypeDefn],
+    defaults: Map[String, DefaultDefn],
+    adts: Map[String, AdtDefn],
+    // header only: function type
+    funs: Map[String, FunType],
+    // header only: match type and function type
+    cases: Map[String, (PathType, FunType)],
+    nested: Map[String, TypingLinkage]
+  )
+
+  // This version of the linkage holds only
+  // info needed for operational semantics --
+  // definitions
+  case class OpSemLinkage(
+    path: Path,
+    self: SelfPath, // self
+    sup: Option[Path], // super
+    funs: Map[String, FunDefn],
+    cases: Map[String, CasesDefn],
+    nested: Map[String, OpSemLinkage]
+  )
+  
 
   /* ======================== Values ======================== */
 
