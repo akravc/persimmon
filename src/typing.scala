@@ -1,6 +1,10 @@
 import PersimmonSyntax.*
 
 object PersimmonTyping {
+
+    type TypingCtx = Map[String, Type] // Gamma
+    type PathCtx = List[Path] // K
+
     def getType(e: Expression): Type = e match {
         case NExp(n) => NType
         case BExp(b) => BType
