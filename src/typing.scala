@@ -1,52 +1,66 @@
 import PersimmonSyntax.*
 
 object PersimmonTyping {
-    def getType(e: Expression): Type = e match {
-        case NExp(n) => NType
-        case BExp(b) => BType
+    def getType(e: Expression): Option[Type] = e match {
+        case NExp(n) => Some(NType)
+        case BExp(b) => Some(BType)
         // TODO: Get type of variable from context
         case Var(id) => throw new Exception("Typing of variables not yet implemented.")
         // TODO: Add 'v' to context and get type of 'b' within modified context
-        case Lam(v, t, b) => FunType(t, getType(b))
+        case Lam(v, t, b) => {
+            val bt = getType(b) match {
+                case Some(t) => t
+                case _ => return None
+            }
+            Some(FunType(t, bt))
+        }
         // TODO
         case FamFun(path, name) => throw new Exception("Typing of family functions not yet implemented.")
         case FamCases(path, name) => throw new Exception("Typing of family functions not yet implemented.")
         case App(e1, e2) => {
-            val t1 = getType(e1)
-            val t2 = getType(e2)
-            t1 match {
-                case FunType(input, output) => {
-                    if input == t2 then t1
-                    else throw new Exception("Function applied to expression of wrong type.")
-                }
-                case _ => throw new Exception("Attempted to apply a non-function as a function.")
+            val (input, output) = getType(e1) match {
+                case Some(FunType(input, output)) => (input, output)
+                case _ => return None
             }
+            val t2 = getType(e2) match {
+                case Some(t) => t
+                case _ => return None
+            }
+            if input == t2 then Some(output)
+            else None
         }
         case Rec(fields) => {
-            RecType(fields.mapValues(field => getType(field)).toMap)
+            val option_types = fields.mapValues(field => getType(field)).toMap
+            if option_types.forall((_, t) => t.isEmpty) then None
+            val types = option_types.mapValues(t => t.get).toMap
+            Some(RecType(types))
         }
         case Proj(e, name) => {
-            val t = getType(e)
-            t match {
-                case RecType(fields) => {
-                    fields.get(name) match {
-                        case Some(field) => field
-                        case None => throw new Exception("Attempted to access a non-existent field.")
-                    }
-                }
-                case _ => throw new Exception("Attempted to apply a non-function as a function.")
+            val fields = getType(e) match {
+                case Some(RecType(fields)) => fields
+                case _ => return None
+            }
+            fields.get(name) match {
+                case Some(field) => Some(field)
+                case _ => return None
             }
         }
         // TODO: Do some extra checks.
-        case Inst(t, rec) => t
+        case Inst(t, rec) => Some(t)
         // TODO: Do some extra checks.
-        case InstADT(t, cname, rec) => t
+        case InstADT(t, cname, rec) => Some(t)
         case Match(e, c, r) => throw new Exception("Typing of match expressions not yet implemented.")
         case IfThenElse(condExpr, ifExpr, elseExpr) => {
-            if getType(condExpr) != BType then throw new Exception("Attempted to perform an if-then-else operation on an expression which was not a boolean.")
-            val ifType = getType(ifExpr)
-            val elseType = getType(elseExpr)
-            if ifType != elseType then throw new Exception("Branches of if-then-else statement have conflicting types")
+            if getType(condExpr) != BType then return None
+            val ifType = getType(ifExpr) match {
+                case Some(t) => Some(t)
+                case _ => return None
+            }
+            val elseType = getType(elseExpr) match {
+                case Some(t) => Some(t)
+                case _ => return None
+            }
+            if ifType != elseType then return None
             ifType
         }
     }
