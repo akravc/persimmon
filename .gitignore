@@ -1,5 +1,8 @@
 .DS_Store
 .bsp/
+.metals/
+.bloop/
+.vscode/
 .idea/
 null/
 project/
