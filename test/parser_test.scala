@@ -1,6 +1,6 @@
 import org.scalatest.funsuite.AnyFunSuite
 import PersimmonSyntax._
-import TestParser._
+import TestDefParser._
 import scala.language.postfixOps
 
 class ParserTesting extends AnyFunSuite {
@@ -169,38 +169,27 @@ class ParserTesting extends AnyFunSuite {
       pFamDef(Prog), "Family A { type T = {f: B = true, n: N = 3}}"
     ))
     assertResult(
-      "A" -> 
-      (TypingLinkage(
+      "A" -> DefinitionLinkage(
         AbsoluteFamily(Sp(Prog), "A"),
         SelfFamily(Sp(Prog), "A"),
-        None,
+        None, 
         Map("T" -> TypeDefn("T", Eq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
         Map("T" -> DefaultDefn("T", Eq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
         Map(), Map(), Map(), Map()
-      ) -> OpSemLinkage(
-        AbsoluteFamily(Sp(Prog), "A"),
-        SelfFamily(Sp(Prog), "A"),
-        None, Map(), Map(), Map()
-      ))
+      )
     ){parseSuccess(pFamDef(Prog), "Family A { type T = {f: B = true, n: N = 3}}")}
   }
 
   test("famdef extends") {
     val fam = "Family A extends C { type T = {f: B = true, n: N = 3}}"
-    val map = "A" -> 
-      (TypingLinkage(
-        AbsoluteFamily(Sp(Prog), "A"),
-        SelfFamily(Sp(Prog), "A"),
-        Some(AbsoluteFamily(Sp(Prog), "C")),
-        Map("T" -> TypeDefn("T", Eq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
-        Map("T" -> DefaultDefn("T", Eq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
-        Map(), Map(), Map(), Map()
-      ) -> OpSemLinkage(
+    val map = "A" -> DefinitionLinkage(
         AbsoluteFamily(Sp(Prog), "A"),
         SelfFamily(Sp(Prog), "A"),
         Some(AbsoluteFamily(Sp(Prog), "C")), 
-        Map(), Map(), Map()
-      ))
+        Map("T" -> TypeDefn("T", Eq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
+        Map("T" -> DefaultDefn("T", Eq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
+        Map(), Map(), Map(), Map()
+      )
     assert(canParse(pFamDef(Prog), fam))
     assertResult(map){parseSuccess(pFamDef(Prog), fam)}
   }
@@ -213,19 +202,14 @@ class ParserTesting extends AnyFunSuite {
 
   test("famdef extends and plusEquals") {
     val fam = "Family A extends C {type T += {f: B = true, n: N = 3}}"
-    val map = "A" -> (TypingLinkage(
+    val map = "A" -> DefinitionLinkage(
         AbsoluteFamily(Sp(Prog), "A"),
         SelfFamily(Sp(Prog), "A"),
         Some(AbsoluteFamily(Sp(Prog), "C")),
         Map("T" -> TypeDefn("T", PlusEq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
         Map("T" -> DefaultDefn("T", PlusEq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
         Map(), Map(), Map(), Map()
-      ), OpSemLinkage(
-        AbsoluteFamily(Sp(Prog), "A"),
-        SelfFamily(Sp(Prog), "A"),
-        Some(AbsoluteFamily(Sp(Prog), "C")),
-        Map(), Map(), Map()
-      ))
+      )
     assert(canParse(pFamDef(Prog), fam))
     assertResult(map){parseSuccess(pFamDef(Prog), fam)}
   }

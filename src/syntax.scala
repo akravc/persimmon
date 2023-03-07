@@ -134,17 +134,7 @@ object PersimmonSyntax {
 
   /* ======================== LINKAGES ======================== */
 
-  // case class Linkage(path: Path,
-  //                    self: SelfPath, // self
-  //                    sup: Option[Path], // super
-  //                    types: Map[String, TypeDefn],
-  //                    defaults: Map[String, DefaultDefn],
-  //                    adts: Map[String, AdtDefn],
-  //                    funs: Map[String, FunDefn],
-  //                    cases: Map[String, CasesDefn],
-  //                    nested: Map[String, Linkage]
-  //                   )
-
+  sealed trait Linkage
 
   // This version of the linkage holds only
   // information needed for typechecking -- 
@@ -154,26 +144,27 @@ object PersimmonSyntax {
     self: SelfPath, // self
     sup: Option[Path], // super
     types: Map[String, TypeDefn],
-    defaults: Map[String, DefaultDefn],
     adts: Map[String, AdtDefn],
     // header only: function type
     funs: Map[String, FunType],
     // header only: match type and function type
     cases: Map[String, (PathType, FunType)],
     nested: Map[String, TypingLinkage]
-  )
+  ) extends Linkage
 
-  // This version of the linkage holds only
-  // info needed for operational semantics --
-  // definitions
-  case class OpSemLinkage(
+  // This version of the linkage holds
+  // all information including definitions
+  case class DefinitionLinkage(
     path: Path,
     self: SelfPath, // self
     sup: Option[Path], // super
+    types: Map[String, TypeDefn],
+    defaults: Map[String, DefaultDefn],
+    adts: Map[String, AdtDefn],
     funs: Map[String, FunDefn],
     cases: Map[String, CasesDefn],
-    nested: Map[String, OpSemLinkage]
-  )
+    nested: Map[String, DefinitionLinkage]
+  ) extends Linkage
   
 
   /* ======================== Values ======================== */

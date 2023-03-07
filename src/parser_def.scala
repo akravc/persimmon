@@ -3,7 +3,7 @@ import scala.annotation.tailrec
 import PersimmonSyntax.*
 
 
-class PersimmonParser extends RegexParsers with PackratParsers {
+class PersimmonDefParser extends RegexParsers with PackratParsers {
 
   def hasDuplicateName[K, V](kvList: List[(K, V)]): Boolean = 
     kvList.size != kvList.distinctBy(_._1).size
@@ -280,7 +280,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
     }) | (kwCase ~> "_" ~> "=" ~> pExp >> {e => extendedDefCase("_", Nil, e)})
 
   // A family can extend another family. If it does not, the parent is None.
-  def pFamDef(selfPrefix: SelfPath): PackratParser[(String, (TypingLinkage, OpSemLinkage))] = {
+  def pFamDef(selfPrefix: SelfPath): PackratParser[(String, DefinitionLinkage)] = {
     for {
       fam <- kwFamily ~> pFamilyName
       curSelfPath = SelfFamily(Sp(selfPrefix), fam)
@@ -321,41 +321,28 @@ class PersimmonParser extends RegexParsers with PackratParsers {
         val casesHeaders = cases.map { 
           case (s, casedefn) => s -> (casedefn.matchType, casedefn.t)
         }.toMap
-        val nestedTL = nested.map { case (s, (tl, osl)) => (s, tl)}.toMap
-        val nestedOSL = nested.map { case (s, (tl, osl)) => (s, osl)}.toMap
         
-        fam -> (TypingLinkage(
+        fam -> DefinitionLinkage(
           concretizePath(Sp(curSelfPath)),
           curSelfPath,
           supFam,
           typedefs,
           defaults,
           adts.toMap,
-          funHeaders,
-          casesHeaders,
-          nestedTL
-        ), OpSemLinkage(
-          concretizePath(Sp(curSelfPath)),
-          curSelfPath,
-          supFam,
           funs.toMap,
           cases.toMap,
-          nestedOSL
-        ))
+          nested.toMap
+        )
       }
     }
   }
 
-  lazy val pProgram: PackratParser[(TypingLinkage, OpSemLinkage)] =
+  lazy val pProgram: PackratParser[DefinitionLinkage] =
     rep(pFamDef(Prog)) ^^ {
       fams => 
-        TypingLinkage(
+        DefinitionLinkage(
           Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
-          fams.map {case (s, (tl, osl)) => s -> tl}.toMap
-        ) ->
-        OpSemLinkage(
-          Sp(Prog), Prog, None, Map(), Map(),
-          fams.map {case (s, (tl, osl)) => s -> osl}.toMap
+          fams.toMap
         )
     }
 
@@ -372,7 +359,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
   }
 }
 
-object TestParser extends PersimmonParser {
+object TestDefParser extends PersimmonDefParser {
   def parse0[T](p: PackratParser[T], inp: String): ParseResult[T] = parseAll(phrase(p), removeComments(inp))
   def canParse[T](p: PackratParser[T], inp: String): Boolean = parse0(p, inp).successful
   def parseSuccess[T](p: PackratParser[T], inp: String): T = parse0(p, inp).get
