@@ -188,4 +188,9 @@ object PersimmonSyntax {
     case Rec(fields) => fields.forall { case (_, exp) => isValue(exp) }
     case _ => false
   }
+
+    /* ======================== Contexts ======================== */
+
+    type TypingCtx = Map[String, Type] // Gamma
+    type PathCtx = List[Path] // K
 }

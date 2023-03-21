@@ -2,8 +2,6 @@ import PersimmonSyntax.*
 import PersimmonLinkages.*
 
 object PersimmonTyping {
-    type TypingCtx = Map[String, Type] // Gamma
-    type PathCtx = List[Path] // K
     
     def getType(K: PathCtx, Gamma: TypingCtx, e: Expression): Option[Type] = e match {
         case NExp(n) => Some(NType)
@@ -14,12 +12,12 @@ object PersimmonTyping {
                 bt => FunType(t, bt)
             }
         case FamFun(path, name) =>
-            computeLinkage(K, path.get).funs.get(name) match {
+            computeTypLinkage(K, path.get).funs.get(name) match {
                 case Some(sig) => Some(sig.t)
                 case _ => None
             }
         case FamCases(path, name) =>
-            computeLinkage(K, path.get).cases.get(name) match {
+            computeTypLinkage(K, path.get).cases.get(name) match {
                 case Some(sig) => Some(sig.t)
                 case _ => None
             }
@@ -46,7 +44,7 @@ object PersimmonTyping {
             case _ => None
         }
         case Inst(t, rec) => {
-            val fields = computeLinkage(K, t.path.get).types.get(t.name) match {
+            val fields = computeTypLinkage(K, t.path.get).types.get(t.name) match {
                 case Some(typeDefn) => typeDefn.typeBody.defn.get.fields
                 case _ => return None
             }
@@ -57,7 +55,7 @@ object PersimmonTyping {
         }
         // TODO: Do some extra checks.
         case InstADT(t, cname, rec) =>
-            val cases = computeLinkage(K, t.path.get).adts.get(t.name) match {
+            val cases = computeTypLinkage(K, t.path.get).adts.get(t.name) match {
                 case Some(adtDefn) => adtDefn.adtBody.defn.get
                 case _ => return None
             }
@@ -74,7 +72,7 @@ object PersimmonTyping {
                 case Some(t: PathType) => t
                 case _ => return None
             }
-            val funType = computeLinkage(K, c.path.get).cases.get(c.name) match {
+            val funType = computeTypLinkage(K, c.path.get).cases.get(c.name) match {
                 case Some(sig) => 
                     if sig.mt != t then return None
                     sig.t
