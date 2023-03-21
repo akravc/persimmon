@@ -102,7 +102,7 @@ object PersimmonSyntax {
   case object PlusEq extends Marker // type extension marker
   case object Eq extends Marker // type definition marker
 
-  //////////////////////// Definition helper functions ////////////////////////
+  //////////////////////// Definitions and Signatures ////////////////////////
 
   // Things that could be defined or extended / further bound
   case class DefnBody[B](defn: Option[B], extendsFrom: Option[Path], furtherBindsFrom: Option[Path], allDefns: List[B])
@@ -132,6 +132,15 @@ object PersimmonSyntax {
   def CasesDefn(name: String, matchType: PathType, t: FunType, marker: Marker, casesBody: DefnBody[Expression]): CasesDefn =
     CasesDefn(name, matchType, t, List(t), marker, casesBody)
 
+  
+  sealed trait Signature
+
+  // function signature
+  case class FunSig(name: String, marker: Marker, t: FunType) extends Signature
+
+  // cases signature
+  case class CasesSig(name: String, mt: PathType, marker: Marker, t: FunType) extends Signature
+
   /* ======================== LINKAGES ======================== */
 
   sealed trait Linkage
@@ -145,10 +154,10 @@ object PersimmonSyntax {
     sup: Option[Path], // super
     types: Map[String, TypeDefn],
     adts: Map[String, AdtDefn],
-    // header only: function type
-    funs: Map[String, FunType],
-    // header only: match type and function type
-    cases: Map[String, (PathType, FunType)],
+    // function signature only
+    funs: Map[String, FunSig],
+    // cases signature only
+    cases: Map[String, CasesSig],
     nested: Map[String, TypingLinkage]
   ) extends Linkage
 

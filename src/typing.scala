@@ -14,10 +14,14 @@ object PersimmonTyping {
                 bt => FunType(t, bt)
             }
         case FamFun(path, name) =>
-            computeLinkage(K, path.get).funs.get(name)
+            computeLinkage(K, path.get).funs.get(name) match {
+                case Some(sig) => Some(sig.t)
+                case _ => None
+            }
         case FamCases(path, name) =>
-            computeLinkage(K, path.get).cases.get(name).map {
-                (_, ft) => ft
+            computeLinkage(K, path.get).cases.get(name) match {
+                case Some(sig) => Some(sig.t)
+                case _ => None
             }
         case App(e1, e2) => {
             val t1 = getType(K, Gamma, e1) match {
@@ -71,9 +75,9 @@ object PersimmonTyping {
                 case _ => return None
             }
             val funType = computeLinkage(K, c.path.get).cases.get(c.name) match {
-                case Some(pathType, funType) =>
-                    if pathType != t then return None
-                    funType
+                case Some(sig) => 
+                    if sig.mt != t then return None
+                    sig.t
                 case _ => return None
             }
             if getType(K, Gamma, r) != Some(funType.input) then return None
