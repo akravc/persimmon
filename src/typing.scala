@@ -63,6 +63,33 @@ object PersimmonTyping {
         }
       } else None
   }
+  
+  def isSubtype(K: PathCtx, t1: Type, t2: Type): Boolean = {
+    if t1 == t2 then true
+    else t1 match {
+      case PathType(path, name) =>
+        val typeDefn = computeTypLinkage(K, path.get).types.get(name).get
+        isSubtype(K, typeDefn.typeBody.defn.get, t2)
+      case FunType(input1, output1) =>
+        t2 match {
+          case FunType(input2, output2) =>
+            isSubtype(K, input2, input1) && isSubtype(K, output1, output2)
+          case _ => false
+        }
+      case RecType(fields1) =>
+        t2 match {
+          case RecType(fields2) =>
+            fields2.forall(
+              (name2, ft2) => fields1.get(name2) match {
+                case Some(ft1) => isSubtype(K, ft1, ft2)
+                case None => false
+              }
+            )
+          case _ => false
+        }
+      case _ => false
+    }
+  }
 }
 
 
