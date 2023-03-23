@@ -2,12 +2,25 @@ import PersimmonSyntax.*
 import PersimmonLinkages.*
 
 object PersimmonTyping {
+  def isWellFormed(K: PathCtx, t: Type): Boolean = t match {
+    case NType => true
+    case BType => true
+    case FunType(input, output) => isWellFormed(K, input) && isWellFormed(K, output)
+    case PathType(path, name) =>
+      val linkage = computeTypLinkage(K, path.get)
+      linkage.types.contains(name) || linkage.adts.contains(name)
+    case RecType(fields) =>
+      fields.forall { (name, t) => isWellFormed(K, t) }
+  }
+  
   def getType(K: PathCtx, Gamma: TypingCtx, e: Expression): Option[Type] = e match {
     case NExp(n) => Some(NType)
     case BExp(b) => Some(BType)
     case Var(id) => Gamma.get(id)
     case Lam(v, t, b) =>
-      getType(K, Gamma + (v.id -> t), b).map { bt => FunType(t, bt) }
+      if isWellFormed(K, t) then
+        getType(K, Gamma + (v.id -> t), b).map { bt => FunType(t, bt) }
+      else None
     case FamFun(path, name) =>
       computeTypLinkage(K, path.get).funs.get(name).map { sig => sig.t }
     case FamCases(path, name) =>
@@ -39,9 +52,10 @@ object PersimmonTyping {
         val cases = adtDefn.adtBody.defn.get
         cases.get(cname).flatMap { recType =>
           val fields = rec.fields
-          if fields.keySet == rec.fields.keySet && fields.forall(
-            (name, ft) => getType(K, Gamma, rec.fields.get(name).get) == Some(ft)
-          ) then Some(t) else None
+          if fields.keySet == rec.fields.keySet &&
+          fields.forall { (name, ft) =>
+            getType(K, Gamma, rec.fields.get(name).get) == Some(ft)
+          } then Some(t) else None
         }
       }
     case Match(e, c, r) =>
@@ -64,6 +78,12 @@ object PersimmonTyping {
       } else None
   }
   
+  def hasType(K: PathCtx, Gamma: TypingCtx, e: Expression, t: Type): Boolean = {
+    getType(K, Gamma, e).exists { et =>
+      isSubtype(K, et, t)
+    }
+  }
+  
   def isSubtype(K: PathCtx, t1: Type, t2: Type): Boolean = {
     if t1 == t2 then true
     else t1 match {
@@ -79,12 +99,11 @@ object PersimmonTyping {
       case RecType(fields1) =>
         t2 match {
           case RecType(fields2) =>
-            fields2.forall(
-              (name2, ft2) => fields1.get(name2) match {
-                case Some(ft1) => isSubtype(K, ft1, ft2)
-                case None => false
-              }
-            )
+            fields2.forall {(name2, ft2) =>
+              fields1.get(name2).exists { ft1 =>
+                isSubtype(K, ft1, ft2)
+            }
+          }
           case _ => false
         }
       case _ => false
