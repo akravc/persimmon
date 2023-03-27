@@ -151,7 +151,7 @@ object PersimmonSyntax {
   case class TypingLinkage(
     path: Path,
     self: SelfPath, // self
-    sup: Option[Path], // super
+    sup: Option[AbsoluteFamily], // super
     types: Map[String, TypeDefn],
     adts: Map[String, AdtDefn],
     // function signature only
@@ -166,7 +166,7 @@ object PersimmonSyntax {
   case class DefinitionLinkage(
     path: Path,
     self: SelfPath, // self
-    sup: Option[Path], // super
+    sup: Option[AbsoluteFamily], // super
     types: Map[String, TypeDefn],
     defaults: Map[String, DefaultDefn],
     adts: Map[String, AdtDefn],

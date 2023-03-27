@@ -62,9 +62,13 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
 
   // FAMILY PATHS
   lazy val pPath: PackratParser[Path] =
+    pAbsoluteFamPath ^^ {f => f}
+    | pSelfPath ^^ { Sp.apply }
+
+  lazy val pAbsoluteFamPath: PackratParser[AbsoluteFamily] =
     pPath ~ ("." ~> pFamilyName) ^^ { case p~f => AbsoluteFamily(p, f) }
     | pFamilyName ^^ { f => AbsoluteFamily(Sp(Prog), f) }
-    | pSelfPath ^^ { Sp.apply }
+
 
   lazy val pSelfPath: PackratParser[SelfPath] =
     kwSelf ~> between("(", ")",
@@ -284,7 +288,7 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
     for {
       fam <- kwFamily ~> pFamilyName
       curSelfPath = SelfFamily(Sp(selfPrefix), fam)
-      supFam <- (kwExtends ~> pPath).?
+      supFam <- (kwExtends ~> pAbsoluteFamPath).?
       typs~adts~funs0~extended~cases0~nested <- between("{", "}",
         rep(pTypeDef) ~ rep(pAdtDef) ~ rep(pFunDef) ~ rep(pExtendedDef) ~ rep(pCasesDef) ~ rep(pFamDef(curSelfPath))
       )
