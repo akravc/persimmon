@@ -1,7 +1,12 @@
 import org.scalatest.funsuite.AnyFunSuite
 import PersimmonSyntax._
+import PersimmonLinkages._
 import TestDefParser._
+import TestTypParser._
+import PrettyPrint._
 import scala.language.postfixOps
+import java.io.PrintWriter
+import java.io.File
 
 class ParserTesting extends AnyFunSuite {
   /* ==================================== PARSER TESTING ==================================== */
@@ -9,149 +14,149 @@ class ParserTesting extends AnyFunSuite {
   // Parsing Paths
   test("paths: absolute path") {
     val inp = "A.C.D"
-    assert(canParse(pPath, inp))
+    assert(canParse(TestDefParser.pPath, inp))
     assertResult(
       AbsoluteFamily(AbsoluteFamily(AbsoluteFamily(Sp(Prog), "A"), "C"),"D")
-    ){parseSuccess(pPath, inp)}
+    ){parseSuccess(TestDefParser.pPath, inp)}
   }
 
   test("paths: self prefixed absolute path") {
     val inp = "self(self(A).C).D"
-    assert(canParse(pPath, inp))
+    assert(canParse(TestDefParser.pPath, inp))
     assertResult(
       AbsoluteFamily(Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "C")), "D")
-    ){parseSuccess(pPath, inp)}
+    ){parseSuccess(TestDefParser.pPath, inp)}
   }
 
   test("paths: self path") {
     val inp = "self(self(self(A).C).D)"
-    assert(canParse(pPath, inp))
+    assert(canParse(TestDefParser.pPath, inp))
     assertResult(
       Sp(SelfFamily(Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "C")), "D"))
-    ){parseSuccess(pPath, inp)}
+    ){parseSuccess(TestDefParser.pPath, inp)}
   }
 
   // Parsing Types
   test("types: nat") {
-    assert(canParse(pType, "N"))
-    assertResult(NType){parseSuccess(pType, "N")}
+    assert(canParse(TestDefParser.pType, "N"))
+    assertResult(NType){parseSuccess(TestDefParser.pType, "N")}
   }
 
   test("types: bool") {
-    assert(canParse(pType, "B"))
-    assertResult(BType){parseSuccess(pType, "B")}
+    assert(canParse(TestDefParser.pType, "B"))
+    assertResult(BType){parseSuccess(TestDefParser.pType, "B")}
   }
 
   test("types: arrow") {
-    assert(canParse(pType, "B -> N"))
-    assertResult(FunType(BType, NType)){parseSuccess(pType, "B -> N")}
+    assert(canParse(TestDefParser.pType, "B -> N"))
+    assertResult(FunType(BType, NType)){parseSuccess(TestDefParser.pType, "B -> N")}
   }
 
   test("types: absolute path type") {
-    assert(canParse(pType, "A.R"))
-    assertResult(PathType(Some(AbsoluteFamily(Sp(Prog), "A")), "R")){parseSuccess(pType, "A.R")}
+    assert(canParse(TestDefParser.pType, "A.R"))
+    assertResult(PathType(Some(AbsoluteFamily(Sp(Prog), "A")), "R")){parseSuccess(TestDefParser.pType, "A.R")}
   }
 
   test("types: absolute path path type") {
     val inp = "A.C.D.R"
-    assert(canParse(pType, inp))
+    assert(canParse(TestDefParser.pType, inp))
     assertResult(
       PathType(Some(AbsoluteFamily(AbsoluteFamily(AbsoluteFamily(Sp(Prog), "A"), "C"), "D")), "R")
-    ){parseSuccess(pType, inp)}
+    ){parseSuccess(TestDefParser.pType, inp)}
   }
 
   test("types: absolute path self head path type") {
     val inp = "self(self(A).C).D.R"
-    assert(canParse(pType, inp))
+    assert(canParse(TestDefParser.pType, inp))
     assertResult(
       PathType(Some(AbsoluteFamily(Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "C")), "D")), "R")
-    ) {parseSuccess(pType, inp)}
+    ) {parseSuccess(TestDefParser.pType, inp)}
   }
 
   test("types: self path type") {
-    assert(canParse(pType, "self(A).R"))
-    assertResult(PathType(Some(Sp(SelfFamily(Sp(Prog), "A"))), "R")){parseSuccess(pType, "self(A).R")}
+    assert(canParse(TestDefParser.pType, "self(A).R"))
+    assertResult(PathType(Some(Sp(SelfFamily(Sp(Prog), "A"))), "R")){parseSuccess(TestDefParser.pType, "self(A).R")}
   }
 
   test("types: self path path type") {
     val inp = "self(self(self(A).C).D).R"
-    assert(canParse(pType, inp))
+    assert(canParse(TestDefParser.pType, inp))
     assertResult(
       PathType(Some(Sp(SelfFamily(Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "C")), "D"))), "R")
-    ){parseSuccess(pType, inp)}
+    ){parseSuccess(TestDefParser.pType, inp)}
   }
 
   test("types: record type") {
-    assert(canParse(pType, "{ a: N, b: B, c: A.R }"))
+    assert(canParse(TestDefParser.pType, "{ a: N, b: B, c: A.R }"))
     assertResult(
       RecType(Map("a"->NType, "b"->BType, "c"->PathType(Some(AbsoluteFamily(Sp(Prog), "A")), "R")))
-    ){parseSuccess(pType, "{ a: N, b: B, c: A.R }")}
+    ){parseSuccess(TestDefParser.pType, "{ a: N, b: B, c: A.R }")}
   }
 
   test("types: paren form") {
-    assert(canParse(pType, "(B->{})"))
-    assertResult(FunType(BType, RecType(Map()))){parseSuccess(pType, "(B->{})")}
+    assert(canParse(TestDefParser.pType, "(B->{})"))
+    assertResult(FunType(BType, RecType(Map()))){parseSuccess(TestDefParser.pType, "(B->{})")}
   }
 
   // Parsing Expressions
   test("exp: true") {
-    assert(canParse(pExp, "true"))
-    assertResult(BExp(true)){parseSuccess(pExp, "true")}
+    assert(canParse(TestDefParser.pExp, "true"))
+    assertResult(BExp(true)){parseSuccess(TestDefParser.pExp, "true")}
   }
 
   test("exp: false") {
-    assert(canParse(pExp, "false"))
-    assertResult(BExp(false)){parseSuccess(pExp, "false")}
+    assert(canParse(TestDefParser.pExp, "false"))
+    assertResult(BExp(false)){parseSuccess(TestDefParser.pExp, "false")}
   }
 
   test("exp: nat") {
-    assert(canParse(pExp, "5"))
-    assertResult(NExp(5)){parseSuccess(pExp, "5")}
+    assert(canParse(TestDefParser.pExp, "5"))
+    assertResult(NExp(5)){parseSuccess(TestDefParser.pExp, "5")}
   }
 
   test("exp: var") {
-    assert(canParse(pExp, "x"))
-    assertResult(Var("x")){parseSuccess(pExp, "x")}
+    assert(canParse(TestDefParser.pExp, "x"))
+    assertResult(Var("x")){parseSuccess(TestDefParser.pExp, "x")}
   }
 
   test("exp: lam") {
-    assert(canParse(pExp, "lam (x: B). x"))
-    assertResult(Lam(Var("x"), BType, Var("x"))){parseSuccess(pExp, "lam (x: B). x")}
+    assert(canParse(TestDefParser.pExp, "lam (x: B). x"))
+    assertResult(Lam(Var("x"), BType, Var("x"))){parseSuccess(TestDefParser.pExp, "lam (x: B). x")}
   }
 
   test("exp: select function from family") {
-    assert(canParse(pExp, "self(A).calculate"))
-    assertResult(FamFun(Some(Sp(SelfFamily(Sp(Prog), "A"))), "calculate")){parseSuccess(pExp, "self(A).calculate")}
+    assert(canParse(TestDefParser.pExp, "self(A).calculate"))
+    assertResult(FamFun(Some(Sp(SelfFamily(Sp(Prog), "A"))), "calculate")){parseSuccess(TestDefParser.pExp, "self(A).calculate")}
   }
 
   test("exp: app") {
-    assert(canParse(pExp, "(lam (x: B). x) true"))
-    assertResult(App(Lam(Var("x"), BType, Var("x")), BExp(true))){parseSuccess(pExp, "(lam (x: B). x) true")}
+    assert(canParse(TestDefParser.pExp, "(lam (x: B). x) true"))
+    assertResult(App(Lam(Var("x"), BType, Var("x")), BExp(true))){parseSuccess(TestDefParser.pExp, "(lam (x: B). x) true")}
     
   }
 
   test("exp: record") {
-    assert(canParse(pExp, "{ a = 5 , b = true }"))
-    assertResult(Rec(Map("a"-> NExp(5), "b" -> BExp(true)))){parseSuccess(pExp, "{ a = 5, b = true }")}
+    assert(canParse(TestDefParser.pExp, "{ a = 5 , b = true }"))
+    assertResult(Rec(Map("a"-> NExp(5), "b" -> BExp(true)))){parseSuccess(TestDefParser.pExp, "{ a = 5, b = true }")}
   }
 
   test("exp: projection") {
-    assert(canParse(pExp, "{ a = 5 , b = true }.b"))
-    assertResult(Proj(Rec(Map("a"-> NExp(5), "b" -> BExp(true))), "b")){parseSuccess(pExp, "{ a = 5 , b = true }.b")}
+    assert(canParse(TestDefParser.pExp, "{ a = 5 , b = true }.b"))
+    assertResult(Proj(Rec(Map("a"-> NExp(5), "b" -> BExp(true))), "b")){parseSuccess(TestDefParser.pExp, "{ a = 5 , b = true }.b")}
   }
 
   test("exp: instance") {
-    assert(canParse(pExp, "A.R({a = 4})"))
+    assert(canParse(TestDefParser.pExp, "A.R({a = 4})"))
     assertResult(
       Inst(PathType(Some(AbsoluteFamily(Sp(Prog), "A")), "R"), Rec(Map("a"->NExp(4))))
-    ){parseSuccess(pExp, "A.R({a = 4})")}
+    ){parseSuccess(TestDefParser.pExp, "A.R({a = 4})")}
   }
 
   test("exp: ADT instance") {
-    assert(canParse(pExp, "A.R(C {})"))
+    assert(canParse(TestDefParser.pExp, "A.R(C {})"))
     assertResult(
       InstADT(PathType(Some(AbsoluteFamily(Sp(Prog), "A")), "R"), "C", Rec(Map()))
-    ){parseSuccess(pExp, "A.R(C {})")}
+    ){parseSuccess(TestDefParser.pExp, "A.R(C {})")}
   }
 
   test("parser: cases with underscores") {
@@ -160,13 +165,13 @@ class ParserTesting extends AnyFunSuite {
       "cases tcase <T> : {} -> {C1: {n: N} -> N, C2: {b: B} -> N, _: {} -> N} = " +
       "lam (x: {}). {C1 = lam (y: {n: N}). 1, C2 = lam (z: {b: B}). 1, _ = lam (w: {}). 0}" +
       "}"
-    assert(canParse(pFamDef(Prog), prog))
+    assert(canParse(TestDefParser.pFamDef(Prog), prog))
   }
 
   // Parsing Families
   test("famdef one type") {
     assert(canParse(
-      pFamDef(Prog), "Family A { type T = {f: B = true, n: N = 3}}"
+      TestDefParser.pFamDef(Prog), "Family A { type T = {f: B = true, n: N = 3}}"
     ))
     assertResult(
       "A" -> DefinitionLinkage(
@@ -177,7 +182,7 @@ class ParserTesting extends AnyFunSuite {
         Map("T" -> DefaultDefn("T", Eq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
         Map(), Map(), Map(), Map()
       )
-    ){parseSuccess(pFamDef(Prog), "Family A { type T = {f: B = true, n: N = 3}}")}
+    ){parseSuccess(TestDefParser.pFamDef(Prog), "Family A { type T = {f: B = true, n: N = 3}}")}
   }
 
   test("famdef extends") {
@@ -190,13 +195,13 @@ class ParserTesting extends AnyFunSuite {
         Map("T" -> DefaultDefn("T", Eq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
         Map(), Map(), Map(), Map()
       )
-    assert(canParse(pFamDef(Prog), fam))
-    assertResult(map){parseSuccess(pFamDef(Prog), fam)}
+    assert(canParse(TestDefParser.pFamDef(Prog), fam))
+    assertResult(map){parseSuccess(TestDefParser.pFamDef(Prog), fam)}
   }
 
   test("famdef extends and plusEquals, missing defaults") {
     assertThrows[Exception](canParse(
-      pFamDef(Prog), "Family A extends C { type T += {f: B, n: N = 3}}"
+      TestDefParser.pFamDef(Prog), "Family A extends C { type T += {f: B, n: N = 3}}"
     ))
   }
 
@@ -210,12 +215,12 @@ class ParserTesting extends AnyFunSuite {
         Map("T" -> DefaultDefn("T", PlusEq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
         Map(), Map(), Map(), Map()
       )
-    assert(canParse(pFamDef(Prog), fam))
-    assertResult(map){parseSuccess(pFamDef(Prog), fam)}
+    assert(canParse(TestDefParser.pFamDef(Prog), fam))
+    assertResult(map){parseSuccess(TestDefParser.pFamDef(Prog), fam)}
   }
 
   test("famdef multiple types") {
-    assert(canParse(pFamDef(Prog),
+    assert(canParse(TestDefParser.pFamDef(Prog),
       "Family A { " +
         "type T = {f: B = true, n: N = 3} " +
         "type R = {s: self(A).T = {}}" +
@@ -236,7 +241,7 @@ class ParserTesting extends AnyFunSuite {
     //     ),
     //     Map(), Map(), Map(), Map()
     //   )
-    // ){parseSuccess(pFamDef(Prog),
+    // ){parseSuccess(TestDefParser.pFamDef(Prog),
     //   "Family A { " +
     //     "type T = {f: B = true, n: N = 3} " +
     //     "type R = {s: self(A).T = {}}" +
@@ -244,7 +249,7 @@ class ParserTesting extends AnyFunSuite {
   }
 
   test("famdef types + ADTs") {
-    assert(canParse(pFamDef(Prog),
+    assert(canParse(TestDefParser.pFamDef(Prog),
       "Family A { " +
         "type T = {f: B = true, n: N = 3} " +
         "type R = {s: self(A).T = {}}" +
@@ -283,7 +288,7 @@ class ParserTesting extends AnyFunSuite {
     //     ),
     //     Map(), Map(), Map()
     //   )
-    // ){parseSuccess(pFamDef(Prog),
+    // ){parseSuccess(TestDefParser.pFamDef(Prog),
     //   "Family A { " +
     //     "type T = {f: B = true, n: N = 3} " +
     //     "type R = {s: self(A).T = {}}" +
@@ -292,7 +297,7 @@ class ParserTesting extends AnyFunSuite {
   }
 
   test("famdef can parse multiple types and ADTs") {
-    assert(canParse(pFamDef(Prog),
+    assert(canParse(TestDefParser.pFamDef(Prog),
       "Family A { " +
         "type T = {f: B = true, n: N = 3} " +
         "type R = {s: self(A).T = {}}" +
@@ -303,7 +308,7 @@ class ParserTesting extends AnyFunSuite {
   }
 
   test("famdef can parse types, adts, functions") {
-    assert(canParse(pFamDef(Prog),
+    assert(canParse(TestDefParser.pFamDef(Prog),
       "Family A { " +
         "type T = {f: B = true, n: N = 3} " +
         "type R = {s: self(A).T = {}}" +
@@ -325,7 +330,7 @@ class ParserTesting extends AnyFunSuite {
      |}
      |""".stripMargin
 
-    assert(canParse(pFamDef(Prog), prog))
+    assert(canParse(TestDefParser.pFamDef(Prog), prog))
 
     // assertResult(
     //   "A" -> Linkage(
@@ -356,7 +361,7 @@ class ParserTesting extends AnyFunSuite {
     //       )
     //     )
     //   )
-    // ){parseSuccess(pFamDef(Prog), prog)}
+    // ){parseSuccess(TestDefParser.pFamDef(Prog), prog)}
   }
 
   test("famdef can parse nested families with types, adts, functions") {
@@ -378,28 +383,28 @@ class ParserTesting extends AnyFunSuite {
 
   // Testing Exceptions
   test("exception: duplicate fields in record") {
-    assertThrows[Exception](parse0(pRecType, "{f: N, f: B}"))
+    assertThrows[Exception](parse0(TestDefParser.pRecType, "{f: N, f: B}"))
   }
 
   test("exception: duplicate constructors in ADT") {
-    assertThrows[Exception](parse0(pAdt, "type T = A {} | A {}"))
+    assertThrows[Exception](parse0(TestDefParser.pAdt, "type T = A {} | A {}"))
   }
 
   test("exception: duplicate family names") {
-    assertThrows[Exception](parse0(pFamDef(Prog), "Family A { Family C {} Family C {} }"))
+    assertThrows[Exception](parse0(TestDefParser.pFamDef(Prog), "Family A { Family C {} Family C {} }"))
   }
 
   test("can parse record fields that are constructors") {
-    assert(canParse(pFieldName, "HelloWorld"))
+    assert(canParse(TestDefParser.pFieldName, "HelloWorld"))
   }
 
   test("can parse cases by themselves") {
-    assert(canParse(pCasesDef, "cases hello_world <T> : {} -> {A: B -> N, C: B -> N} = " +
+    assert(canParse(TestDefParser.pCasesDef, "cases hello_world <T> : {} -> {A: B -> N, C: B -> N} = " +
       "lam (_: {}). {A = lam (x: B). 3, C = lam (x: B). 4}"))
   }
 
   test("can parse extended definition syntax") {
-    assert(canParse(pExtendedDef, """
+    assert(canParse(TestDefParser.pExtendedDef, """
       def plus(n1: N): Exp -> N =
         case EBase() = n1
         case ENat(n2:N) = n2
@@ -407,7 +412,7 @@ class ParserTesting extends AnyFunSuite {
   }
 
   test("can parse extended definition syntax, empty context") {
-    assert(canParse(pExtendedDef, """
+    assert(canParse(TestDefParser.pExtendedDef, """
       def ev: Exp -> N =
         case EBase() = 0
         case ENat(n:N) = n
@@ -415,11 +420,11 @@ class ParserTesting extends AnyFunSuite {
   }
 
   test("can parse extended definition syntax, currying") {
-    assert(canParse(pExp, "foo(a, b, c)(d)"))
+    assert(canParse(TestDefParser.pExp, "foo(a, b, c)(d)"))
   }
 
   test("can parse extended definition syntax, currying empty") {
-    assert(canParse(pExp, "foo()(d)"))
+    assert(canParse(TestDefParser.pExp, "foo()(d)"))
   }
 
   // replaced strings with ints because we don't have strings right now
@@ -452,69 +457,41 @@ class ParserTesting extends AnyFunSuite {
       "  case _ = NoneVal({})" +
       "}"
     //print(parse0(pProgram, fam))
-    assert(canParse(pProgram, fam))
+    assert(canParse(TestDefParser.pProgram, fam))
   }
 
-  // The family definition that is parsed for STLCBase
-  // (STLCBase,
-  //   Linkage(
-  //     AbsoluteFamily(Sp(Prog),STLCBase),
-  //     SelfFamily(Sp(Prog),STLCBase),
-  //     None,
-  //     Map(),
-  //     Map(),
-  //     Map(
-  //       Ty -> AdtDefn(Ty,Eq,
-  //         DefnBody(
-  //           Some(Map(
-  //             TUnit -> RecType(Map()), 
-  //             TNat -> RecType(Map()), 
-  //             TArr -> RecType(Map(t1 -> PathType(None,Ty), t2 -> PathType(None,Ty))))),
-  //           None,
-  //           None, 
-  //           List(Map(
-  //             TUnit -> RecType(Map()), 
-  //             TNat -> RecType(Map()), 
-  //             TArr -> RecType(Map(t1 -> PathType(None,Ty), t2 -> PathType(None,Ty)))))
-  //         )
-  //       ), 
-  //       Val -> AdtDefn(Val,Eq,
-  //         DefnBody(
-  //           Some(Map(
-  //             Unit -> RecType(Map()), 
-  //             Var -> RecType(Map(x -> NType)), 
-  //             Lam -> RecType(Map(x -> NType, e -> PathType(None,Exp))))),
-  //           None,
-  //           None,
-  //           List(Map(
-  //             Unit -> RecType(Map()), 
-  //             Var -> RecType(Map(x -> NType)), 
-  //             Lam -> RecType(Map(x -> NType, e -> PathType(None,Exp)))))
-  //         )
-  //       ), 
-  //       Exp -> AdtDefn(Exp,Eq,DefnBody(Some(Map(EVal -> RecType(Map(v -> PathType(None,Val))), EApp -> RecType(Map(e1 -> PathType(None,Exp), e2 -> PathType(None,Exp))))),None,None,List(Map(EVal -> RecType(Map(v -> PathType(None,Val))), EApp -> RecType(Map(e1 -> PathType(None,Exp), e2 -> PathType(None,Exp))))))), 
-        
-  //       OptionVal -> AdtDefn(OptionVal,Eq,DefnBody(Some(Map(SomeVal -> RecType(Map(v -> PathType(None,Val))), NoneVal -> RecType(Map()))),None,None,List(Map(SomeVal -> RecType(Map(v -> PathType(None,Val))), NoneVal -> RecType(Map())))))
-  //     ),
-        
-  //     Map(
-  //       eval -> FunDefn(eval,FunType(PathType(None,Exp),PathType(None,OptionVal)),
-  //         DefnBody(Some(Lam(Var($m),PathType(None,Exp),
-  //           Match(Var($m),FamCases(None,eval_cases),Rec(Map())))),
-  //           None,
-  //           None,
-  //           List(Lam(Var($m),PathType(None,Exp),Match(Var($m),FamCases(None,eval_cases),Rec(Map()))))
-  //         )
-  //       ), 
-  //       apply -> FunDefn(apply,FunType(PathType(None,Exp),FunType(PathType(None,Val),PathType(None,OptionVal))),
-  //         DefnBody(Some(Lam(Var(_e2),PathType(None,Exp),Lam(Var($m),PathType(None,Val),Match(Var($m),FamCases(None,apply_cases),Rec(Map(e2 -> Var(_e2))))))),None,None,List(Lam(Var(_e2),PathType(None,Exp),Lam(Var($m),PathType(None,Val),Match(Var($m),FamCases(None,apply_cases),Rec(Map(e2 -> Var(_e2)))))))))),
-        
-  //     Map(
-  //       eval_cases -> CasesDefn(eval_cases,PathType(None,Exp),FunType(RecType(Map()),RecType(Map(EVal -> FunType(RecType(Map(v -> PathType(None,Val))),PathType(None,OptionVal)), EApp -> FunType(RecType(Map(e1 -> PathType(None,Exp), e2 -> PathType(None,Exp))),PathType(None,OptionVal))))),List(FunType(RecType(Map()),RecType(Map(EVal -> FunType(RecType(Map(v -> PathType(None,Val))),PathType(None,OptionVal)), EApp -> FunType(RecType(Map(e1 -> PathType(None,Exp), e2 -> PathType(None,Exp))),PathType(None,OptionVal)))))),Eq,DefnBody(Some(Lam(Var($x),RecType(Map()),Rec(Map(EVal -> Lam(Var($m),RecType(Map(v -> PathType(None,Val))),Inst(PathType(None,SomeVal),Rec(Map(v -> Proj(Var($m),v))))), EApp -> Lam(Var($m),RecType(Map(e1 -> PathType(None,Exp), e2 -> PathType(None,Exp))),IfThenElse(App(Var(some),App(Var(eval),Proj(Var($m),e1))),App(Lam(Var(v),PathType(None,Val),App(Var(apply),App(Proj(Var($m),e2),Var(v)))),Proj(App(Var(eval),Proj(Var($m),e1)),v)),Inst(PathType(None,NoneVal),Rec(Map())))))))),None,None,List(Lam(Var($x),RecType(Map()),Rec(Map(EVal -> Lam(Var($m),RecType(Map(v -> PathType(None,Val))),Inst(PathType(None,SomeVal),Rec(Map(v -> Proj(Var($m),v))))), EApp -> Lam(Var($m),RecType(Map(e1 -> PathType(None,Exp), e2 -> PathType(None,Exp))),IfThenElse(App(Var(some),App(Var(eval),Proj(Var($m),e1))),App(Lam(Var(v),PathType(None,Val),App(Var(apply),App(Proj(Var($m),e2),Var(v)))),Proj(App(Var(eval),Proj(Var($m),e1)),v)),Inst(PathType(None,NoneVal),Rec(Map())))))))))), 
-        
-  //       apply_cases -> CasesDefn(apply_cases,PathType(None,Val),FunType(RecType(Map(e2 -> PathType(None,Exp))),RecType(Map(Lam -> FunType(RecType(Map(x -> NType, e -> PathType(None,Exp))),PathType(None,OptionVal)), _ -> FunType(RecType(Map()),PathType(None,OptionVal))))),List(FunType(RecType(Map(e2 -> PathType(None,Exp))),RecType(Map(Lam -> FunType(RecType(Map(x -> NType, e -> PathType(None,Exp))),PathType(None,OptionVal)), _ -> FunType(RecType(Map()),PathType(None,OptionVal)))))),Eq,DefnBody(Some(Lam(Var($x),RecType(Map(e2 -> PathType(None,Exp))),Rec(Map(Lam -> Lam(Var($m),RecType(Map(x -> NType, e -> PathType(None,Exp))),App(Var(eval),App(Var(subst),App(Proj(Var($m),x),App(Proj(Var($x),e2),Proj(Var($m),e)))))), _ -> Lam(Var($m),RecType(Map()),Inst(PathType(None,NoneVal),Rec(Map()))))))),None,None,List(Lam(Var($x),RecType(Map(e2 -> PathType(None,Exp))),Rec(Map(Lam -> Lam(Var($m),RecType(Map(x -> NType, e -> PathType(None,Exp))),App(Var(eval),App(Var(subst),App(Proj(Var($m),x),App(Proj(Var($x),e2),Proj(Var($m),e)))))), _ -> Lam(Var($m),RecType(Map()),Inst(PathType(None,NoneVal),Rec(Map())))))))))
-  //     ),
-      
-  //     Map()))
+  test("typing parser can parse types, adts, functions") {
+    assert(canParseTyp(TestTypParser.pFamDef(Prog),
+      "Family A { " +
+        "type T = {f: B = true, n: N = 3} " +
+        "type R = {s: self(A).T = {}}" +
+        "type List = Nil {} | Cons {x: N, tail: self(A).List}" +
+        "type Weekend = Sat {} | Sun {}" +
+        "val identity: (B -> B) = lam (x: B). x" +
+        "}"
+    ))
+  }
 
+  def writeProg(s: String) = {
+    var wrt = new PrintWriter("program.txt")
+    wrt.write(s)
+    wrt.close()
+  }
+
+  test("Reviewer compute example") {
+    var fam = "Family A {" +
+      "Family K extends A {" +
+      "}" +
+      "}"
+    assert(canParse(TestDefParser.pProgram, fam))
+    var p1 = AbsoluteFamily(Sp(Prog), "A")
+    var p2 = AbsoluteFamily(AbsoluteFamily(Sp(Prog), "A"), "K")
+    writeProg(fam)
+    assertResult(
+      computeDefLinkage(List(p1, p2), p2)
+    ){
+      DefinitionLinkage(p2, relativizePath(p2), Some(p1), 
+        Map(), Map(), Map(), Map(), Map(), Map())
+    }
+  }
 }

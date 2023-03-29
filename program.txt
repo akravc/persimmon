@@ -1,0 +1,1 @@
+Family A {Family K extends A {}}

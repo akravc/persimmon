@@ -136,18 +136,103 @@ object PersimmonSyntax {
   sealed trait Signature
 
   // function signature
-  case class FunSig(name: String, marker: Marker, t: FunType) extends Signature
+  case class FunSig(name: String, t: FunType) extends Signature
 
   // cases signature
   case class CasesSig(name: String, mt: PathType, marker: Marker, t: FunType) extends Signature
 
-  /* ======================== LINKAGES ======================== */
+  /* ======================== LINKAGE SYNTAX ======================== */
 
-  sealed trait Linkage
+  sealed trait Linkage {
 
-  // This version of the linkage holds only
-  // information needed for typechecking -- 
-  // NO definitions.
+    // retrieve path from linkage
+    def getPath(): Path = {
+        assert(this != null)
+        this match {
+            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => path
+            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => path
+        }
+    }
+
+    // retrieve self path from linkage
+    def getSelfPath(): SelfPath = {
+        assert(this != null)
+        this match {
+            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => self
+            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => self
+        }
+    }
+
+    // retrieve super path from linkage
+    def getSuperPath(): Option[AbsoluteFamily] = {
+        assert(this != null)
+        this match {
+            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => sup
+            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => sup
+        }
+    }
+
+    // retrieve nested linkage for family "fam", if it exists
+    def getNestedLinkage(fam: String): Option[Linkage] = {
+        assert(this != null)
+        this match {
+            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => nested.get(fam)
+            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => nested.get(fam) 
+        }
+    }
+
+    def getAllNested(): Map[String, Linkage] = {
+        assert(this != null)
+        this match {
+            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => nested
+            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => nested
+        }
+    }
+
+    def getTypes(): Map[String, TypeDefn] = {
+        assert(this != null)
+        this match {
+            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => types
+            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => types
+        }
+    }
+
+    def getDefaults(): Option[Map[String, DefaultDefn]] = {
+        assert(this != null)
+        this match {
+            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => Some(defaults)
+            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => None
+        }
+    }
+
+    def getAdts(): Map[String, AdtDefn] = {
+        assert(this != null)
+        this match {
+            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => adts
+            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => adts
+        }
+    }
+
+    def getFuns(): Either[Map[String, FunSig], Map[String, FunDefn]]= {
+        assert(this != null)
+        this match {
+            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => Right(funs)
+            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => Left(funs)
+        }
+    }
+
+    def getCases(): Either[Map[String, CasesSig], Map[String, CasesDefn]] = {
+        assert(this != null)
+        this match {
+            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => Right(cases)
+            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => Left(cases)
+        }
+    }
+  }
+  
+  // This version of the linkage 
+  // holds only information needed for typing
+  // -- NO definitions
   case class TypingLinkage(
     path: Path,
     self: SelfPath, // self
