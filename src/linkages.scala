@@ -126,8 +126,49 @@ object PersimmonLinkages {
 
     /* ====================== Linkage Concatenation ====================== */
 
+    // Rule CAT-TOP
     def concatenateLinkages(lkgSuper: Linkage, lkgExt: Linkage, opt: LinkageType): Linkage = {
-        lkgExt // TODO
+        lkgSuper //TODO
     }
 
+
+    // Rule CAT-NEST
+    def concatNestedLinkages(nest1: Map[String, Linkage], nest2: Map[String, Linkage]): Map[String, Linkage] = {
+        nest1 // TODO
+    }
+
+    // Rule CAT-TYPES
+    def concatTypes(types1: Map[String, TypeDefn], types2:Map[String, TypeDefn]): Map[String, TypeDefn] = {
+        types1 // TODO
+    }
+
+    // Rule CAT-ADTS
+    def concatADTS(adts1: Map[String, AdtDefn], adts2: Map[String, AdtDefn]): Map[String, AdtDefn] = {
+        adts1 // TODO
+    }
+
+    // Rule CAT-DEFAULTS
+    def concatDefaults(defs1: Map[String, DefaultDefn], defs2: Map[String, DefaultDefn]): Map[String, DefaultDefn] = {
+        defs1 // TODO
+    }
+
+    // Rule CAT-FUNS-TYP
+    def concatFunSigs(funs1: Map[String, FunSig], funs2: Map[String, FunSig]): Map[String, FunSig] = {
+        funs1 // TODO
+    }
+    
+    // Rule CAT-CASES-TYP
+    def concatCasesSigs(cases1: Map[String, CasesSig], cases2: Map[String, CasesSig]): Map[String, CasesSig] = {
+        cases1 // TODO
+    }
+
+    // Rule CAT-FUNS-DEF
+    def concatFunDefns(funs1: Map[String, FunDefn], funs2: Map[String, FunDefn]): Map[String, FunDefn] = {
+        funs1 // TODO
+    }
+
+    // Rule CAT-CASES-DEF
+    def concatCasesDefns(cases1: Map[String, CasesDefn], cases2: Map[String, CasesDefn]): Map[String, CasesDefn] = {
+        cases1 // TODO
+    }
 }
