@@ -117,7 +117,9 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
     lst =>
       if hasDuplicateName(lst) // disallow records with duplicate fields
       then throw new Exception("Parsing a record type with duplicate fields.")
-      else { RecType(lst.toMap) }
+      else { 
+        val type_fields = lst.collect{case (s, t) => (s, t)}.toMap;
+        RecType(type_fields) }
   }
 
   lazy val pType: PackratParser[Type] = pFunType | pRecType | pNType | pBType 
@@ -268,7 +270,7 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
       else if hasDuplicateName(nested) then throw new Exception("Parsing duplicate family names.")
       else {
         val typedefs = typs.map { 
-            case (s, (m, rt)) => s -> TypeDefn(s, m, null)}.toMap
+          case (s, (m, rt)) => s -> TypeDefn(s, m, DefnBody(Some(rt), None, None)) }.toMap
         
         fam -> TypingLinkage(
           concretizePath(Sp(curSelfPath)),
