@@ -78,9 +78,15 @@ object PersimmonLinkages {
                 val superPath = lkgA.getSuperPath()
                 val superLkg = superPath match {
                     case Some(p) => computeLNest(K, p, opt)
-                    case _ => null // no parent linkage to compute
+                    case _ => opt match { 
+                        // no parent, so return dummy empty linkage
+                        case LinkageType.DefLink => 
+                            DefinitionLinkage(null, null, null, Map(), Map(), Map(), Map(), Map(), Map())
+                        case LinkageType.TypLink => 
+                            TypingLinkage(null, null, null, Map(), Map(), Map(), Map(), Map())
+                    }
                 }
-                concatenateLinkages(superLkg, lkgA, opt)
+                concatenateLinkages(superLkg, lkgA)
             case _ => 
                 throw new LinkageException("L-Nest: no nested linkage for family " + a.fam)
         }
@@ -127,10 +133,39 @@ object PersimmonLinkages {
     /* ====================== Linkage Concatenation ====================== */
 
     // Rule CAT-TOP
-    def concatenateLinkages(lkgSuper: Linkage, lkgExt: Linkage, opt: LinkageType): Linkage = {
-        lkgSuper //TODO
-    }
+    def concatenateLinkages(lkgSuper: Linkage, lkgExt: Linkage): Linkage = {
+        // update paths in inherited code so that they refer to the extension
+        var lkgP = pathSub(lkgSuper, Sp(lkgExt.getSelfPath()), Sp(lkgSuper.getSelfPath()))
 
+        (lkgP, lkgExt) match {
+            // concat typing linkages
+            case (TypingLinkage(p1, sp1, sup1, types1, adts1, funs1, cases1, nested1), TypingLinkage(p2, sp2, sup2, types2, adts2, funs2, cases2, nested2)) =>
+                TypingLinkage(
+                    path = p2,
+                    self = sp2,
+                    sup = sup2,
+                    types = concatTypes(types1, types2),
+                    adts = concatADTS(adts1, adts2),
+                    funs = concatFunSigs(funs1, funs2),
+                    cases = concatCasesSigs(cases1, cases2),
+                    nested = concatNestedLinkages(nested1, nested2).asInstanceOf[Map[String, TypingLinkage]]
+                )
+            // concat definition linkages
+            case (DefinitionLinkage(p1, sp1, sup1, types1, defaults1, adts1, funs1, cases1, nested1), DefinitionLinkage(p2, sp2, sup2, types2, defaults2, adts2, funs2, cases2, nested2)) =>
+                DefinitionLinkage(
+                    path = p2,
+                    self = sp2,
+                    sup = sup2,
+                    types = concatTypes(types1, types2),
+                    defaults = concatDefaults(defaults1, defaults2),
+                    adts = concatADTS(adts1, adts2),
+                    funs = concatFunDefns(funs1, funs2),
+                    cases = concatCasesDefns(cases1, cases2),
+                    nested = concatNestedLinkages(nested1, nested2).asInstanceOf[Map[String, DefinitionLinkage]]
+                )
+            case (_, _) => throw LinkageException("Concatenating incompatible LinkageTypes.")
+        }
+    }
 
     // Rule CAT-NEST
     def concatNestedLinkages(nest1: Map[String, Linkage], nest2: Map[String, Linkage]): Map[String, Linkage] = {
