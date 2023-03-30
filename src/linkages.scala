@@ -1,5 +1,6 @@
 import PersimmonSyntax.*
 import TestDefParser._
+import TestTypParser._
 import PrettyPrint._
 import scala.io.Source
 
@@ -27,17 +28,23 @@ object PersimmonLinkages {
     
     // L-Prog-Typ
     def computeLProgTyp(K: PathCtx): TypingLinkage = {
-        // TODO: do type-level parsing here
-        null
+        val p = readProgram("program.txt")
+        // if parsing successful
+        if (canParseTyp(TestTypParser.pProgram, p)) {
+            // return what was parsed
+            parseSuccessTyp(TestTypParser.pProgram, p)
+        } else {
+            throw new Exception("L-Prog-Def: Cannot parse the program.")
+        }
     }
 
     // L-Prog-Def
     def computeLProgDef(K: PathCtx): DefinitionLinkage = {
         val p = readProgram("program.txt")
         // if parsing successful
-        if (canParse(pProgram, p)) {
+        if (canParse(TestDefParser.pProgram, p)) {
             // return what was parsed
-            parseSuccess(pProgram, p)
+            parseSuccess(TestDefParser.pProgram, p)
         } else {
             throw new Exception("L-Prog-Def: Cannot parse the program.")
         }
