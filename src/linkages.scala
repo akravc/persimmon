@@ -165,32 +165,80 @@ object PersimmonLinkages {
         }
     }
 
+    def subInType(t: Type, p1: Path, p2: Path): Type = {
+        t match {
+            case FunType(input, output) => 
+                FunType(subInType(input, p1, p2), subInType(output, p1, p2))
+            case PathType(path, name) => 
+                if (path == Some(p2)) then PathType(Some(p1), name) else t
+            case RecType(fields) => 
+                RecType(fields.map( (s, t) => (s, subInType(t, p1, p2))))
+            case _ => t
+        }
+    }
+
+    def subInExp(e: Expression, p1: Path, p2: Path): Expression = {
+        e match {
+            case App(e1, e2) => App(subInExp(e1, p1, p2), subInExp(e2, p1, p2))
+            case FamCases(path, name) => 
+                if (path == Some(p2)) then FamCases(Some(p1), name) else e
+            case FamFun(path, name) => 
+                if (path == Some(p2)) then FamFun(Some(p1), name) else e
+            case IfThenElse(condExpr, ifExpr, elseExpr) => 
+                IfThenElse(subInExp(condExpr, p1, p2), subInExp(ifExpr, p1, p2), subInExp(elseExpr, p1, p2))
+            case Inst(t, rec) => 
+                Inst(subInType(t, p1, p2).asInstanceOf[PathType], subInExp(rec, p1, p2).asInstanceOf[Rec])
+            case InstADT(t, cname, rec) => 
+                InstADT(subInType(t, p1, p2).asInstanceOf[PathType], cname, subInExp(rec, p1, p2).asInstanceOf[Rec])
+            case Lam(v, t, body) => 
+                Lam(v, subInType(t, p1, p2), subInExp(body, p1, p2))
+            case Match(e, c, r) => 
+                Match(subInExp(e, p1, p2), subInExp(c, p1, p2).asInstanceOf[FamCases], subInExp(r, p1, p2).asInstanceOf[Rec])
+            case Proj(e, name) => Proj(subInExp(e, p1, p2), name)
+            case Rec(fields) => 
+                Rec(fields.map((s, r) => (s, subInExp(r, p1, p2))))
+            case _ => e
+        }
+    }
+
     def subInTypeDefn(td: TypeDefn, p1: Path, p2: Path): TypeDefn = {
-        null
+        TypeDefn(
+            td.name, td.marker, 
+            subInType(td.typeBody, p1, p2).asInstanceOf[RecType])
     }
 
     def subInDefaultDefn(dd: DefaultDefn, p1: Path, p2: Path): DefaultDefn = {
-        null
+        DefaultDefn(
+            dd.name, dd.marker, 
+            subInExp(dd.defaultBody, p1, p2).asInstanceOf[Rec])
     }
 
     def subInAdt(adt: AdtDefn, p1: Path, p2: Path): AdtDefn = {
-        null
+        AdtDefn(
+            adt.name, adt.marker, 
+            adt.adtBody.map((s, rt) => (s, subInType(rt, p1, p2).asInstanceOf[RecType])))
     }
 
     def subInFunDefn(fd: FunDefn, p1: Path, p2: Path): FunDefn = {
-        null
+        FunDefn(
+            fd.name, subInType(fd.t, p1, p2).asInstanceOf[FunType], 
+            subInExp(fd.funBody, p1, p2).asInstanceOf[Lam])
     }
 
     def subInCasesDefn(cd: CasesDefn, p1: Path, p2: Path): CasesDefn = {
-        null
+        CasesDefn(cd.name, subInType(cd.matchType, p1, p2).asInstanceOf[PathType], subInType(cd.t, p1, p2).asInstanceOf[FunType], 
+        cd.ts.map((t) => (subInType(t, p1, p2))), cd.marker,
+        subInExp(cd.casesBody, p1, p2))
     }
 
     def subInFunSig(fs: FunSig, p1: Path, p2: Path): FunSig = {
-        null
+        FunSig(
+            fs.name, subInType(fs.t, p1, p2).asInstanceOf[FunType])
     }
 
     def subInCasesSig(cs: CasesSig, p1: Path, p2: Path): CasesSig = {
-        null
+        CasesSig(cs.name, subInType(cs.mt, p1, p2).asInstanceOf[PathType], 
+        cs.marker, subInType(cs.t, p1, p2).asInstanceOf[FunType])
     }
 
 
