@@ -178,8 +178,8 @@ class PersimmonTesting extends AnyFunSuite {
         AbsoluteFamily(Sp(Prog), "A"),
         SelfFamily(Sp(Prog), "A"),
         None, 
-        Map("T" -> TypeDefn("T", Eq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
-        Map("T" -> DefaultDefn("T", Eq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
+        Map("T" -> TypeDefn("T", Eq, RecType(Map("f"->BType, "n"->NType)))),
+        Map("T" -> DefaultDefn("T", Eq, Rec(Map("f"->BExp(true), "n"->NExp(3))))),
         Map(), Map(), Map(), Map()
       )
     ){parseSuccess(TestDefParser.pFamDef(Prog), "Family A { type T = {f: B = true, n: N = 3}}")}
@@ -191,8 +191,8 @@ class PersimmonTesting extends AnyFunSuite {
         AbsoluteFamily(Sp(Prog), "A"),
         SelfFamily(Sp(Prog), "A"),
         Some(AbsoluteFamily(Sp(Prog), "C")), 
-        Map("T" -> TypeDefn("T", Eq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
-        Map("T" -> DefaultDefn("T", Eq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
+        Map("T" -> TypeDefn("T", Eq, RecType(Map("f"->BType, "n"->NType)))),
+        Map("T" -> DefaultDefn("T", Eq, Rec(Map("f"->BExp(true), "n"->NExp(3))))),
         Map(), Map(), Map(), Map()
       )
     assert(canParse(TestDefParser.pFamDef(Prog), fam))
@@ -211,8 +211,8 @@ class PersimmonTesting extends AnyFunSuite {
         AbsoluteFamily(Sp(Prog), "A"),
         SelfFamily(Sp(Prog), "A"),
         Some(AbsoluteFamily(Sp(Prog), "C")),
-        Map("T" -> TypeDefn("T", PlusEq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
-        Map("T" -> DefaultDefn("T", PlusEq, DefnBody(Some(Rec(Map("f"->BExp(true), "n"->NExp(3)))), None, None))),
+        Map("T" -> TypeDefn("T", PlusEq, RecType(Map("f"->BType, "n"->NType)))),
+        Map("T" -> DefaultDefn("T", PlusEq, Rec(Map("f"->BExp(true), "n"->NExp(3))))),
         Map(), Map(), Map(), Map()
       )
     assert(canParse(TestDefParser.pFamDef(Prog), fam))
@@ -540,7 +540,7 @@ class PersimmonTesting extends AnyFunSuite {
         AbsoluteFamily(Sp(Prog), "A"),
         SelfFamily(Sp(Prog), "A"),
         None, 
-        Map("T" -> TypeDefn("T", Eq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
+        Map("T" -> TypeDefn("T", Eq, RecType(Map("f"->BType, "n"->NType)))),
         Map(), Map(), Map(), Map()
       )
     ){parseSuccessTyp(TestTypParser.pFamDef(Prog), "Family A { type T = {f: B = true, n: N = 3}}")}
@@ -552,7 +552,7 @@ class PersimmonTesting extends AnyFunSuite {
         AbsoluteFamily(Sp(Prog), "A"),
         SelfFamily(Sp(Prog), "A"),
         Some(AbsoluteFamily(Sp(Prog), "C")), 
-        Map("T" -> TypeDefn("T", Eq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
+        Map("T" -> TypeDefn("T", Eq, RecType(Map("f"->BType, "n"->NType)))),
         Map(), Map(), Map(), Map()
       )
     assert(canParseTyp(TestTypParser.pFamDef(Prog), fam))
@@ -571,7 +571,7 @@ class PersimmonTesting extends AnyFunSuite {
         AbsoluteFamily(Sp(Prog), "A"),
         SelfFamily(Sp(Prog), "A"),
         Some(AbsoluteFamily(Sp(Prog), "C")),
-        Map("T" -> TypeDefn("T", PlusEq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None))),
+        Map("T" -> TypeDefn("T", PlusEq, RecType(Map("f"->BType, "n"->NType)))),
         Map(), Map(), Map(), Map()
       )
     assert(canParseTyp(TestTypParser.pFamDef(Prog), fam))

@@ -105,31 +105,35 @@ object PersimmonSyntax {
   //////////////////////// Definitions and Signatures ////////////////////////
 
   // Things that could be defined or extended / further bound
-  case class DefnBody[B](defn: Option[B], extendsFrom: Option[Path], furtherBindsFrom: Option[Path], allDefns: List[B])
-  def DefnBody[B](defn: Option[B], extendsFrom: Option[Path], furtherBindsFrom: Option[Path]): DefnBody[B] = {
-    val allDefns: List[B] = defn match {
-      case None => List()
-      case Some(x) => List(x)
-    }
-    DefnBody[B](defn, extendsFrom, furtherBindsFrom, allDefns)
-  }
+  // case class DefnBody[B](defn: Option[B], extendsFrom: Option[Path], furtherBindsFrom: Option[Path], allDefns: List[B])
+  // def DefnBody[B](defn: Option[B], extendsFrom: Option[Path], furtherBindsFrom: Option[Path]): DefnBody[B] = {
+  //   val allDefns: List[B] = defn match {
+  //     case None => List()
+  //     case Some(x) => List(x)
+  //   }
+  //   DefnBody[B](defn, extendsFrom, furtherBindsFrom, allDefns)
+  // }
 
   sealed trait Definition
   // types
-  case class TypeDefn(name: String, marker: Marker, typeBody: DefnBody[RecType]) extends Definition
+  case class TypeDefn(name: String, marker: Marker, typeBody: RecType) extends Definition
   
   // defaults
-  case class DefaultDefn(name: String, marker: Marker, defaultBody: DefnBody[Rec]) extends Definition
+  case class DefaultDefn(name: String, marker: Marker, defaultBody: Rec) extends Definition
 
   // ADTs
-  case class AdtDefn(name: String, marker: Marker, adtBody: DefnBody[Map[String, RecType]]) extends Definition
+  case class AdtDefn(name: String, marker: Marker, adtBody: Map[String, RecType]) extends Definition
 
   // Functions
-  case class FunDefn(name: String, t: FunType, funBody: DefnBody[Expression]) extends Definition
+  case class FunDefn(name: String, t: FunType, funBody: Lam) extends Definition
 
   // Cases
-  case class CasesDefn(name: String, matchType: PathType, t: FunType, ts: List[Type], marker: Marker, casesBody: DefnBody[Expression]) extends Definition
-  def CasesDefn(name: String, matchType: PathType, t: FunType, marker: Marker, casesBody: DefnBody[Expression]): CasesDefn =
+  // case class CasesDefn(name: String, matchType: PathType, t: FunType, ts: List[Type], marker: Marker, casesBody: DefnBody[Expression]) extends Definition
+  // def CasesDefn(name: String, matchType: PathType, t: FunType, marker: Marker, casesBody: DefnBody[Expression]): CasesDefn =
+  //   CasesDefn(name, matchType, t, List(t), marker, casesBody)
+
+  case class CasesDefn(name: String, matchType: PathType, t: FunType, ts: List[Type], marker: Marker, casesBody: Expression) extends Definition
+  def CasesDefn(name: String, matchType: PathType, t: FunType, marker: Marker, casesBody: Expression): CasesDefn =
     CasesDefn(name, matchType, t, List(t), marker, casesBody)
 
   

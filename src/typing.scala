@@ -42,15 +42,14 @@ object PersimmonTyping {
     }
     case Inst(t, rec) =>
       computeTypLinkage(K, t.path.get).types.get(t.name).flatMap { typeDefn =>
-        val fields = typeDefn.typeBody.defn.get.fields
+        val fields = typeDefn.typeBody.fields
         if fields.keySet == rec.fields.keySet && fields.forall(
           (name, ft) => getType(K, Gamma, rec.fields.get(name).get) == Some(ft)
         ) then Some(t) else None
       }
     case InstADT(t, cname, rec) =>
       computeTypLinkage(K, t.path.get).adts.get(t.name).flatMap { adtDefn =>
-        val cases = adtDefn.adtBody.defn.get
-        cases.get(cname).flatMap { recType =>
+        adtDefn.adtBody.get(cname).flatMap { recType =>
           val fields = rec.fields
           if fields.keySet == rec.fields.keySet &&
           fields.forall { (name, ft) =>
@@ -89,7 +88,7 @@ object PersimmonTyping {
     else t1 match {
       case PathType(path, name) =>
         val typeDefn = computeTypLinkage(K, path.get).types.get(name).get
-        isSubtype(K, typeDefn.typeBody.defn.get, t2)
+        isSubtype(K, typeDefn.typeBody, t2)
       case FunType(input1, output1) =>
         t2 match {
           case FunType(input2, output2) =>

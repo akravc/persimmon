@@ -135,7 +135,7 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
       case n~m~cs =>
         if hasDuplicateName(cs) // disallow ADTs with duplicate constructors
         then throw new Exception("Parsing an ADT with duplicate constructors.")
-        else AdtDefn(n, m, DefnBody(Some(cs.toMap), None, None))
+        else AdtDefn(n, m, cs.toMap)
     }
 
   // EXPRESSIONS
@@ -200,15 +200,15 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
     pAdt ^^ { a => a.name -> a }
 
   lazy val pFunDef: PackratParser[(String, FunDefn)] =
-    kwVal ~> pFunctionName ~ (":" ~> optBetween("(", ")", pFunType)) ~ ("=" ~> pExp) ^^ {
-      case n~t~b => n -> FunDefn(n, t, DefnBody(Some(b), None, None))
+    kwVal ~> pFunctionName ~ (":" ~> optBetween("(", ")", pFunType)) ~ ("=" ~> pExpLam) ^^ {
+      case n~t~b => n -> FunDefn(n, t, b)
     }
 
   lazy val pMatchType: PackratParser[PathType] = between("<", ">", pFamType)
   // mt = match type, m = marker, ft = funtype, lam = body
   lazy val pCasesDef: PackratParser[(String, CasesDefn)] =
     kwCases ~> pFunctionName ~ pMatchType ~ (":" ~> optBetween("(", ")", pFunType)) ~ pMarker ~ pExp ^^ {
-      case n~mt~ft~m~b => n -> CasesDefn(n, mt, ft, m, DefnBody(Some(b), None, None))
+      case n~mt~ft~m~b => n -> CasesDefn(n, mt, ft, m, b)
     }
 
 
@@ -252,7 +252,7 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
           val body = paramsTr.foldRight(body0){case ((p,t),r) =>
             Lam(Var(p), t, r)
           }
-          Some(FunDefn(name, foldedType, DefnBody(Some(body), None, None)))
+          Some(FunDefn(name, foldedType, body))
         }
         case PlusEq => None
       }
@@ -261,7 +261,7 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
           Lam(matched_var, RecType(c.params.toMap),
             var2proj(matched_var, c.params.map(_._1).toSet)(
               c.body)))}.toMap))
-      val cases = CasesDefn(name_cases, matchType, t, marker, DefnBody(Some(b), None, None))
+      val cases = CasesDefn(name_cases, matchType, t, marker, b)
       success(name -> (fun, cases))
     }
   }
@@ -316,8 +316,8 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
           // family does not extend another
           case None => ()
         }
-        val typedefs = typs.map { case (s, (m, (rt, r))) => s -> TypeDefn(s, m, DefnBody(Some(rt), None, None)) }.toMap
-        val defaults = typs.collect{ case (s, (m, (rt, r))) => s -> DefaultDefn(s, m, DefnBody(Some(r), None, None)) }.toMap
+        val typedefs = typs.map { case (s, (m, (rt, r))) => s -> TypeDefn(s, m, rt) }.toMap
+        val defaults = typs.collect{ case (s, (m, (rt, r))) => s -> DefaultDefn(s, m, r) }.toMap
 
         val funHeaders = funs.map { 
           case (s, fundefn) => s -> fundefn.t

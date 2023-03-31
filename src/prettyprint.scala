@@ -61,17 +61,17 @@ object PrettyPrint {
   def printADT(a: AdtDefn) : String = a match {
     case AdtDefn(name, marker, adtBody) =>
       "type " + name + printMarker(marker) +
-        printBody(adtBody)(_.map {
+        adtBody.map {
           (c, r) => c + " " + printType(r)
-        }.mkString(" | ")) +
+        }.mkString(" | ") +
         "\n"
   }
 
-  def printBody[B](body: DefnBody[B])(printB: B => String): String = {
-    val DefnBody(defn, extendsFrom, furtherBindsFrom, _) = body
-    val bPretty = defn.map(printB)
-    s"[$bPretty, extends from: ${extendsFrom.map(printPath)}, further binds from: ${furtherBindsFrom.map(printPath)}]"
-  }
+  // def printBody[B](body: DefnBody[B])(printB: B => String): String = {
+  //   val DefnBody(defn, extendsFrom, furtherBindsFrom, _) = body
+  //   val bPretty = defn.map(printB)
+  //   s"[$bPretty, extends from: ${extendsFrom.map(printPath)}, further binds from: ${furtherBindsFrom.map(printPath)}]"
+  // }
 
   def printLkg(lkg: Linkage, offset: String): Unit = {
     print(offset + "LINKAGE DEFINITION: \n\n")
@@ -90,7 +90,7 @@ object PrettyPrint {
 
     print(offset + "TYPES:\n")
     val typemap = lkg.getTypes().view.mapValues{
-      case TypeDefn(name, marker, typeBody) => "type " + name + printMarker(marker) +  printBody(typeBody)(printType) + "\n"
+      case TypeDefn(name, marker, typeBody) => "type " + name + printMarker(marker) +  printType(typeBody) + "\n"
     }
     print(offset + typemap.mkString)
     print("\n\n")
@@ -101,7 +101,7 @@ object PrettyPrint {
         case Some(map) =>
             print(offset + "DEFAULTS:\n")
             val defmap = map.view.mapValues {
-                case DefaultDefn(s, m, defaultBody) => "type " + s + printMarker(m) +  printBody(defaultBody)(printExp) + "\n"
+                case DefaultDefn(s, m, defaultBody) => "type " + s + printMarker(m) +  printExp(defaultBody) + "\n"
             }
             print(offset + defmap.mkString)
             print("\n\n")
@@ -119,7 +119,7 @@ object PrettyPrint {
     lkg.getFuns() match {
         case Right(mdefs) =>
             funmap = mdefs.map{ case (_, FunDefn(s, ft, body)) =>
-                "val " + s + ": " + printType(ft) + " = " + printBody(body)(printExp) + "\n"}
+                "val " + s + ": " + printType(ft) + " = " + printExp(body) + "\n"}
         case Left(msigs) => 
             funmap = msigs.map{ case (_, FunSig(s, ft)) =>
                 "val " + s + ": " + printType(ft) + "\n" }
@@ -132,7 +132,7 @@ object PrettyPrint {
     lkg.getCases() match {
         case Right(cdefs) =>
             casemap = cdefs.map{ case (_, CasesDefn(s, mt, ft, _, m, body)) =>
-                "cases " + s + "<" + printType(mt) + ">" + ": " + printType(ft) + printMarker(m) + printBody(body)(printExp) + "\n"}
+                "cases " + s + "<" + printType(mt) + ">" + ": " + printType(ft) + printMarker(m) + printExp(body) + "\n"}
         case Left(csigs) => 
             casemap = csigs.map{ case (_, CasesSig(s, mt, m, ft)) =>
                 "cases " + s + "<" + printType(mt) + ">" + ": " + printType(ft) + printMarker(m) + "\n"}

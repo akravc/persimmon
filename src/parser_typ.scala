@@ -132,7 +132,7 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
       case n~m~cs =>
         if hasDuplicateName(cs) // disallow ADTs with duplicate constructors
         then throw new Exception("Parsing an ADT with duplicate constructors.")
-        else AdtDefn(n, m, DefnBody(Some(cs.toMap), None, None))
+        else AdtDefn(n, m, cs.toMap)
     }
 
   // EXPRESSIONS
@@ -270,7 +270,7 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
       else if hasDuplicateName(nested) then throw new Exception("Parsing duplicate family names.")
       else {
         val typedefs = typs.map { 
-          case (s, (m, rt)) => s -> TypeDefn(s, m, DefnBody(Some(rt), None, None)) }.toMap
+          case (s, (m, rt)) => s -> TypeDefn(s, m, rt) }.toMap
         
         fam -> TypingLinkage(
           concretizePath(Sp(curSelfPath)),
