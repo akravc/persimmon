@@ -1,24 +1,14 @@
 import PersimmonSyntax.*
 import PersimmonLinkages.*
+import PersimmonWF.*
 
 object PersimmonTyping {
-  def isWellFormed(K: PathCtx, t: Type): Boolean = t match {
-    case NType => true
-    case BType => true
-    case FunType(input, output) => isWellFormed(K, input) && isWellFormed(K, output)
-    case PathType(path, name) =>
-      val linkage = computeTypLinkage(K, path.get)
-      linkage.types.contains(name) || linkage.adts.contains(name)
-    case RecType(fields) =>
-      fields.forall { (name, t) => isWellFormed(K, t) }
-  }
-  
   def getType(K: PathCtx, Gamma: TypingCtx, e: Expression): Option[Type] = e match {
     case NExp(n) => Some(NType)
     case BExp(b) => Some(BType)
     case Var(id) => Gamma.get(id)
     case Lam(v, t, b) =>
-      if isWellFormed(K, t) then
+      if wfType(K, t) then
         getType(K, Gamma + (v.id -> t), b).map { bt => FunType(t, bt) }
       else None
     case FamFun(path, name) =>

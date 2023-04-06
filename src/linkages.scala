@@ -355,8 +355,7 @@ object PersimmonLinkages {
         case Some(fun1) =>
           if fun1.t != fun2.t then
             throw LinkageException("Concattenating linkages with duplicate incompatible function signatures.")
-          else
-            (name, fun1)
+          else (name, fun1)
         case None => (name, fun2)
       }
     }
