@@ -3,13 +3,17 @@ import PersimmonTyping.*
 import PersimmonLinkages.*
 
 object PersimmonWF {
-
-
+  
   // Well-formedness of definitions
   // the top level rule recursively checks 
   // the definition linkage for path prog
   def wfDef(K: PathCtx, lkg: DefinitionLinkage): Boolean = {
     true
+  }
+
+  // ancestors function
+  def ancestors(p: SelfPath): List[SelfPath] = {
+    List()
   }
 
   // well-formedness of type definitions
@@ -37,6 +41,10 @@ object PersimmonWF {
     true
   }
 
+  // rule EC-Nest
+  def exhaustivityCheck(K: PathCtx, lkg: TypingLinkage): Boolean = {
+    true
+  }
 
 
   // Well-formedness of types
