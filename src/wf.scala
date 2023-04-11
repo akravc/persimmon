@@ -3,7 +3,7 @@ import PersimmonTyping.*
 import PersimmonLinkages.*
 
 object PersimmonWF {
-  
+
   // Well-formedness of definitions
   // the top level rule recursively checks 
   // the definition linkage for path prog
@@ -17,7 +17,7 @@ object PersimmonWF {
   }
 
   // well-formedness of type definitions
-  def wfTypDef(K: PathCtx, td: TypeDefn, dd: DefaultDefn): Boolean = {
+  def wfTypDef(K: PathCtx, td: TypeDefn): Boolean = {
     true
   }
 

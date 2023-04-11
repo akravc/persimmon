@@ -281,5 +281,5 @@ object PersimmonSyntax {
     /* ======================== Contexts ======================== */
 
     type TypingCtx = Map[String, Type] // Gamma
-    type PathCtx = List[Path] // K
+    type PathCtx = List[SelfPath] // K
 }
