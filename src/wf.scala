@@ -3,10 +3,41 @@ import PersimmonTyping.*
 import PersimmonLinkages.*
 
 object PersimmonWF {
+
+
   // Well-formedness of definitions
-  def wfDef(K: PathCtx, d: Definition): Boolean = {
+  // the top level rule recursively checks 
+  // the definition linkage for path prog
+  def wfDef(K: PathCtx, lkg: DefinitionLinkage): Boolean = {
     true
   }
+
+  // well-formedness of type definitions
+  def wfTypDef(K: PathCtx, td: TypeDefn, dd: DefaultDefn): Boolean = {
+    true
+  }
+
+  // well-formedness of type extensions and their defaults
+  def wfTypDefExt(K: PathCtx, td: TypeDefn, dd: DefaultDefn): Boolean = {
+    true
+  }
+
+  // well-formedness of ADT definitions
+  def wfAdtDef(K: PathCtx, adt: AdtDefn): Boolean = {
+    true
+  }
+
+  // well-formedness of functions
+  def wfFunDef(K: PathCtx, fd: FunDefn): Boolean = {
+    true
+  }
+
+  // well-formedness of cases definitions
+  def wfCasesDef(K: PathCtx, cd: CasesDefn): Boolean = {
+    true
+  }
+
+
 
   // Well-formedness of types
   def wfType(K: PathCtx, t: Type): Boolean = t match {
