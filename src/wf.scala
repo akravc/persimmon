@@ -46,10 +46,11 @@ object PersimmonWF {
   // ancestors function
   // TODO: make sure the context passed into there has ALL paths
   // in the program
-  def ancestors(K: PathCtx, p: SelfPath): List[SelfPath] = {
+  def ancestors(p: SelfPath): List[SelfPath] = {
+    var K = allPathsContext()
     var currLkg = computeTypLinkage(K, Sp(p))
     currLkg.getSuperPath() match {
-      case Some(p) => relativizePath(p) :: ancestors(K, relativizePath(p))
+      case Some(p) => relativizePath(p) :: ancestors(relativizePath(p))
       case None => return List()
     } 
   }

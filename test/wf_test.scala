@@ -11,16 +11,18 @@ import java.io.File
 
 class WFTesting extends AnyFunSuite {
 
-    test("collect all paths") {
+    test("wf - collect all paths") {
         var fam = 
-            "Family A {" +
-                "Family K {" +
-                    "Family C {" +
-                    "}" +
-                "}" +
-                "Family M {" +
-                "}" +
-            "}"
+            """
+            | Family A {
+            |   Family K {
+            |       Family C {
+            |       }
+            |   }
+            |   Family M {
+            |   }
+            |}
+            """.stripMargin
         assert(canParse(TestDefParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var lkg = computeTypLinkage(List(Prog), Sp(Prog))
@@ -33,16 +35,18 @@ class WFTesting extends AnyFunSuite {
         }
     }
 
-    test("ancestors") {
+    test("wf - ancestors empty") {
         var fam = 
-            "Family A {" +
-                "Family K {" +
-                    "Family C {" +
-                    "}" +
-                "}" +
-                "Family M {" +
-                "}" +
-            "}"
+            """
+            | Family A {
+            |   Family K {
+            |       Family C {
+            |       }
+            |   }
+            |   Family M {
+            |   }
+            |}
+            """.stripMargin
         assert(canParse(TestDefParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var lkg = computeTypLinkage(List(Prog), Sp(Prog))
@@ -50,8 +54,32 @@ class WFTesting extends AnyFunSuite {
         var p2 = SelfFamily(Sp(p1), "K")
         var p3 = SelfFamily(Sp(p2), "C")
         var p4 = SelfFamily(Sp(p1), "M")
-        assertResult{ancestors(List(p1, p2, p3, p4, Prog), p3).toSet}{
+        assertResult{ancestors(p3).toSet}{
             List().toSet
+        }
+    }
+
+    test("wf - ancestors nonempty") {
+        var fam = 
+            """
+            | Family A {
+            |   Family K {
+            |       Family C extends M {
+            |       }
+            |   }
+            |   Family M extends A {
+            |   }
+            |}
+            """.stripMargin
+        assert(canParse(TestDefParser.pProgram, fam))
+        PersimmonLinkages.p = fam
+        var lkg = computeTypLinkage(List(Prog), Sp(Prog))
+        var p1 = SelfFamily(Sp(Prog), "A")
+        var p2 = SelfFamily(Sp(p1), "K")
+        var p3 = SelfFamily(Sp(p2), "C")
+        var p4 = SelfFamily(Sp(p1), "M")
+        assertResult{ancestors(p3).toSet}{
+            List(p4, p1).toSet
         }
     }
 
