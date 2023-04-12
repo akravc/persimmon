@@ -11,9 +11,30 @@ object PersimmonWF {
     true
   }
 
+  // this recursively gets all paths from the program 
+  // by traversing the typing linkage for prog
+  def allPathsContext(): List[SelfPath] = {
+    var lkg = computeTypLinkage(List(), Sp(Prog))
+    collectAllPathsWithin(lkg)
+  }
+
+  def collectAllPathsWithin(lkg: TypingLinkage): List[SelfPath] = {
+    var lstResult = lkg.self :: List()
+    for ((famName, nestLkg) <- lkg.nested) {
+      lstResult = collectAllPathsWithin(nestLkg) ++ lstResult
+    }
+    lstResult
+  }
+
   // ancestors function
-  def ancestors(p: SelfPath): List[SelfPath] = {
-    List()
+  // TODO: make sure the context passed into there has ALL paths
+  // in the program
+  def ancestors(K: PathCtx, p: SelfPath): List[SelfPath] = {
+    var currLkg = computeTypLinkage(K, Sp(p))
+    currLkg.getSuperPath() match {
+      case Some(p) => relativizePath(p) :: ancestors(K, relativizePath(p))
+      case None => return List()
+    } 
   }
 
   // well-formedness of type definitions
