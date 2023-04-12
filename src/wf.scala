@@ -99,14 +99,20 @@ object PersimmonWF {
       val L_S_prime = computeTypLinkage(K, cases.mt.path.get)
       L_S_prime.adts.contains(name) &&
       (cases.t.output match {
-        case RecType(rec) => L_S_prime.adts(name).adtBody == rec // TODO: Does this do what I want it to do?
+        case RecType(rec) => {
+          L_S_prime.adts(name).adtBody == rec.map { (name, t) =>
+            t match {
+              case FunType(input, _) => input
+              case _ => throw Exception("Output type for cases signature has fields which are not arrow types.")
+            }
+          }
+        } // TODO: Does this do what I want it to do?
         case _ => throw Exception("Output type for cases signature is not a record type.") // TODO: Is this the right way to handle this error?
       })
-    }} &&
-    lkg.nested.forall { (name, A) => {
+    }} && lkg.nested.forall { (name, A) => {
       // TODO: Is this equivalent to the version in the paper?
-      val K_prime = List(lkg.self) ++ K
-      val L_S_prime_prime = computeTypLinkage(K_prime, Sp(lkg.self))
+      val K_prime = List(A.self) ++ K
+      val L_S_prime_prime = computeTypLinkage(K_prime, Sp(A.self))
       exhaustivityCheck(K_prime, L_S_prime_prime)
     }}
   }
