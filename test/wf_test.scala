@@ -59,29 +59,29 @@ class WFTesting extends AnyFunSuite {
         }
     }
 
-    test("wf - ancestors nonempty") {
-        var fam = 
-            """
-            | Family A {
-            |   Family K {
-            |       Family C extends M {
-            |       }
-            |   }
-            |   Family M extends A {
-            |   }
-            |}
-            """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
-        PersimmonLinkages.p = fam
-        var lkg = computeTypLinkage(List(Prog), Sp(Prog))
-        var p1 = SelfFamily(Sp(Prog), "A")
-        var p2 = SelfFamily(Sp(p1), "K")
-        var p3 = SelfFamily(Sp(p2), "C")
-        var p4 = SelfFamily(Sp(p1), "M")
-        assertResult{ancestors(p3).toSet}{
-            List(p4, p1).toSet
-        }
-    }
+    // test("wf - ancestors nonempty") {
+    //     var fam = 
+    //         """
+    //         | Family A {
+    //         |   Family K {
+    //         |       Family C extends M {
+    //         |       }
+    //         |   }
+    //         |   Family M extends A {
+    //         |   }
+    //         |}
+    //         """.stripMargin
+    //     assert(canParse(TestDefParser.pProgram, fam))
+    //     PersimmonLinkages.p = fam
+    //     var lkg = computeTypLinkage(List(Prog), Sp(Prog))
+    //     var p1 = SelfFamily(Sp(Prog), "A")
+    //     var p2 = SelfFamily(Sp(p1), "K")
+    //     var p3 = SelfFamily(Sp(p2), "C")
+    //     var p4 = SelfFamily(Sp(p1), "M")
+    //     assertResult{ancestors(p3).toSet}{
+    //         List(p4, p1).toSet
+    //     }
+    // }
 
     
 

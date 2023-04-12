@@ -239,171 +239,162 @@ class TypecheckerTesting extends AnyFunSuite {
         assertResult(false)(isSubtype(List(), BType, FunType(BType,NType)))
     }
 
-//   // TESTING TYP_INF
+    // TESTING TYP_INF
 
-//   val emptyLinkage = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(), Map())
+    val emptyK = List()
+    val emptyG: Map[String, Type] = Map()
 
-//   val typInf = typeOfExpression(emptyLinkage, Map())
+    test("getType: nat") {
+        assertResult(Some(NType)){getType(emptyK, emptyG, NExp(5))}
+    }
 
-//   test("typinf: nat") {
-//     assertResult(Right(NType)){typInf(NExp(5))}
-//   }
+    test("getType: bool") {
+        assertResult(Some(BType)){getType(emptyK, emptyG, BExp(true))}
+        assertResult(Some(BType)){getType(emptyK, emptyG, BExp(false))}
+    }
 
-//   test("typinf: bool") {
-//     assertResult(Right(BType)){typInf(BExp(true))}
-//     assertResult(Right(BType)){typInf(BExp(false))}
-//   }
+    test("getType: var") {
+        assertResult(Some(NType)){getType(emptyK, Map("x"->NType), (Var("x")))}
+    }
 
-//   test("typinf: var") {
-//     assertResult(Right(NType)){typeOfExpression(emptyLinkage, Map("x"->NType))(Var("x"))}
-//   }
+    test("getType: var none") {
+        assertResult(None){getType(emptyK, emptyG, Var("x"))}
+    }
 
-//   test("typinf: var none") {
-//     assertResult(Left("Variable x unbound\nIn expression x")){typInf(Var("x"))}
-//   }
+    test("getType: lam") {
+        assertResult(Some(FunType(BType, NType))){
+        getType(emptyK, emptyG, Lam(Var("x"), BType, NExp(5)))
+        }
+    }
 
-//   test("typinf: lam") {
-//     assertResult(Right(FunType(BType, NType))){
-//       typInf(Lam(Var("x"), BType, NExp(5)))
-//     }
-//   }
+    test("getType: lam identity") {
+        assertResult(Some(FunType(BType, BType))){
+        getType(emptyK, emptyG, Lam(Var("x"), BType, Var("x")))
+        }
+    }
 
-//   test("typinf: lam identity") {
-//     assertResult(Right(FunType(BType, BType))){
-//       typInf(Lam(Var("x"), BType, Var("x")))
-//     }
-//   }
+    test("getType: app") {
+        assertResult(Some(NType)){
+        getType(emptyK, emptyG, App(Lam(Var("x"), BType, NExp(5)), BExp(true)))
+        }
+    }
 
-//   test("typinf: app") {
-//     assertResult(Right(NType)){
-//       typInf(App(Lam(Var("x"), BType, NExp(5)), BExp(true)))
-//     }
-//   }
+    test("getType: app improper") {
+        assertResult(None){ getType(emptyK, emptyG, App(Var("x"), BExp(true)))}
+    }
 
-//   test("typinf: app improper") {
-//     assertResult(Left("Variable x unbound\nIn expression x\nIn expression (x true)")){
-//       typInf(App(Var("x"), BExp(true)))
-//     }
-//   }
+    test("getType: rec") {
+        assertResult(Some(RecType(Map("f"->BType, "p"->NType)))){
+        getType(emptyK, emptyG, Rec(Map("f"->BExp(true), "p"->NExp(4))))
+        }
+    }
 
-//   test("typinf: rec") {
-//     assertResult(Right(RecType(Map("f"->BType, "p"->NType)))){
-//       typInf(Rec(Map("f"->BExp(true), "p"->NExp(4))))
-//     }
-//   }
+    test("getType: rec improper") {
+        assertResult(None){ 
+            getType(emptyK, emptyG, Rec(Map("f"->BExp(true), "p"->App(NExp(4), BExp(true)))))
+        }
+    }
 
-//   def isLeft[A,B](x: Either[A,B]) = x match {
-//     case Left(_) => true
-//     case Right(_) => false
-//   }
+    test("getType: rec empty") {
+        assertResult(Some(RecType(Map()))){getType(emptyK, emptyG, Rec(Map()))}
+    }
 
-//   test("typinf: rec improper") {
-//     assert(isLeft(
-//       typInf(Rec(Map("f"->BExp(true), "p"->App(NExp(4), BExp(true)))))))
-//   }
+    test("getType: proj") {
+        assertResult(Some(NType)){
+        getType(emptyK, emptyG, Proj(Rec(Map("f"->BExp(true), "p"->NExp(4))), "p"))
+        }
+    }
 
-//   test("typinf: rec empty") {
-//     assertResult(Right(RecType(Map()))){typInf(Rec(Map()))}
-//   }
+    test("getType: proj field absent") {
+        assertResult(None){
+        getType(emptyK, emptyG, Proj(Rec(Map("f"->BExp(true), "p"->NExp(4))), "g"))}
+    }
 
-//   test("typinf: proj") {
-//     assertResult(Right(NType)){
-//       typInf(Proj(Rec(Map("f"->BExp(true), "p"->NExp(4))), "p"))
-//     }
-//   }
+    test("getType: proj from not record") {
+        assertResult(None){
+        getType(emptyK, emptyG, Proj(Var("x"), "x"))}
+    }
 
-//   test("typinf: proj field absent") {
-//     assert(isLeft(
-//       typInf(Proj(Rec(Map("f"->BExp(true), "p"->NExp(4))), "g"))))
-//   }
+    // self(A).m : (B -> N) = lam (x: B). 5
+    test("getType: fam fun") {
+        val self_a = SelfFamily(Sp(Prog), "A")
+        var fam = 
+            """
+            | Family A {
+            |   val m: (B -> N) = lam (x: B). 5
+            | }
+            """.stripMargin
+        assert(canParse(TestDefParser.pProgram, fam))
+        PersimmonLinkages.p = fam
+        assertResult(Some(FunType(BType, NType))){
+        getType(List(Prog, self_a), emptyG, FamFun(Some(Sp(self_a)), "m"))
+        }
+    }
 
-//   test("typinf: proj from not record") {
-//     assert(isLeft(
-//       typInf(Proj(Var("x"), "x"))))
-//   }
+    // self(A).m does not exist, we have self(A).g instead
+    test("getType: fam fun not in linkage") {
+        val self_a = SelfFamily(Sp(Prog), "A")
+        var fam = 
+            """
+            | Family A {
+            |   val g: (B -> N) = lam (x: B). 5
+            | }
+            """.stripMargin
+        assert(canParse(TestDefParser.pProgram, fam))
+        PersimmonLinkages.p = fam
+        assertResult(None){
+            getType(List(Prog, self_a), emptyG, FamFun(Some(Sp(self_a)), "m"))
+        }
+    }
 
-//   // self(A).m : (B -> N) = lam (x: B). 5
-//   test("typinf: fam fun") {
-//     val self_a = SelfFamily(Sp(Prog), "A")
-//     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
-//       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
-//         Map(), Map(), Map(),
-//         Map("m"->(FunDefn("m", FunType(BType, NType), DefnBody(Some(Lam(Var("x"), BType, NExp(5))), None, None)))),
-//         Map(), Map())))
-//     init(k)
-//     assertResult(Right(FunType(BType, NType))){
-//       typInf(FamFun(Some(Sp(self_a)), "m"))
-//     }
-//   }
-
-//   // self(A).m does not exist, we have self(A).g instead
-//   test("typinf: fam fun not in linkage") {
-//     val self_a = SelfFamily(Sp(Prog), "A")
-//     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
-//       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
-//         Map(), Map(), Map(),
-//         Map("g"->(FunDefn("g", FunType(BType, NType), DefnBody(Some(Lam(Var("x"), BType, NExp(5))), None, None)))),
-//         Map(), Map())))
-//     init(k)
-//     assertResult(Left("No such function m\nIn expression self(<>.A).m")){
-//       typInf(FamFun(Some(Sp(self_a)), "m"))
-//     }
-//   }
-
-//   test("typinf: fam fun, absent linkage for self_a") {
-//     val self_a = SelfFamily(Sp(Prog), "A")
-//     assert(isLeft(
-//       typInf(FamFun(Some(Sp(self_a)), "m"))
-//     ))
-//   }
 
 //   // self(A).R({f->true, n->5})
-//   test("typinf: instance of type") {
+//   test("getType: instance of type") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
 //         Map("R"->(TypeDefn("R", Eq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None)))), Map(), Map(), Map(), Map(), Map())))
 //     init(k)
-//     assertResult(Right(PathType(Some(Sp(self_a)), "R"))){
-//       typInf(Inst(PathType(Some(Sp(self_a)), "R"), Rec(Map("f"->BExp(true), "n"->NExp(5)))))
+//     assertResult(Some(PathType(Some(Sp(self_a)), "R"))){
+//       getType(emptyK, emptyG, Inst(PathType(Some(Sp(self_a)), "R"), Rec(Map("f"->BExp(true), "n"->NExp(5)))))
 //     }
 //   }
 
-//   test("typinf: instance of type wrong field name") {
+//   test("getType: instance of type wrong field name") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
 //         Map("R"->(TypeDefn("R", Eq, DefnBody(Some(RecType(Map("f"->BType, "p"->NType))), None, None)))), Map(), Map(), Map(), Map(), Map())))
 //     init(k)
 //     assert(isLeft(
-//       typInf(Inst(PathType(Some(Sp(self_a)), "R"), Rec(Map("f"->BExp(true), "n"->NExp(5)))))
+//       getType(emptyK, emptyG, Inst(PathType(Some(Sp(self_a)), "R"), Rec(Map("f"->BExp(true), "n"->NExp(5)))))
 //     ))
 //   }
 
-//   test("typinf: instance of type wrong field type") {
+//   test("getType: instance of type wrong field type") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
 //         Map("R"->(TypeDefn("R", Eq, DefnBody(Some(RecType(Map("f"->BType, "n"->BType))), None, None)))), Map(), Map(), Map(), Map(), Map())))
 //     init(k)
 //     assert(isLeft(
-//       typInf(Inst(PathType(Some(Sp(self_a)), "R"), Rec(Map("f"->BExp(true), "n"->NExp(5)))))
+//       getType(emptyK, emptyG, Inst(PathType(Some(Sp(self_a)), "R"), Rec(Map("f"->BExp(true), "n"->NExp(5)))))
 //     ))
 //   }
 
-//   test("typinf: instance of type wrong type name") {
+//   test("getType: instance of type wrong type name") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
 //         Map("R"->(TypeDefn("R", Eq, DefnBody(Some(RecType(Map("f"->BType, "n"->NType))), None, None)))), Map(), Map(), Map(), Map(), Map())))
 //     init(k)
 //     assert(isLeft(
-//       typInf(Inst(PathType(Some(Sp(self_a)), "K"), Rec(Map("f"->BExp(true), "n"->NExp(5)))))
+//       getType(emptyK, emptyG, Inst(PathType(Some(Sp(self_a)), "K"), Rec(Map("f"->BExp(true), "n"->NExp(5)))))
 //     ))
 //   }
 
 //   // self(A).R(C {f->true, n->5})
-//   test("typinf: instance of ADT") {
+//   test("getType: instance of ADT") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -411,12 +402,12 @@ class TypecheckerTesting extends AnyFunSuite {
 //         Map("R"->(AdtDefn("R", Eq, DefnBody(Some(Map("C"->RecType(Map("f"->BType, "n"->NType)))), None, None)))),
 //         Map(), Map(), Map())))
 //     init(k)
-//     assertResult(Right(PathType(Some(Sp(self_a)), "R"))){
-//       typInf(InstADT(PathType(Some(Sp(self_a)), "R"), "C", Rec(Map("f"->BExp(true), "n"->NExp(5)))))
+//     assertResult(Some(PathType(Some(Sp(self_a)), "R"))){
+//       getType(emptyK, emptyG, InstADT(PathType(Some(Sp(self_a)), "R"), "C", Rec(Map("f"->BExp(true), "n"->NExp(5)))))
 //     }
 //   }
 
-//   test("typinf: instance of ADT wrong field name") {
+//   test("getType: instance of ADT wrong field name") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -425,11 +416,11 @@ class TypecheckerTesting extends AnyFunSuite {
 //         Map(), Map(), Map())))
 //     init(k)
 //     assert(isLeft(
-//       typInf(InstADT(PathType(Some(Sp(self_a)), "R"), "C", Rec(Map("f"->BExp(true), "p"->NExp(5)))))
+//       getType(emptyK, emptyG, InstADT(PathType(Some(Sp(self_a)), "R"), "C", Rec(Map("f"->BExp(true), "p"->NExp(5)))))
 //     ))
 //   }
 
-//   test("typinf: instance of ADT wrong field type") {
+//   test("getType: instance of ADT wrong field type") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -438,11 +429,11 @@ class TypecheckerTesting extends AnyFunSuite {
 //         Map(), Map(), Map())))
 //     init(k)
 //     assert(isLeft(
-//       typInf(InstADT(PathType(Some(Sp(self_a)), "R"), "C", Rec(Map("f"->BExp(true), "n"->NExp(5)))))
+//       getType(emptyK, emptyG, InstADT(PathType(Some(Sp(self_a)), "R"), "C", Rec(Map("f"->BExp(true), "n"->NExp(5)))))
 //     ))
 //   }
 
-//   test("typinf: instance of ADT wrong constructor name") {
+//   test("getType: instance of ADT wrong constructor name") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -451,11 +442,11 @@ class TypecheckerTesting extends AnyFunSuite {
 //         Map(), Map(), Map())))
 //     init(k)
 //     assert(isLeft(
-//       typInf(InstADT(PathType(Some(Sp(self_a)), "R"), "K", Rec(Map("f"->BExp(true), "n"->NExp(5)))))
+//       getType(emptyK, emptyG, InstADT(PathType(Some(Sp(self_a)), "R"), "K", Rec(Map("f"->BExp(true), "n"->NExp(5)))))
 //     ))
 //   }
 
-//   test("typinf: instance of ADT wrong type name") {
+//   test("getType: instance of ADT wrong type name") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -464,11 +455,11 @@ class TypecheckerTesting extends AnyFunSuite {
 //         Map(), Map(), Map())))
 //     init(k)
 //     assert(isLeft(
-//       typInf(InstADT(PathType(Some(Sp(self_a)), "K"), "C", Rec(Map("f"->BExp(true), "n"->NExp(5)))))
+//       getType(emptyK, emptyG, InstADT(PathType(Some(Sp(self_a)), "K"), "C", Rec(Map("f"->BExp(true), "n"->NExp(5)))))
 //     ))
 //   }
 
-//   test("typinf: instance of ADT empty map in linkage") {
+//   test("getType: instance of ADT empty map in linkage") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -477,31 +468,31 @@ class TypecheckerTesting extends AnyFunSuite {
 //         Map(), Map(), Map())))
 //     init(k)
 //     assert(isLeft(
-//       typInf(InstADT(PathType(Some(Sp(self_a)), "R"), "C", Rec(Map("f"->BExp(true), "n"->NExp(5)))))
+//       getType(emptyK, emptyG, InstADT(PathType(Some(Sp(self_a)), "R"), "C", Rec(Map("f"->BExp(true), "n"->NExp(5)))))
 //     ))
 //   }
 
-//   test("typinf: match not on instance of ADT") {
+//   test("getType: match not on instance of ADT") {
 //     assert(isLeft(
-//       typInf(Match(Var("x"), Var("x")))
+//       getType(emptyK, emptyG, Match(Var("x"), Var("x")))
 //     ))
 //   }
 
-//   test("typinf: match on instance of type, not ADT") {
+//   test("getType: match on instance of type, not ADT") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     // self(A).R({f->true, n->5})
 //     val exp = Inst(PathType(Some(Sp(self_a)), "R"), Rec(Map("f"->BExp(true), "n"->NExp(5))))
 //     assert(isLeft(
-//       typInf(Match(exp, exp))
+//       getType(emptyK, emptyG, Match(exp, exp))
 //     ))
 //   }
 
-//   test("typinf: match on instance of ADT not in linkage") {
+//   test("getType: match on instance of ADT not in linkage") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     // self(A).R({f->true, n->5})
 //     val exp = InstADT(PathType(Some(Sp(self_a)), "R"), "C", Rec(Map("f"->BExp(true), "n"->NExp(5))))
 //     assert(isLeft(
-//       typInf(Match(exp, exp))
+//       getType(emptyK, emptyG, Match(exp, exp))
 //     ))
 //   }
 
