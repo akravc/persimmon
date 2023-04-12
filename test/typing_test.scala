@@ -11,12 +11,15 @@ import java.io.File
 class TypecheckerTesting extends AnyFunSuite {
 
     /* ============= TEST LINKAGE COMPUTATION ============= */
-    
+
     test("Reviewer compute example") {
-        var fam = "Family A {" +
-        "Family K extends A {" +
-        "}" +
-        "}"
+        var fam = 
+            """
+            | Family A {
+            |   Family K extends A {
+            |   }
+            |}
+            """.stripMargin
         assert(canParse(TestDefParser.pProgram, fam))
         var p1 = SelfFamily(Sp(Prog), "A")
         var p2 = SelfFamily(Sp(p1), "K")
