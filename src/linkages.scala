@@ -9,6 +9,7 @@ object PersimmonLinkages {
   /* ======================== Global vars ======================== */
 
   // TODO: program, cache
+  var p: String = ""
 
   /* ======================== Helpers ======================== */
 
@@ -28,7 +29,7 @@ object PersimmonLinkages {
   
   // L-Prog-Typ
   def computeLProgTyp(K: PathCtx): TypingLinkage = {
-    val p = readProgram("program.txt")
+    // val p = readProgram("program.txt")
     // if parsing successful
     if (canParseTyp(TestTypParser.pProgram, p)) {
       // return what was parsed
@@ -40,7 +41,7 @@ object PersimmonLinkages {
 
   // L-Prog-Def
   def computeLProgDef(K: PathCtx): DefinitionLinkage = {
-    val p = readProgram("program.txt")
+    // val p = readProgram("program.txt")
     // if parsing successful
     if (canParse(TestDefParser.pProgram, p)) {
       // return what was parsed
@@ -55,7 +56,7 @@ object PersimmonLinkages {
     // can assume shape self(a.A) for path
     a match {
       case Sp(SelfFamily(pref, fam)) => 
-        if (K.contains(a)) {
+        if (K.contains(SelfFamily(pref, fam))) {
           computeLNest(K, AbsoluteFamily(pref, fam), opt)
         } else throw new Exception("L-Self: Path is not in scope.")
       case _ => throw new Exception("L-Self: Path shape is incorrect.")
