@@ -149,21 +149,12 @@ object PersimmonSyntax {
 
   sealed trait Linkage {
 
-    // retrieve path from linkage
-    def getPath(): Path = {
-        assert(this != null)
-        this match {
-            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => path
-            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => path
-        }
-    }
-
     // retrieve self path from linkage
     def getSelfPath(): SelfPath = {
         assert(this != null)
         this match {
-            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => self
-            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => self
+            case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => self
+            case TypingLinkage(self, sup, types, adts, funs, cases, nested) => self
         }
     }
 
@@ -171,8 +162,8 @@ object PersimmonSyntax {
     def getSuperPath(): Option[AbsoluteFamily] = {
         assert(this != null)
         this match {
-            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => sup
-            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => sup
+            case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => sup
+            case TypingLinkage(self, sup, types, adts, funs, cases, nested) => sup
         }
     }
 
@@ -180,56 +171,56 @@ object PersimmonSyntax {
     def getNestedLinkage(fam: String): Option[Linkage] = {
         assert(this != null)
         this match {
-            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => nested.get(fam)
-            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => nested.get(fam) 
+            case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => nested.get(fam)
+            case TypingLinkage(self, sup, types, adts, funs, cases, nested) => nested.get(fam) 
         }
     }
 
     def getAllNested(): Map[String, Linkage] = {
         assert(this != null)
         this match {
-            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => nested
-            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => nested
+            case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => nested
+            case TypingLinkage(self, sup, types, adts, funs, cases, nested) => nested
         }
     }
 
     def getTypes(): Map[String, TypeDefn] = {
         assert(this != null)
         this match {
-            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => types
-            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => types
+            case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => types
+            case TypingLinkage(self, sup, types, adts, funs, cases, nested) => types
         }
     }
 
     def getDefaults(): Option[Map[String, DefaultDefn]] = {
         assert(this != null)
         this match {
-            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => Some(defaults)
-            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => None
+            case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => Some(defaults)
+            case TypingLinkage(self, sup, types, adts, funs, cases, nested) => None
         }
     }
 
     def getAdts(): Map[String, AdtDefn] = {
         assert(this != null)
         this match {
-            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => adts
-            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => adts
+            case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => adts
+            case TypingLinkage(self, sup, types, adts, funs, cases, nested) => adts
         }
     }
 
     def getFuns(): Either[Map[String, FunSig], Map[String, FunDefn]]= {
         assert(this != null)
         this match {
-            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => Right(funs)
-            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => Left(funs)
+            case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => Right(funs)
+            case TypingLinkage(self, sup, types, adts, funs, cases, nested) => Left(funs)
         }
     }
 
     def getCases(): Either[Map[String, CasesSig], Map[String, CasesDefn]] = {
         assert(this != null)
         this match {
-            case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => Right(cases)
-            case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => Left(cases)
+            case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => Right(cases)
+            case TypingLinkage(self, sup, types, adts, funs, cases, nested) => Left(cases)
         }
     }
   }
@@ -238,7 +229,6 @@ object PersimmonSyntax {
   // holds only information needed for typing
   // -- NO definitions
   case class TypingLinkage(
-    path: Path,
     self: SelfPath, // self
     sup: Option[AbsoluteFamily], // super
     types: Map[String, TypeDefn],
@@ -253,7 +243,6 @@ object PersimmonSyntax {
   // This version of the linkage holds
   // all information including definitions
   case class DefinitionLinkage(
-    path: Path,
     self: SelfPath, // self
     sup: Option[AbsoluteFamily], // super
     types: Map[String, TypeDefn],

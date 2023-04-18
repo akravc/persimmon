@@ -82,9 +82,9 @@ object PersimmonLinkages {
           case _ => opt match { 
             // no parent, so return dummy empty linkage
             case LinkageType.DefLink => 
-              DefinitionLinkage(null, null, null, Map(), Map(), Map(), Map(), Map(), Map())
+              DefinitionLinkage(null, null, Map(), Map(), Map(), Map(), Map(), Map())
             case LinkageType.TypLink => 
-              TypingLinkage(null, null, null, Map(), Map(), Map(), Map(), Map())
+              TypingLinkage(null, null, Map(), Map(), Map(), Map(), Map())
           }
         }
         concatenateLinkages(superLkg, lkgA)
@@ -131,7 +131,6 @@ object PersimmonLinkages {
     if (lkg == null) {
       throw new LinkageException("Cannot substitute paths in a null linkage.")
     }
-    val newpath = if (lkg.getPath() == p2) then p1 else lkg.getPath()
     // can only substitute a self path with a self path
     // TODO: make sure this is actually true wrt L-Sub
     val newself = (p1, p2) match {
@@ -152,17 +151,17 @@ object PersimmonLinkages {
     val newadts = lkg.getAdts().map{ (s, adt) => (s, subInAdt(adt, p1, p2))}
 
     lkg match {
-      case DefinitionLinkage(path, self, sup, types, defaults, adts, funs, cases, nested) => 
+      case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => 
         val newdefaults = defaults.map{ (s, dd) => (s, subInDefaultDefn(dd, p1, p2))}
         val newfuns = funs.map{ (s, fdef) => (s, subInFunDefn(fdef, p1, p2))}
         val newcases = cases.map{ (s, cdef) => (s, subInCasesDefn(cdef, p1, p2))}
         val newnested = nested.map( (s, link) => (s, pathSub(link, p1, p2).asInstanceOf[DefinitionLinkage]))
-        DefinitionLinkage(newpath, newself, newsup, newtypes, newdefaults, newadts, newfuns, newcases, newnested)
-      case TypingLinkage(path, self, sup, types, adts, funs, cases, nested) => 
+        DefinitionLinkage(newself, newsup, newtypes, newdefaults, newadts, newfuns, newcases, newnested)
+      case TypingLinkage(self, sup, types, adts, funs, cases, nested) => 
         val newfuns = funs.map{ (s, fsig) => (s, subInFunSig(fsig, p1, p2))}
         val newcases = cases.map{ (s, csig) => (s, subInCasesSig(csig, p1, p2))}
         val newnested = nested.map( (s, link) => (s, pathSub(link, p1, p2).asInstanceOf[TypingLinkage]))
-        TypingLinkage(newpath, newself, newsup, newtypes, newadts, newfuns, newcases, newnested)
+        TypingLinkage(newself, newsup, newtypes, newadts, newfuns, newcases, newnested)
     }
   }
 
@@ -253,9 +252,8 @@ object PersimmonLinkages {
 
     (lkgP, lkgExt) match {
       // concat typing linkages
-      case (TypingLinkage(p1, sp1, sup1, types1, adts1, funs1, cases1, nested1), TypingLinkage(p2, sp2, sup2, types2, adts2, funs2, cases2, nested2)) =>
+      case (TypingLinkage(sp1, sup1, types1, adts1, funs1, cases1, nested1), TypingLinkage(sp2, sup2, types2, adts2, funs2, cases2, nested2)) =>
         TypingLinkage(
-          path = p2,
           self = sp2,
           sup = sup2,
           types = concatTypes(types1, types2),
@@ -265,9 +263,8 @@ object PersimmonLinkages {
           nested = concatNestedLinkages(nested1, nested2).asInstanceOf[Map[String, TypingLinkage]]
         )
       // concat definition linkages
-      case (DefinitionLinkage(p1, sp1, sup1, types1, defaults1, adts1, funs1, cases1, nested1), DefinitionLinkage(p2, sp2, sup2, types2, defaults2, adts2, funs2, cases2, nested2)) =>
+      case (DefinitionLinkage(sp1, sup1, types1, defaults1, adts1, funs1, cases1, nested1), DefinitionLinkage(sp2, sup2, types2, defaults2, adts2, funs2, cases2, nested2)) =>
         DefinitionLinkage(
-          path = p2,
           self = sp2,
           sup = sup2,
           types = concatTypes(types1, types2),

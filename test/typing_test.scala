@@ -26,12 +26,12 @@ class TypecheckerTesting extends AnyFunSuite {
         var p1 = SelfFamily(Sp(Prog), "A")
         var p2 = SelfFamily(Sp(p1), "K")
         PersimmonLinkages.p = fam
-        // assertResult(
-        // computeDefLinkage(List(p1, p2), Sp(p2))
-        // ){
-        // DefinitionLinkage(Sp(p2), p2, Some(p1), 
-        //     Map(), Map(), Map(), Map(), Map(), Map())
-        // }
+        assertResult(
+        computeDefLinkage(List(p1, p2), Sp(p2))
+        ){
+        DefinitionLinkage(p2, Some(AbsoluteFamily(Sp(Prog), "A")), 
+            Map(), Map(), Map(), Map(), Map(), Map())
+        }
     }
 
     /* ============= TYPECHECKER TESTING =============== */

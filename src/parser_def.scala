@@ -327,7 +327,6 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
         }.toMap
         
         fam -> DefinitionLinkage(
-          concretizePath(Sp(curSelfPath)),
           curSelfPath,
           supFam,
           typedefs,
@@ -344,8 +343,7 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
   lazy val pProgram: PackratParser[DefinitionLinkage] =
     rep(pFamDef(Prog)) ^^ {
       fams => 
-        DefinitionLinkage(
-          Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
+        DefinitionLinkage(Prog, None, Map(), Map(), Map(), Map(), Map(),
           fams.toMap
         )
     }
