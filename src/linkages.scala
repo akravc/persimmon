@@ -20,16 +20,10 @@ object PersimmonLinkages {
   enum LinkageType: 
     case TypLink, DefLink
 
-  // Helper - reads program from file
-  def readProgram(filename: String): String = {
-    Source.fromFile(filename).getLines.mkString
-  }
-
   /* ===================== Linkage Computation Rules ===================== */
   
   // L-Prog-Typ
   def computeLProgTyp(K: PathCtx): TypingLinkage = {
-    // val p = readProgram("program.txt")
     // if parsing successful
     if (canParseTyp(TestTypParser.pProgram, p)) {
       // return what was parsed
@@ -41,7 +35,6 @@ object PersimmonLinkages {
 
   // L-Prog-Def
   def computeLProgDef(K: PathCtx): DefinitionLinkage = {
-    // val p = readProgram("program.txt")
     // if parsing successful
     if (canParse(TestDefParser.pProgram, p)) {
       // return what was parsed
@@ -72,6 +65,7 @@ object PersimmonLinkages {
   // L-Nest
   def computeLNest(K: PathCtx, a: AbsoluteFamily, opt: LinkageType): Linkage = {
     val lkgWrap = computeLinkage(K, a.pref, opt)
+    //printLkg(lkgWrap, "")
     val lkg = lkgWrap.getNestedLinkage(a.fam)
     
     lkg match {
@@ -82,11 +76,13 @@ object PersimmonLinkages {
           case _ => opt match { 
             // no parent, so return dummy empty linkage
             case LinkageType.DefLink => 
-              DefinitionLinkage(null, null, Map(), Map(), Map(), Map(), Map(), Map())
+              DefinitionLinkage(null, None, Map(), Map(), Map(), Map(), Map(), Map())
             case LinkageType.TypLink => 
-              TypingLinkage(null, null, Map(), Map(), Map(), Map(), Map())
+              TypingLinkage(null, None, Map(), Map(), Map(), Map(), Map())
           }
         }
+        // print("PRINTING SUPER")
+        // printLkg(superLkg, "")
         concatenateLinkages(superLkg, lkgA)
       case _ => 
         throw new LinkageException("L-Nest: no nested linkage for family " + a.fam)

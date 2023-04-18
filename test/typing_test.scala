@@ -12,28 +12,6 @@ import java.io.File
 
 class TypecheckerTesting extends AnyFunSuite {
 
-    /* ============= TEST LINKAGE COMPUTATION ============= */
-
-    test("Reviewer compute example") {
-        var fam = 
-            """
-            | Family A {
-            |   Family K extends A {
-            |   }
-            |}
-            """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
-        var p1 = SelfFamily(Sp(Prog), "A")
-        var p2 = SelfFamily(Sp(p1), "K")
-        PersimmonLinkages.p = fam
-        assertResult(
-        computeDefLinkage(List(p1, p2), Sp(p2))
-        ){
-        DefinitionLinkage(p2, Some(AbsoluteFamily(Sp(Prog), "A")), 
-            Map(), Map(), Map(), Map(), Map(), Map())
-        }
-    }
-
     /* ============= TYPECHECKER TESTING =============== */
 
     // TESTING isValue

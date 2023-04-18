@@ -2,13 +2,17 @@ import PersimmonSyntax._
 
 object PrettyPrint {
 
-  def printSP(sp: SelfPath): String = sp match {
-    case Prog => "<>"
-    case SelfFamily(p, f) => "self(" + printPath(p) + "." + f + ")"
+  def printSP(sp: SelfPath): String = {
+    if (sp == null) then "null"
+    else sp match {
+      case Prog => "<>"
+      case SelfFamily(p, f) => "self(" + printPath(p) + "." + f + ")"
+    }
   }
 
   def printPath(p: Path) : String = {
-    p match {
+    if (p == null) then "null"
+    else p match {
       case Sp(sp) => printSP(sp)
       case AbsoluteFamily(p, f) => printPath(p) + "." + f
     }
