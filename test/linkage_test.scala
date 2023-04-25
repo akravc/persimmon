@@ -14,6 +14,32 @@ class LinkageTesting extends AnyFunSuite {
 
     /* ============= TEST LINKAGE COMPUTATION ============= */
 
+    test("path sub 1") {
+        assertResult(
+            subInPath(Sp(SelfFamily(Sp(Prog), "A")), 
+                Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K")),
+                Sp(SelfFamily(Sp(Prog), "A"))
+            )
+        ){
+            Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K"))
+        }
+    }
+
+    /* ============= TEST LINKAGE COMPUTATION ============= */
+
+    test("prog lkg") {
+        var fam = 
+            """
+            | Family A {
+            |   Family K extends A {
+            |   }
+            |}
+            """.stripMargin
+        assert(canParse(TestDefParser.pProgram, fam))
+        PersimmonLinkages.p = fam
+        printLkg(computeDefLinkage(List(), Sp(Prog)), "")
+    }
+
     test("Reviewer compute example") {
         var fam = 
             """
@@ -53,7 +79,7 @@ class LinkageTesting extends AnyFunSuite {
         var p4 = SelfFamily(Sp(p3), "K")
         PersimmonLinkages.p = fam
         // assertResult(
-        printLkg(computeDefLinkage(List(p1, p2, p3, p4), Sp(p4)), "")
+        // printLkg(computeDefLinkage(List(p1, p2, p3, p4), Sp(p4)), "")
         // ){
         // DefinitionLinkage(
         //     SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K"), 

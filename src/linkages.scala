@@ -125,6 +125,8 @@ object PersimmonLinkages {
   // lkg[p1/p2]
   // including prefix substitution
   def pathSub(lkg: Linkage, p1: Path, p2: Path): Linkage = {
+    //print("substituting paths in linkage " + printLkg(lkg, "") + "\n")
+
     if (lkg == null) {
       throw new LinkageException("Cannot substitute paths in a null linkage.")
     }
@@ -159,11 +161,14 @@ object PersimmonLinkages {
   // substitute path p2 in any path p with p1
   // including any prefix of p if it matches
   def subInPath(p: Path, p1: Path, p2: Path): Path = {
+    // print("substituting: "  + printPath(p2) + " with " + printPath(p1) + 
+    // " in " + printPath(p) + " \n")
     if (p == p2) then p1 else
     p match {
       case Sp(sp) => 
         sp match {
-          case Prog => p // don't sub prog, nothing extends prog.
+          case Prog => 
+            p // don't sub prog, nothing extends prog.
           case SelfFamily(pref, fam) => 
             Sp(SelfFamily(subInPath(pref, p1, p2), fam))
         }
