@@ -31,12 +31,10 @@ class LinkageTesting extends AnyFunSuite {
         ){
         DefinitionLinkage(
             Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K")), 
-            Some(AbsoluteFamily(Sp(Prog), "A")), 
-            Map(), Map(), Map(), Map(), Map(), 
+            Some(AbsoluteFamily(Sp(Prog), "A")), Map(), Map(), Map(), Map(), Map(), 
             Map("K" -> DefinitionLinkage(
-                Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K")), 
-                Some(AbsoluteFamily(Sp(Prog), "A")), 
-                Map(), Map(), Map(), Map(), Map(), Map())))
+                Sp(SelfFamily(Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K")), "K")), 
+                Some(AbsoluteFamily(Sp(Prog), "A")), Map(), Map(), Map(), Map(), Map(), Map())))
         }
     }
 
