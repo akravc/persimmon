@@ -273,7 +273,7 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
           case (s, (m, rt)) => s -> TypeDefn(s, m, rt) }.toMap
         
         fam -> TypingLinkage(
-          curSelfPath,
+          Sp(curSelfPath),
           supFam,
           typedefs,
           adts.toMap,
@@ -288,7 +288,7 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
   lazy val pProgram: PackratParser[TypingLinkage] =
     rep(pFamDef(Prog)) ^^ {
       fams => 
-        TypingLinkage(Prog, None, Map(), Map(), Map(), Map(),
+        TypingLinkage(Sp(Prog), None, Map(), Map(), Map(), Map(),
           fams.toMap
         )
     }

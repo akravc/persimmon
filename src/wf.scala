@@ -2,6 +2,7 @@ import PersimmonSyntax.*
 import PersimmonTyping.*
 import PersimmonLinkages.*
 
+
 object PersimmonWF {
 
   // Well-formedness of definitions
@@ -12,10 +13,16 @@ object PersimmonWF {
     // - K here corresponds to sp::K in WF-FamDef the paper.
     // - lkg.self corresponds to self(sp.A) in WF-FamDef in the paper.
     // TODO: Is this correct? The way rule EC-Nest is laid out makes me unsure.
-    if ancestors(lkg.self).contains(lkg.self) then false
+
+    // WF runs on an incomplete, just parsed prog linkage.
+    // all lkg.self paths are self-paths
+    assert(lkg.self.isInstanceOf[Sp])
+    var selfpath = lkg.self.asInstanceOf[Sp].sp
+    
+    if ancestors(selfpath).contains(selfpath) then false
     else {
-      val K_prime = List(lkg.self) ++ K
-      val L_S = computeTypLinkage(K_prime, Sp(lkg.self))
+      val K_prime = selfpath :: K
+      val L_S = computeTypLinkage(K_prime, Sp(selfpath))
       exhaustivityCheck(K_prime, L_S) &&
       lkg.nested.forall { (_, nested_lkg) => wfDef(K_prime, nested_lkg) } &&
       lkg.types.forall { (name, td) =>
@@ -36,7 +43,10 @@ object PersimmonWF {
   }
 
   def collectAllPathsWithin(lkg: TypingLinkage): List[SelfPath] = {
-    var lstResult = lkg.self :: List()
+    assert(lkg.self.isInstanceOf[Sp])
+    var selfpath = lkg.self.asInstanceOf[Sp].sp
+
+    var lstResult = selfpath :: List()
     for ((famName, nestLkg) <- lkg.nested) {
       lstResult = collectAllPathsWithin(nestLkg) ++ lstResult
     }
@@ -111,8 +121,10 @@ object PersimmonWF {
       })
     }} && lkg.nested.forall { (name, A) => {
       // TODO: Is this equivalent to the version in the paper?
-      val K_prime = List(A.self) ++ K
-      val L_S_prime_prime = computeTypLinkage(K_prime, Sp(A.self))
+      assert(A.self.isInstanceOf[Sp])
+      var selfpath = A.self.asInstanceOf[Sp].sp
+      val K_prime = List(selfpath) ++ K
+      val L_S_prime_prime = computeTypLinkage(K_prime, Sp(selfpath))
       exhaustivityCheck(K_prime, L_S_prime_prime)
     }}
   }

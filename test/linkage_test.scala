@@ -30,13 +30,41 @@ class LinkageTesting extends AnyFunSuite {
         computeDefLinkage(List(p1, p2), Sp(p2))
         ){
         DefinitionLinkage(
-            SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K"), 
+            Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K")), 
             Some(AbsoluteFamily(Sp(Prog), "A")), 
             Map(), Map(), Map(), Map(), Map(), 
             Map("K" -> DefinitionLinkage(
-                SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K"), 
+                Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K")), 
                 Some(AbsoluteFamily(Sp(Prog), "A")), 
                 Map(), Map(), Map(), Map(), Map(), Map())))
         }
+    }
+
+    test("Reviewer compute example2") {
+        var fam = 
+            """
+            | Family A {
+            |   Family K extends A {
+            |   }
+            |}
+            """.stripMargin
+        assert(canParse(TestDefParser.pProgram, fam))
+        var p1 = SelfFamily(Sp(Prog), "A")
+        var p2 = SelfFamily(Sp(p1), "K")
+        var p3 = SelfFamily(Sp(p2), "K")
+        var p4 = SelfFamily(Sp(p3), "K")
+        PersimmonLinkages.p = fam
+        // assertResult(
+        printLkg(computeDefLinkage(List(p1, p2, p3, p4), Sp(p4)), "")
+        // ){
+        // DefinitionLinkage(
+        //     SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K"), 
+        //     Some(AbsoluteFamily(Sp(Prog), "A")), 
+        //     Map(), Map(), Map(), Map(), Map(), 
+        //     Map("K" -> DefinitionLinkage(
+        //         SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K"), 
+        //         Some(AbsoluteFamily(Sp(Prog), "A")), 
+        //         Map(), Map(), Map(), Map(), Map(), Map())))
+        // }
     }
 }

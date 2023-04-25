@@ -150,7 +150,7 @@ object PersimmonSyntax {
   sealed trait Linkage {
 
     // retrieve self path from linkage
-    def getSelfPath(): SelfPath = {
+    def getSelfPath(): Path = {
         assert(this != null)
         this match {
             case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => self
@@ -229,7 +229,7 @@ object PersimmonSyntax {
   // holds only information needed for typing
   // -- NO definitions
   case class TypingLinkage(
-    self: SelfPath, // self
+    self: Path, // self
     sup: Option[AbsoluteFamily], // super
     types: Map[String, TypeDefn],
     adts: Map[String, AdtDefn],
@@ -243,7 +243,7 @@ object PersimmonSyntax {
   // This version of the linkage holds
   // all information including definitions
   case class DefinitionLinkage(
-    self: SelfPath, // self
+    self: Path, // self
     sup: Option[AbsoluteFamily], // super
     types: Map[String, TypeDefn],
     defaults: Map[String, DefaultDefn],

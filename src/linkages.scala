@@ -47,8 +47,8 @@ object PersimmonLinkages {
   // L-Self
   def computeLSelf(K: PathCtx, a: Sp, opt: LinkageType): Linkage = {
     // can assume shape self(a.A) for path
-    a match {
-      case Sp(SelfFamily(pref, fam)) => 
+    a.sp match {
+      case SelfFamily(pref, fam) => 
         if (K.contains(SelfFamily(pref, fam))) {
           computeLNest(K, AbsoluteFamily(pref, fam), opt)
         } else throw new Exception("L-Self: Path is not in scope.")
@@ -123,26 +123,21 @@ object PersimmonLinkages {
 
   // Substitute path p2 in the linkage with path p1
   // lkg[p1/p2]
+  // including prefix substitution
   def pathSub(lkg: Linkage, p1: Path, p2: Path): Linkage = {
     if (lkg == null) {
       throw new LinkageException("Cannot substitute paths in a null linkage.")
     }
-    // can only substitute a self path with a self path
-    // TODO: make sure this is actually true wrt L-Sub
-    val newself = (p1, p2) match {
-      case (Sp(x), Sp(y)) => 
-        if (lkg.getSelfPath() == y) then x else lkg.getSelfPath()
-      case (_, _) => lkg.getSelfPath()
+    
+    // new self
+    val newself = subInPath(lkg.getSelfPath(), p1, p2)
+
+    // new super
+    val newsup = lkg.getSuperPath() match {
+      case None => None
+      case Some(p) => Some(subInPath(p, p1, p2).asInstanceOf[AbsoluteFamily])
     }
-    // can only substitute absolute fam path with absolute fam path
-    // TODO: make sure this is actually true wrt L-Sub
-    val newsup = (p1, p2) match {
-      case (AbsoluteFamily(pref1, fam1), AbsoluteFamily(pref2, fam2)) =>
-        if (lkg.getSuperPath() == Some(p2)) 
-            then Some(AbsoluteFamily(pref1, fam1)) 
-            else lkg.getSuperPath()
-      case (_, _) => lkg.getSuperPath()
-    } 
+
     val newtypes = lkg.getTypes().map{ (s, td) => (s, subInTypeDefn(td, p1, p2))}
     val newadts = lkg.getAdts().map{ (s, adt) => (s, subInAdt(adt, p1, p2))}
 
@@ -161,12 +156,31 @@ object PersimmonLinkages {
     }
   }
 
+  // substitute path p2 in any path p with p1
+  // including any prefix of p if it matches
+  def subInPath(p: Path, p1: Path, p2: Path): Path = {
+    if (p == p2) then p1 else
+    p match {
+      case Sp(sp) => 
+        sp match {
+          case Prog => p // don't sub prog, nothing extends prog.
+          case SelfFamily(pref, fam) => 
+            Sp(SelfFamily(subInPath(pref, p1, p2), fam))
+        }
+      case AbsoluteFamily(pref, fam) => 
+        AbsoluteFamily(subInPath(pref, p1, p2), fam)
+    }
+  }
+
   def subInType(t: Type, p1: Path, p2: Path): Type = {
     t match {
       case FunType(input, output) => 
         FunType(subInType(input, p1, p2), subInType(output, p1, p2))
       case PathType(path, name) => 
-        if (path == Some(p2)) then PathType(Some(p1), name) else t
+        path match {
+          case None => t
+          case Some(p) => PathType(Some(subInPath(p, p1, p2)), name)
+        }
       case RecType(fields) => 
         RecType(fields.map( (s, t) => (s, subInType(t, p1, p2))))
       case _ => t
@@ -244,7 +258,7 @@ object PersimmonLinkages {
   // Rule CAT-TOP
   def concatenateLinkages(lkgSuper: Linkage, lkgExt: Linkage): Linkage = {
     // update paths in inherited code so that they refer to the extension
-    var lkgP = pathSub(lkgSuper, Sp(lkgExt.getSelfPath()), Sp(lkgSuper.getSelfPath()))
+    var lkgP = pathSub(lkgSuper, lkgExt.getSelfPath(), lkgSuper.getSelfPath())
 
     (lkgP, lkgExt) match {
       // concat typing linkages

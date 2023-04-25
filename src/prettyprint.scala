@@ -80,7 +80,7 @@ object PrettyPrint {
   def printLkg(lkg: Linkage, offset: String): Unit = {
     print(offset + "LINKAGE DEFINITION: \n\n")
 
-    print(offset + "SELF: " + printSP(lkg.getSelfPath()) + "\n\n")
+    print(offset + "SELF: " + printPath(lkg.getSelfPath()) + "\n\n")
 
     print(offset + "SUPER: " + lkg.getSuperPath().map(printPath).getOrElse("None") + "\n\n")
 
