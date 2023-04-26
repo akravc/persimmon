@@ -44,17 +44,55 @@ class LinkageTesting extends AnyFunSuite {
             computeDefLinkage(List(), p1)
         ){
             DefinitionLinkage(
-                p1, None,
-                Map(), Map(), Map(), Map(), Map(),
+                p1, None, Map(), Map(), Map(), Map(), Map(),
                 Map("A" -> 
                     DefinitionLinkage(
-                        p2, None,
-                        Map(), Map(), Map(), Map(), Map(),
+                        p2, None, Map(), Map(), Map(), Map(), Map(),
                         Map("K" -> DefinitionLinkage(
                             p3, Some(AbsoluteFamily(p1, "A")),
                             Map(), Map(), Map(), Map(), Map(), Map())))))
         }
     }
+
+    test("prog lkg 2") {
+        var fam = 
+            """
+            | Family A1 {
+            |   Family B1 {
+            |   }
+            |   Family B2 extends self(A1).B1 {
+            |   }
+            | }
+            |
+            | Family A2 extends A1 {
+            |   Family B1 {
+            |   }
+            |   Family B2 extends self(A2).B1 {
+            |   }
+            | }
+            """.stripMargin
+        assert(canParse(TestDefParser.pProgram, fam))
+        PersimmonLinkages.p = fam
+        var p = Sp(Prog)
+        var a1 = Sp(SelfFamily(p, "A1"))
+        var b1 = Sp(SelfFamily(a1, "B1"))
+        var b2 = Sp(SelfFamily(a1, "B2"))
+        var a2 = Sp(SelfFamily(p, "A2"))
+        var a2b1 = Sp(SelfFamily(a2, "B1"))
+        var a2b2 = Sp(SelfFamily(a2, "B2"))
+        assertResult(
+            computeDefLinkage(List(), p)
+        ){
+            DefinitionLinkage(p, None, Map(), Map(), Map(), Map(), Map(),
+                Map("A1" -> DefinitionLinkage(a1, None, Map(), Map(), Map(), Map(), Map(), 
+                Map("B1" -> DefinitionLinkage(b1, None, Map(), Map(), Map(), Map(), Map(), Map()), 
+                "B2" -> DefinitionLinkage(b2, Some(AbsoluteFamily(a1, "B1")), Map(), Map(), Map(), Map(), Map(), Map()))), 
+                "A2" -> DefinitionLinkage(a2, Some(AbsoluteFamily(p, "A1")), Map(), Map(), Map(), Map(), Map(), 
+                Map("B1" -> DefinitionLinkage(a2b1, None, Map(), Map(), Map(), Map(), Map(), Map()), 
+                "B2" -> DefinitionLinkage(a2b2, Some(AbsoluteFamily(a2, "B1")), Map(), Map(), Map(), Map(), Map(), Map())))))
+        }
+    }
+
 
 
     /* ============= TEST LINKAGE COMPUTATION: NESTED ============= */
@@ -110,4 +148,47 @@ class LinkageTesting extends AnyFunSuite {
         //         Map(), Map(), Map(), Map(), Map(), Map())))
         // }
     }
+
+    
+    /* ============= TEST FURTHER BINDING ============= */
+
+    test("TODO: futher binding test") {
+        var fam = 
+            """
+            | Family A1 {
+            |   Family B1 {
+            |   }
+            |   Family B2 extends self(A1).B1 {
+            |   }
+            | }
+            |
+            | Family A2 extends A1 {
+            |   Family B1 {
+            |   }
+            |   Family B2 extends self(A2).B1 {
+            |   }
+            | }
+            """.stripMargin
+        assert(canParse(TestDefParser.pProgram, fam))
+        PersimmonLinkages.p = fam
+        var p = Sp(Prog)
+        var a1 = Sp(SelfFamily(p, "A1"))
+        var b1 = Sp(SelfFamily(a1, "B1"))
+        var b2 = Sp(SelfFamily(a1, "B2"))
+        var a2 = Sp(SelfFamily(p, "A2"))
+        var a2b1 = Sp(SelfFamily(a2, "B1"))
+        var a2b2 = Sp(SelfFamily(a2, "B2"))
+        assertResult(
+            computeDefLinkage(List(), p)
+        ){
+            DefinitionLinkage(p, None, Map(), Map(), Map(), Map(), Map(),
+                Map("A1" -> DefinitionLinkage(a1, None, Map(), Map(), Map(), Map(), Map(), 
+                Map("B1" -> DefinitionLinkage(b1, None, Map(), Map(), Map(), Map(), Map(), Map()), 
+                "B2" -> DefinitionLinkage(b2, Some(AbsoluteFamily(a1, "B1")), Map(), Map(), Map(), Map(), Map(), Map()))), 
+                "A2" -> DefinitionLinkage(a2, Some(AbsoluteFamily(p, "A1")), Map(), Map(), Map(), Map(), Map(), 
+                Map("B1" -> DefinitionLinkage(a2b1, None, Map(), Map(), Map(), Map(), Map(), Map()), 
+                "B2" -> DefinitionLinkage(a2b2, Some(AbsoluteFamily(a2, "B1")), Map(), Map(), Map(), Map(), Map(), Map())))))
+        }
+    }
+
 }
