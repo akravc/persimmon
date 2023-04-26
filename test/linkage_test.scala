@@ -12,7 +12,7 @@ import java.io.File
 
 class LinkageTesting extends AnyFunSuite {
 
-    /* ============= TEST LINKAGE COMPUTATION ============= */
+    /* ============= TEST PATH SUBSTITUTION ============= */
 
     test("path sub 1") {
         assertResult(
@@ -25,9 +25,9 @@ class LinkageTesting extends AnyFunSuite {
         }
     }
 
-    /* ============= TEST LINKAGE COMPUTATION ============= */
+    /* ============= TEST LINKAGE COMPUTATION: PROG ============= */
 
-    test("prog lkg") {
+    test("prog lkg 1") {
         var fam = 
             """
             | Family A {
@@ -37,8 +37,27 @@ class LinkageTesting extends AnyFunSuite {
             """.stripMargin
         assert(canParse(TestDefParser.pProgram, fam))
         PersimmonLinkages.p = fam
-        printLkg(computeDefLinkage(List(), Sp(Prog)), "")
+        var p1 = Sp(Prog)
+        var p2 = Sp(SelfFamily(p1, "A"))
+        var p3 = Sp(SelfFamily(p2, "K"))
+        assertResult(
+            computeDefLinkage(List(), p1)
+        ){
+            DefinitionLinkage(
+                p1, None,
+                Map(), Map(), Map(), Map(), Map(),
+                Map("A" -> 
+                    DefinitionLinkage(
+                        p2, None,
+                        Map(), Map(), Map(), Map(), Map(),
+                        Map("K" -> DefinitionLinkage(
+                            p3, Some(AbsoluteFamily(p1, "A")),
+                            Map(), Map(), Map(), Map(), Map(), Map())))))
+        }
     }
+
+
+    /* ============= TEST LINKAGE COMPUTATION: NESTED ============= */
 
     test("Reviewer compute example") {
         var fam = 
