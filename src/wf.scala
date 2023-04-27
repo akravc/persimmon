@@ -26,10 +26,11 @@ object PersimmonWF {
       exhaustivityCheck(K_prime, L_S) &&
       lkg.nested.forall { (_, nested_lkg) => wfDef(K_prime, nested_lkg) } &&
       lkg.types.forall { (name, td) =>
-        if td.marker == Eq then wfTypDef(K_prime, td)
-        else lkg.defaults.contains(name) && wfTypDefExt(K_prime, td, lkg.defaults(name))
+        !lkg.adts.contains(name) && 
+        ( if td.marker == Eq then wfTypDef(K_prime, td)
+          else lkg.defaults.contains(name) && wfTypDefExt(K_prime, td, lkg.defaults(name)))
       } &&
-      lkg.adts.forall { (_, adt) => wfAdtDef(K_prime, adt) } &&
+      lkg.adts.forall { (name, adt) => !lkg.types.contains(name) && wfAdtDef(K_prime, adt) } &&
       lkg.funs.forall { (_, fd) => wfFunDef(K_prime, fd) } &&
       lkg.cases.forall { (_, cd) => wfCasesDef(K_prime, cd) }
     }

@@ -83,6 +83,80 @@ class WFTesting extends AnyFunSuite {
     //     }
     // }
 
+
+    test("wf - basic prog lkg") {
+        var fam = 
+            """
+            | Family A {
+            |
+            |}
+            """.stripMargin
+        assert(canParse(TestDefParser.pProgram, fam))
+        PersimmonLinkages.p = fam
+        var lkg = computeDefLinkage(List(Prog), Sp(Prog))
+        var prog = Sp(Prog)
+        var a = Sp(SelfFamily(prog, "A"))
+        assertResult(wfDef(List(prog.sp, a.sp), lkg)){ true }
+    }
+
+    test("wf - type") {
+        var fam = 
+            """
+            | Family A {
+            |   type T = C1 {} | C2 {}
+            |}
+            """.stripMargin
+        assert(canParse(TestDefParser.pProgram, fam))
+        PersimmonLinkages.p = fam
+        var lkg = computeDefLinkage(List(Prog), Sp(Prog))
+        var prog = Sp(Prog)
+        var a = Sp(SelfFamily(prog, "A"))
+        assertResult(wfDef(List(prog.sp, a.sp), lkg)){ true }
+    }
+
+    test("wf - type - duplicate constructors") {
+        var fam = 
+            """
+            | Family A {
+            |   type T = C1 {} | C1 {}
+            |}
+            """.stripMargin
+        // duplicate constructor names, error thrown while parsing
+        assertThrows[Exception](canParse(TestDefParser.pProgram, fam))
+    }
+
+    test("wf - type - duplicate fields") {
+        var fam = 
+            """
+            | Family A {
+            |   type T = {a: N, a: B}
+            |}
+            """.stripMargin
+        // duplicate field names, error thrown while parsing
+        assertThrows[Exception](canParse(TestDefParser.pProgram, fam))
+    }
+
+    test("wf - type - duplicate type names") {
+        var fam = 
+            """
+            | Family A {
+            |   type T = {a: N, b: B}
+            |   type T = C1 {}
+            |}
+            """.stripMargin
+        assert(canParse(TestDefParser.pProgram, fam))
+        PersimmonLinkages.p = fam
+        var lkg = computeDefLinkage(List(Prog), Sp(Prog))
+        var prog = Sp(Prog)
+        var a = Sp(SelfFamily(prog, "A"))
+        assertResult(wfDef(List(prog.sp, a.sp), lkg)){ false }
+    }
+
+
+
+
+
+
     
 
 
