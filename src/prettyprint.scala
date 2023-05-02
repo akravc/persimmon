@@ -95,7 +95,7 @@ object PrettyPrint {
     if (lkg.getTypes().nonEmpty) {
       print(offset + "TYPES:\n")
       val typemap = lkg.getTypes().view.mapValues{
-        case TypeDefn(name, marker, typeBody) => "type " + name + printMarker(marker) +  printType(typeBody) + "\n"
+        case TypeDefn(name, marker, typeBody) => "type " + name + printMarker(marker) +  printType(typeBody) + "\n" + offset
       }
       print(offset + typemap.mkString)
       print("\n\n")
@@ -106,7 +106,7 @@ object PrettyPrint {
         case None => print("")
         case Some(map) =>
             val defmap = map.view.mapValues {
-                case DefaultDefn(s, m, defaultBody) => "type " + s + printMarker(m) +  printExp(defaultBody) + "\n"
+                case DefaultDefn(s, m, defaultBody) => "type " + s + printMarker(m) +  printExp(defaultBody) + "\n" + offset
             }
             if (defmap.nonEmpty) {
               print(offset + "DEFAULTS:\n")
@@ -118,7 +118,7 @@ object PrettyPrint {
     if (lkg.getAdts().nonEmpty) {
       print(offset + "ADTs:\n")
       val adtmap = lkg.getAdts().map{
-        case (s, adt) => printADT(adt) + "\n"
+        case (s, adt) => printADT(adt) + "\n" + offset
       }
       print(offset + adtmap.mkString)
       print("\n\n")
@@ -128,10 +128,10 @@ object PrettyPrint {
     lkg.getFuns() match {
       case Right(mdefs) =>
         funmap = mdefs.map{ case (_, FunDefn(s, ft, body)) =>
-          "val " + s + ": " + printType(ft) + " = " + printExp(body) + "\n"}
+          "val " + s + ": " + printType(ft) + " = " + printExp(body) + "\n" + offset}
       case Left(msigs) => 
         funmap = msigs.map{ case (_, FunSig(s, ft)) =>
-          "val " + s + ": " + printType(ft) + "\n" }
+          offset + "val " + s + ": " + printType(ft) + "\n" + offset}
     }
     if (funmap.nonEmpty) {
       print(offset + "FUNS:\n")
@@ -144,10 +144,10 @@ object PrettyPrint {
     lkg.getCases() match {
       case Right(cdefs) =>
         casemap = cdefs.map{ case (_, CasesDefn(s, mt, ft, _, m, body)) =>
-          "cases " + s + "<" + printType(mt) + ">" + ": " + printType(ft) + printMarker(m) + printExp(body) + "\n"}
+          "cases " + s + "<" + printType(mt) + ">" + ": " + printType(ft) + printMarker(m) + printExp(body) + "\n" + offset}
       case Left(csigs) => 
         casemap = csigs.map{ case (_, CasesSig(s, mt, m, ft)) =>
-          "cases " + s + "<" + printType(mt) + ">" + ": " + printType(ft) + printMarker(m) + "\n"}
+          "cases " + s + "<" + printType(mt) + ">" + ": " + printType(ft) + printMarker(m) + "\n" + offset}
     }
 
     if (casemap.nonEmpty) {

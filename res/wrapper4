@@ -1,0 +1,19 @@
+Family Outer {
+  type A = SomeA{}
+  Family Inner {
+    val foo: self(Outer).A -> B -> B = lam(x: self(Outer).A). lam(y: B). bar(x)
+    def bar: self(Outer).A -> B =
+      case SomeA{} = false
+  }
+}
+Family OuterExt extends Outer {
+  type A += SomeExtA{}
+  Family Inner {
+    def bar: self(OuterExt).A -> B +=
+      case SomeExtA{} = true
+  }
+}
+Family WrapperMain {
+  val main: {} -> B = lam(ignore: {}).
+    OuterExt.Inner.foo(OuterExt.A(SomeA{}), true)
+}

@@ -1,0 +1,17 @@
+// OK
+Family A {
+  Family AA {
+    Family AAA {
+      type Exp = EBase {}
+
+      cases eval_cases <Exp> : {} -> {EBase: {} -> N} =
+        lam (ignore: {}). {EBase = lam (ignore: {}). 0}
+    }
+  }
+  Family BB extends self(A).AA.AAA {
+     type Exp += ENat {n: N}
+
+     cases eval_cases <Exp> : {} -> {ENat: {n: N} -> N} +=
+        lam (ignore: {}). {ENat = lam (x: {n: N}). x.n}
+  }
+}

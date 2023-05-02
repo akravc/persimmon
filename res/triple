@@ -1,0 +1,21 @@
+      Family Base {
+
+        type T = C1 {n: N} | C2 {n1: N, n2: N}
+
+        val plus: (N -> N -> N) = lam (x: N). lam (y: N). 1
+
+        val sum: (T -> N) = lam (t: T). match t with <sum_cases> {arg = t}
+
+        cases sum_cases <T> : {arg: T} -> {C1: {n: N} -> N, C2: {n1: N, n2: N} -> N} =
+          lam (r: {arg: T}). {C1 = lam (x: {n: N}). x.n, C2 = lam (x: {n1: N, n2: N}). ((plus x.n1) x.n2)}
+
+      }
+
+      Family Triple extends Base {
+
+        type T += C3 {n1: N, n2: N, n3: N}
+
+        cases sum_cases <T> : {arg: T} -> {C3: {n1: N, n2: N, n3: N} -> N} +=
+          lam (r: {arg: T}). {C3 = lam (x: {n1: N, n2: N, n3: N}). ((plus (sum T(C2 {n1 = x.n1, n2 = x.n2}))) x.n3)}
+
+      }

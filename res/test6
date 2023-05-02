@@ -1,0 +1,20 @@
+Family A0 {
+  type Exp = ENat0 {n: N}
+  val eval: Exp -> Exp = lam (e: Exp). match e with <eval_cases> {}
+  cases eval_cases <Exp> : {} -> {ENat0: {n: N} -> Exp} =
+    lam (ignore: {}). {ENat0 = lam (x: {n: N}). Exp(ENat0 {n = x.n})}
+}
+Family A1 extends A0 {
+  type Exp += ENat1 {n: N}
+  cases eval_cases <Exp> : {} -> {ENat1: {n: N} -> Exp} +=
+    lam (ignore: {}). {ENat1 = lam (x: {n: N}). Exp(ENat0 {n = x.n})}
+}
+Family A2 extends A1 {
+  type Exp += ENat2 {n: N}
+  cases eval_cases <Exp> : {} -> {ENat2: {n: N} -> Exp} +=
+    lam (ignore: {}). {ENat2 = lam (x: {n: N}). Exp(ENat0 {n = x.n})}
+}
+
+Family Test6Main {
+  val main: {} -> A2.Exp = lam (ignore: {}). A2.eval (A2.Exp(ENat2 {n = 3}))
+}

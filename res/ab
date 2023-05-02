@@ -1,0 +1,8 @@
+Family A1 {
+  Family B1 {}
+  Family B2 extends self(A1).B1 {}
+}
+Family A2 extends A1 {
+  Family B1 {}
+  Family B2 extends self(A2).B1 {}
+}

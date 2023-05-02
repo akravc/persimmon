@@ -1,0 +1,5 @@
+Family Main {
+  type T = {x: N, b: B = true}
+  val f: N -> T = lam (k: N). T({x=k})
+  val main: {} -> B = lam(ignore: {}). (f 1).b
+}

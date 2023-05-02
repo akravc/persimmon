@@ -16,75 +16,75 @@ class TypecheckerTesting extends AnyFunSuite {
 
     // TESTING isValue
 
-    test("isvalue: functions") {
+    test("typing - isvalue: functions") {
         assert(isValue(Lam(Var("x"), BType, Var("x"))))
     }
 
-    test("isvalue: bools") {
+    test("typing - isvalue: bools") {
         assert(isValue(BExp(true)))
         assert(isValue(BExp(false)))
     }
 
-    test("isvalue: nats") {
+    test("typing - isvalue: nats") {
         assert(isValue(NExp(0)))
         assert(isValue(NExp(4)))
     }
 
-    test("isvalue: record") {
+    test("typing - isvalue: record") {
         assert(isValue(Rec(Map("f"->NExp(2), "p"->BExp(true)))))
     }
 
-    test("not a value: record") {
+    test("typing - not a value: record") {
         assert(!isValue(Rec(Map("f"->Var("x"), "p"->BExp(true)))))
     }
 
     // A.T({f=2, p=5})
-    test("isvalue: instance of a type") {
+    test("typing - isvalue: instance of a type") {
         assert(isValue(Inst(PathType(Some(Sp(SelfFamily(Sp(Prog), "A"))), "T"), Rec(Map("f"->NExp(2), "p"->NExp(5))))))
     }
 
     // A.T({f=2, p=x})
-    test("not a value: instance of a type") {
+    test("typing - not a value: instance of a type") {
         assert(!isValue(Inst(PathType(Some(Sp(SelfFamily(Sp(Prog), "A"))), "T"), Rec(Map("f"->NExp(2), "p"->Var("x"))))))
     }
 
     // A.T(C {f=2, p=5})
-    test("isvalue: instance of an ADT") {
+    test("typing - isvalue: instance of an ADT") {
         assert(isValue(InstADT(PathType(Some(Sp(SelfFamily(Sp(Prog), "A"))), "T"), "C", Rec(Map("f"->NExp(2), "p"->NExp(5))))))
     }
 
     // A.T(C {f=2, p=x})
-    test("not a value: instance of an ADT") {
+    test("typing - not a value: instance of an ADT") {
         assert(!isValue(InstADT(PathType(Some(Sp(SelfFamily(Sp(Prog), "A"))), "T"), "C", Rec(Map("f"->NExp(2), "p"->Var("x"))))))
     }
 
-    test("not a value: other") {
+    test("typing - not a value: other") {
         assert(!isValue(App(Var("x"), BExp(true))))
     }
 
     // TESTING WELL-FORMEDNESS OF TYPES
 
-    test("wfType: nat") {
+    test("typing - wfType: nat") {
         assertResult(true)(wfType(List(), NType))
     }
 
-    test("wfType: bool") {
+    test("typing - wfType: bool") {
         //assert(wfType(BType, Map()))
         assertResult(true)(wfType(List(), BType))
     }
 
     // N -> B
-    test("wfType: function type") {
+    test("typing - wfType: function type") {
         assertResult(true)(wfType(List(), FunType(NType, BType)))
     }
 
     // {f: B, p: N}
-    test("wfType: record type") {
+    test("typing - wfType: record type") {
         assertResult(true)(wfType(List(), RecType(Map("f"->BType, "p"->NType))))
     }
 
     // self(A).T is well formed
-    test("wfType: family type") {
+    test("typing - wfType: family type") {
         var fam = 
             """
             | Family A {
@@ -98,7 +98,7 @@ class TypecheckerTesting extends AnyFunSuite {
     }
 
     // A.T is well formed
-    test("wfType: concrete family type") {
+    test("typing - wfType: concrete family type") {
         var fam = 
             """
             | Family A {
@@ -113,7 +113,7 @@ class TypecheckerTesting extends AnyFunSuite {
     }
 
     // self(A).K is not well formed
-    test("wfType: family type absent") {
+    test("typing - wfType: family type absent") {
         var fam = 
             """
             | Family A {
@@ -129,52 +129,52 @@ class TypecheckerTesting extends AnyFunSuite {
 
     // TESTING SUBTYPING
 
-    test("subtype: the type itself") {
+    test("typing - subtype: the type itself") {
         assertResult(true)(isSubtype(List(), BType, BType))
     }
 
-    test("subtype: the type itself 2") {
+    test("typing - subtype: the type itself 2") {
         assertResult(true)(isSubtype(List(), NType, NType))
     }
 
-    test("subtype: the type itself 3") {
+    test("typing - subtype: the type itself 3") {
         val self_a = SelfFamily(Sp(Prog), "A") // path self(A)
         assertResult(true)(isSubtype(List(), PathType(Some(Sp(self_a)), "G"), PathType(Some(Sp(self_a)), "G")))
     }
 
     // {f: B, p: N} <: {f: B}
-    test("subtype: rectype width") {
+    test("typing - subtype: rectype width") {
         assertResult(true)(isSubtype(List(), RecType(Map("f"->BType, "p"->NType)), RecType(Map("f"->BType))))
     }
 
     // {g: {f: B, p: N}} <: {g: {f: B}}
-    test("subtype: rectype depth") {
+    test("typing - subtype: rectype depth") {
         assertResult(true)(isSubtype(List(), RecType(Map("g"->RecType(Map("f"->BType, "p"->NType)))),
         RecType(Map("g"->RecType(Map("f"->BType))))))
     }
 
     // {f: B, p: N} <: {f: B, g: N}
-    test("subtype: rectype bad") {
+    test("typing - subtype: rectype bad") {
         assertResult(false)(isSubtype(List(), RecType(Map("f"->BType, "p"->NType)), RecType(Map("f"->BType, "g"->NType))))
     }
 
-    test("subtype: funtype eq") {
+    test("typing - subtype: funtype eq") {
         assertResult(true)(isSubtype(List(), FunType(BType,NType), FunType(BType,NType)))
     }
 
     // {f: B} <: {}, therefore:
     // {} -> {f: B} <: {f: B} -> {}
-    test("subtype: funtype good") {
+    test("typing - subtype: funtype good") {
         assertResult(true)(isSubtype(List(), FunType(RecType(Map()), RecType(Map("f"->BType))),
         FunType(RecType(Map("f"->BType)),RecType(Map()))))
     }
 
-    test("subtype: funtype bad") {
+    test("typing - subtype: funtype bad") {
         assertResult(false)(isSubtype(List(), FunType(RecType(Map()), RecType(Map("f"->BType))),
         FunType(RecType(Map("f"->BType)),RecType(Map("g"->BType)))))
     }
 
-    test("subtype: PathType good") {
+    test("typing - subtype: PathType good") {
         val self_a = SelfFamily(Sp(Prog), "A")
         var fam = 
             """
@@ -187,7 +187,7 @@ class TypecheckerTesting extends AnyFunSuite {
         assertResult(true)(isSubtype(List(Prog, self_a), PathType(Some(Sp(self_a)), "T"), RecType(Map("f"->BType))))
     }
 
-    test("subtype: PathType mismatch in linkage") {
+    test("typing - subtype: PathType mismatch in linkage") {
         val self_a = SelfFamily(Sp(Prog), "A")
         var fam = 
             """
@@ -200,7 +200,7 @@ class TypecheckerTesting extends AnyFunSuite {
         assertResult(false)(isSubtype(List(Prog, self_a), PathType(Some(Sp(self_a)), "T"), RecType(Map("g"->BType))))
     }
 
-    test("subtype: PathType bad") {
+    test("typing - subtype: PathType bad") {
         val self_a = SelfFamily(Sp(Prog), "A")
         var fam = 
             """
@@ -213,7 +213,7 @@ class TypecheckerTesting extends AnyFunSuite {
         assertResult(false)(isSubtype(List(Prog, self_a), PathType(Some(Sp(self_a)), "T"), FunType(BType, NType)))
     }
 
-    test("subtype: two unrelated types") {
+    test("typing - subtype: two unrelated types") {
         assertResult(false)(isSubtype(List(), BType, FunType(BType,NType)))
     }
 
@@ -222,79 +222,79 @@ class TypecheckerTesting extends AnyFunSuite {
     val emptyK = List()
     val emptyG: Map[String, Type] = Map()
 
-    test("getType: nat") {
+    test("typing - getType: nat") {
         assertResult(Some(NType)){getType(emptyK, emptyG, NExp(5))}
     }
 
-    test("getType: bool") {
+    test("typing - getType: bool") {
         assertResult(Some(BType)){getType(emptyK, emptyG, BExp(true))}
         assertResult(Some(BType)){getType(emptyK, emptyG, BExp(false))}
     }
 
-    test("getType: var") {
+    test("typing - getType: var") {
         assertResult(Some(NType)){getType(emptyK, Map("x"->NType), (Var("x")))}
     }
 
-    test("getType: var none") {
+    test("typing - getType: var none") {
         assertResult(None){getType(emptyK, emptyG, Var("x"))}
     }
 
-    test("getType: lam") {
+    test("typing - getType: lam") {
         assertResult(Some(FunType(BType, NType))){
         getType(emptyK, emptyG, Lam(Var("x"), BType, NExp(5)))
         }
     }
 
-    test("getType: lam identity") {
+    test("typing - getType: lam identity") {
         assertResult(Some(FunType(BType, BType))){
         getType(emptyK, emptyG, Lam(Var("x"), BType, Var("x")))
         }
     }
 
-    test("getType: app") {
+    test("typing - getType: app") {
         assertResult(Some(NType)){
         getType(emptyK, emptyG, App(Lam(Var("x"), BType, NExp(5)), BExp(true)))
         }
     }
 
-    test("getType: app improper") {
+    test("typing - getType: app improper") {
         assertResult(None){ getType(emptyK, emptyG, App(Var("x"), BExp(true)))}
     }
 
-    test("getType: rec") {
+    test("typing - getType: rec") {
         assertResult(Some(RecType(Map("f"->BType, "p"->NType)))){
         getType(emptyK, emptyG, Rec(Map("f"->BExp(true), "p"->NExp(4))))
         }
     }
 
-    test("getType: rec improper") {
+    test("typing - getType: rec improper") {
         assertResult(None){ 
             getType(emptyK, emptyG, Rec(Map("f"->BExp(true), "p"->App(NExp(4), BExp(true)))))
         }
     }
 
-    test("getType: rec empty") {
+    test("typing - getType: rec empty") {
         assertResult(Some(RecType(Map()))){getType(emptyK, emptyG, Rec(Map()))}
     }
 
-    test("getType: proj") {
+    test("typing - getType: proj") {
         assertResult(Some(NType)){
         getType(emptyK, emptyG, Proj(Rec(Map("f"->BExp(true), "p"->NExp(4))), "p"))
         }
     }
 
-    test("getType: proj field absent") {
+    test("typing - getType: proj field absent") {
         assertResult(None){
         getType(emptyK, emptyG, Proj(Rec(Map("f"->BExp(true), "p"->NExp(4))), "g"))}
     }
 
-    test("getType: proj from not record") {
+    test("typing - getType: proj from not record") {
         assertResult(None){
         getType(emptyK, emptyG, Proj(Var("x"), "x"))}
     }
 
     // self(A).m : (B -> N) = lam (x: B). 5
-    test("getType: fam fun") {
+    test("typing - getType: fam fun") {
         val self_a = SelfFamily(Sp(Prog), "A")
         var fam = 
             """
@@ -310,7 +310,7 @@ class TypecheckerTesting extends AnyFunSuite {
     }
 
     // self(A).m does not exist, we have self(A).g instead
-    test("getType: fam fun not in linkage") {
+    test("typing - getType: fam fun not in linkage") {
         val self_a = SelfFamily(Sp(Prog), "A")
         var fam = 
             """
@@ -327,7 +327,7 @@ class TypecheckerTesting extends AnyFunSuite {
 
 
 //   // self(A).R({f->true, n->5})
-//   test("getType: instance of type") {
+//   test("typing - getType: instance of type") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -338,7 +338,7 @@ class TypecheckerTesting extends AnyFunSuite {
 //     }
 //   }
 
-//   test("getType: instance of type wrong field name") {
+//   test("typing - getType: instance of type wrong field name") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -349,7 +349,7 @@ class TypecheckerTesting extends AnyFunSuite {
 //     ))
 //   }
 
-//   test("getType: instance of type wrong field type") {
+//   test("typing - getType: instance of type wrong field type") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -360,7 +360,7 @@ class TypecheckerTesting extends AnyFunSuite {
 //     ))
 //   }
 
-//   test("getType: instance of type wrong type name") {
+//   test("typing - getType: instance of type wrong type name") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -372,7 +372,7 @@ class TypecheckerTesting extends AnyFunSuite {
 //   }
 
 //   // self(A).R(C {f->true, n->5})
-//   test("getType: instance of ADT") {
+//   test("typing - getType: instance of ADT") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -385,7 +385,7 @@ class TypecheckerTesting extends AnyFunSuite {
 //     }
 //   }
 
-//   test("getType: instance of ADT wrong field name") {
+//   test("typing - getType: instance of ADT wrong field name") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -398,7 +398,7 @@ class TypecheckerTesting extends AnyFunSuite {
 //     ))
 //   }
 
-//   test("getType: instance of ADT wrong field type") {
+//   test("typing - getType: instance of ADT wrong field type") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -411,7 +411,7 @@ class TypecheckerTesting extends AnyFunSuite {
 //     ))
 //   }
 
-//   test("getType: instance of ADT wrong constructor name") {
+//   test("typing - getType: instance of ADT wrong constructor name") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -424,7 +424,7 @@ class TypecheckerTesting extends AnyFunSuite {
 //     ))
 //   }
 
-//   test("getType: instance of ADT wrong type name") {
+//   test("typing - getType: instance of ADT wrong type name") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -437,7 +437,7 @@ class TypecheckerTesting extends AnyFunSuite {
 //     ))
 //   }
 
-//   test("getType: instance of ADT empty map in linkage") {
+//   test("typing - getType: instance of ADT empty map in linkage") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     val k = Linkage(Sp(Prog), Prog, None, Map(), Map(), Map(), Map(), Map(),
 //       Map("A" -> Linkage(AbsoluteFamily(Sp(Prog), "A"), self_a, None,
@@ -450,13 +450,13 @@ class TypecheckerTesting extends AnyFunSuite {
 //     ))
 //   }
 
-//   test("getType: match not on instance of ADT") {
+//   test("typing - getType: match not on instance of ADT") {
 //     assert(isLeft(
 //       getType(emptyK, emptyG, Match(Var("x"), Var("x")))
 //     ))
 //   }
 
-//   test("getType: match on instance of type, not ADT") {
+//   test("typing - getType: match on instance of type, not ADT") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     // self(A).R({f->true, n->5})
 //     val exp = Inst(PathType(Some(Sp(self_a)), "R"), Rec(Map("f"->BExp(true), "n"->NExp(5))))
@@ -465,7 +465,7 @@ class TypecheckerTesting extends AnyFunSuite {
 //     ))
 //   }
 
-//   test("getType: match on instance of ADT not in linkage") {
+//   test("typing - getType: match on instance of ADT not in linkage") {
 //     val self_a = SelfFamily(Sp(Prog), "A")
 //     // self(A).R({f->true, n->5})
 //     val exp = InstADT(PathType(Some(Sp(self_a)), "R"), "C", Rec(Map("f"->BExp(true), "n"->NExp(5))))

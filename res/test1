@@ -1,0 +1,10 @@
+// OK
+Family A {
+  Family AA {
+    Family AAA {
+
+    }
+  }
+  Family BB extends self(A).AA.AAA {
+  }
+}

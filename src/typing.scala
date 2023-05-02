@@ -1,6 +1,7 @@
 import PersimmonSyntax.*
 import PersimmonLinkages.*
 import PersimmonWF.*
+import PrettyPrint.printType
 
 object PersimmonTyping {
   def getType(K: PathCtx, Gamma: TypingCtx, e: Expression): Option[Type] = e match {

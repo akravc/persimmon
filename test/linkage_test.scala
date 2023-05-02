@@ -14,7 +14,7 @@ class LinkageTesting extends AnyFunSuite {
 
     /* ============= TEST PATH SUBSTITUTION ============= */
 
-    test("path sub 1") {
+    test("linkage - path sub 1") {
         assertResult(
             subInPath(Sp(SelfFamily(Sp(Prog), "A")), 
                 Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K")),
@@ -27,7 +27,7 @@ class LinkageTesting extends AnyFunSuite {
 
     /* ============= TEST LINKAGE COMPUTATION: PROG ============= */
 
-    test("prog lkg 1") {
+    test("linkage - prog lkg 1") {
         var fam = 
             """
             | Family A {
@@ -54,7 +54,7 @@ class LinkageTesting extends AnyFunSuite {
         }
     }
 
-    test("prog lkg 2") {
+    test("linkage - prog lkg 2") {
         var fam = 
             """
             | Family A1 {
@@ -97,7 +97,7 @@ class LinkageTesting extends AnyFunSuite {
 
     /* ============= TEST LINKAGE COMPUTATION: NESTED ============= */
 
-    test("Reviewer compute example") {
+    test("linkage - Reviewer compute example") {
         var fam = 
             """
             | Family A {
@@ -121,7 +121,7 @@ class LinkageTesting extends AnyFunSuite {
         }
     }
 
-    test("Reviewer compute example2") {
+    test("linkage - Reviewer compute example2") {
         var fam = 
             """
             | Family A {
@@ -152,7 +152,7 @@ class LinkageTesting extends AnyFunSuite {
     
     /* ============= TEST FURTHER BINDING ============= */
 
-    test("TODO: futher binding test") {
+    test("linkage - TODO: futher binding test") {
         var fam = 
             """
             | Family A1 {

@@ -1,0 +1,132 @@
+// TODO: (maybe later on) let definitions be defined in different files
+Family Adjust1 {
+  val showN : (N -> String) =
+    lam (n : N). "<some integer>"
+
+  Family LangBase {
+    type Val =
+      Val_int {i : N}
+    | Val_String {s : String}
+
+    val pretty_Val : (Val -> String) =
+      lam (v : Val). match v with <pretty_Val_cases> {}
+
+    cases pretty_Val_cases <Val> : {} -> {Val_int : {i : N} -> String, Val_String : {s : String} -> String} =
+      lam (_ : {}).
+      { Val_int = lam (x: {i : N}). showN x.i
+      , Val_String = lam (x: {s : String}). s"\"${x.s}\""
+      }
+
+    Family Lang1 {
+      type Exp =
+        Exp_Val {v : Val}
+
+      val pretty_Exp : (Exp -> String) =
+        lam (e : Exp). match e with <pretty_Exp_cases> {}
+
+      cases pretty_Exp_cases <Exp> : {} -> {Exp_Val : {v : Val} -> String} =
+        lam (_ : {}).
+        { Exp_Val = lam (x: {v : Val}). pretty_Val x.v
+        }
+    }
+
+    Family Lang2 extends self(self(Adjust1).LangBase).Lang1 {
+      type Exp +=
+        Exp_add {e0 : Exp, e1 : Exp}
+
+      cases pretty_Exp_cases <Exp> : {} -> {Exp_add : {e0 : Exp, e1 : Exp} -> String} +=
+        lam (_ : {}).
+        { Exp_add = lam (x: {e0 : Exp, e1 : Exp}).
+            s"${pretty_Exp x.e0} + ${pretty_Exp x.e1}"
+        }
+    }
+  }
+}
+
+Family Adjust2 extends Adjust1 {
+  val showN : (N -> String) =
+    lam (n : N). s"${n}"
+
+  Family LangBase {
+    type Val +=
+      Val_bool { b : B }
+
+    // TODO: cases pretty_Val_cases ([args...]) for Val: String
+    cases pretty_Val_cases <Val> : {} -> {Val_bool : {b : B} -> String, Val_String : {s: String} -> String} +=
+      lam (_ : {}).
+      { Val_bool = lam (x: {b : B}).
+          pretty_Val (
+            if x.b
+            then Val(Val_String { s = s"bool:${x.b}" })
+            else Val(Val_int { i = 0 })
+          )
+      , Val_String = lam (x: {s : String}). s"[hey look, a string! it's \"${x.s}\"]"
+      }
+
+    Family Lang1 {
+      type Exp +=
+        Exp_if { e0 : Exp, e1 : Exp, e2 : Exp }
+
+      cases pretty_Exp_cases <Exp> : {} -> {Exp_if : {e0 : Exp, e1 : Exp, e2 : Exp} -> String} +=
+        lam (_ : {}).
+        { Exp_if = lam (x: {e0 : Exp, e1 : Exp, e2 : Exp}).
+            s"if ${pretty_Exp x.e0} then ${pretty_Exp x.e1} else ${pretty_Exp x.e2}"
+        }
+    }
+
+    // Lang2 inherited; TODO: check that this extends makes sense / is present when needed
+    // Family Lang2 extends self(self(Adjust2).LangBase).Lang1 {}
+  }
+}
+
+Family Main {
+  val main1 : {} -> String = lam (_ : {}).
+    Adjust1.LangBase.Lang1.pretty_Exp
+      (Adjust1.LangBase.Lang1.Exp(Exp_Val {
+        v = Adjust1.LangBase.Val(Val_int { i = 42 })
+      }))
+
+  val main2 : {} -> String = lam (_ : {}).
+    Adjust1.LangBase.Lang2.pretty_Exp
+      (Adjust1.LangBase.Lang2.Exp(Exp_add {
+        e0 = Adjust1.LangBase.Lang2.Exp(Exp_Val {
+          v = Adjust1.LangBase.Val(Val_int { i = 42 })
+        }),
+        e1 = Adjust1.LangBase.Lang2.Exp(Exp_Val {
+          v = Adjust1.LangBase.Val(Val_String { s = "life" })
+        })
+      }))
+
+  val main3 : {} -> String = lam (_ : {}).
+    Adjust2.LangBase.Lang1.pretty_Exp
+      (Adjust2.LangBase.Lang1.Exp(Exp_if {
+        e0 = Adjust2.LangBase.Lang1.Exp(Exp_Val {
+          v = Adjust2.LangBase.Val(Val_bool { b = false })
+        }),
+        e1 = Adjust2.LangBase.Lang1.Exp(Exp_Val {
+          v = Adjust2.LangBase.Val(Val_int { i = 42 })
+        }),
+        e2 = Adjust2.LangBase.Lang1.Exp(Exp_Val {
+          v = Adjust2.LangBase.Val(Val_int { i = 0 })
+        })
+      }))
+
+  val main4 : {} -> String = lam (_ : {}).
+    Adjust2.LangBase.Lang2.pretty_Exp
+      (Adjust2.LangBase.Lang2.Exp(Exp_if {
+        e0 = Adjust2.LangBase.Lang2.Exp(Exp_Val {
+          v = Adjust2.LangBase.Val(Val_bool { b = true })
+        }),
+        e1 = Adjust2.LangBase.Lang2.Exp(Exp_Val {
+          v = Adjust2.LangBase.Val(Val_String { s = "life" })
+        }),
+        e2 = Adjust2.LangBase.Lang2.Exp(Exp_Val {
+          v = Adjust2.LangBase.Val(Val_int { i = 1 })
+        })
+      }))
+
+  val fact: N -> N = lam (n: N).
+    if !(n > 0)
+    then 1
+    else n * fact (n - 1)
+}

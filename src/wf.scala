@@ -1,6 +1,7 @@
 import PersimmonSyntax.*
 import PersimmonTyping.*
 import PersimmonLinkages.*
+import PrettyPrint.printExp
 
 
 object PersimmonWF {

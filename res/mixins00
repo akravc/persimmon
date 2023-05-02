@@ -1,0 +1,17 @@
+Family STLCBase {
+}
+Family IfExt {
+  Family Base extends STLCBase {}
+  Family Derived extends self(IfExt).Base {}
+}
+Family ArithExt {
+  Family Base extends STLCBase {}
+  Family Derived extends self(ArithExt).Base {}
+}
+Family IfExtBuild extends IfExt {
+  Family Base extends STLCBase {}
+}
+Family ArithExtBuild extends ArithExt {
+  Family Base extends IfExtBuild.Derived {}
+}
+//Family STLCIfArith extends ArithExtBuild.Derived {}

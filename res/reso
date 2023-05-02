@@ -1,0 +1,16 @@
+Family Base {
+  Family Inner {
+    type Exp = EBase{}
+    type OptionExp = None{} | Some{x: Exp}
+    def inner: Exp -> OptionExp =
+      case EBase{} = OptionExp(None{})
+  }
+  Family ExtInner extends self(Base).Inner {
+    type Exp += EExt{e: Exp}
+    def inner: Exp -> OptionExp +=
+      case EExt{e: Exp} = OptionExp(Some{x = e})
+  }
+}
+
+Family Ext extends Base {
+}
