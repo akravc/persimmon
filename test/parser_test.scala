@@ -7,14 +7,145 @@ import PrettyPrint._
 import scala.language.postfixOps
 import java.io.PrintWriter
 import java.io.File
+import scala.io.Source
 
 class ParserTesting extends AnyFunSuite {
 
+  def readFile(filename: String): String = { 
+    return Source.fromFile(filename).getLines.mkString
+  }
+
+
   /* ============= TEST RES EXAMPLES ============= */
 
-  
-
-
+  test("parse - ex: ab") {
+    val p = readFile("res/ab")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: abcode") {
+    val p = readFile("res/abcode")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: abcodeover") {
+    val p = readFile("res/abcodeover")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: abcodeovern") {
+    val p = readFile("res/abcodeovern")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: abcodepaper") {
+    val p = readFile("res/abcodepaper")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: abcodepaper2") {
+    val p = readFile("res/abcodepaper2")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: abcodepaper2sugar") {
+    val p = readFile("res/abcodepaper2sugar")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: abcodepaper2sugar2") {
+    val p = readFile("res/abcodepaper2sugar2")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: abcodepaper2sugar2b") {
+    val p = readFile("res/abcodepaper2sugar2b")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: default") {
+    val p = readFile("res/default")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: even_odd") {
+    val p = readFile("res/even_odd")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: example") {
+    val p = readFile("res/example")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: mixins") {
+    val p = readFile("res/mixins")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: mixins0") {
+    val p = readFile("res/mixins0")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: mixins00") {
+    val p = readFile("res/mixins00")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: mixins1") {
+    val p = readFile("res/mixins1")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: mixins2") {
+    val p = readFile("res/mixins2")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: pretty_example") {
+    val p = readFile("res/pretty_example")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: reso") {
+    val p = readFile("res/reso")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: stlc") {
+    val p = readFile("res/stlc")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: test1") {
+    val p = readFile("res/test1")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: test1b") {
+    val p = readFile("res/test1b")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: test2") {
+    val p = readFile("res/test2")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: test3") {
+    val p = readFile("res/test3")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: test4") {
+    val p = readFile("res/test4")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: test5") {
+    val p = readFile("res/test5")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: test6") {
+    val p = readFile("res/test6")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: triple") {
+    val p = readFile("res/triple")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: wrapper") {
+    val p = readFile("res/wrapper")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: wrapper2") {
+    val p = readFile("res/wrapper2")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: wrapper3") {
+    val p = readFile("res/wrapper3")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
+  test("parse - ex: wrapper4") {
+    val p = readFile("res/wrapper4")
+    assert(canParse(TestDefParser.pProgram, p))
+  }
 
 
   /* ============= TEST DEF PARSER ============= */
