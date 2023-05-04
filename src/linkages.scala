@@ -475,11 +475,11 @@ object PersimmonLinkages {
               throw LinkageException("Concattenating linkages with incompatible cases signatures.")
             val v = Var("") // TODO: I don't think fresh vars have been implemented yet.
             val body1 = case1.casesBody match {
-              case Lam(v1, t, Record(body)) => subsRec(body, v1, v)
+              case Lam(v1, t, Record(body)) => subsRecord(body, v1, v)
               case _ => throw LinkageException("Body of cases definition is invalid.") // This should never happen.
             }
             val body2 = case2.casesBody match {
-              case Lam(v2, t, Record(body)) => subsRec(body, v2, v)
+              case Lam(v2, t, Record(body)) => subsRecord(body, v2, v)
               case _ => throw LinkageException("Body of cases definition is invalid.") // This should never happen.
             }
             val body: Map[String, Expression] = body1.flatMap { (fieldName, e1) =>
