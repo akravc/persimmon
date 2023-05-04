@@ -23,12 +23,12 @@ object PersimmonTyping {
         }
       case _ => None
     }
-    case Rec(fields) =>
+    case Record(fields) =>
       val types = fields.mapValues { field => getType(K, Gamma, field) }.toMap
       if types.exists((_, t) => t.isEmpty) then None
-      else Some(RecType(types.mapValues { t => t.get }.toMap))
+      else Some(RecordType(types.mapValues { t => t.get }.toMap))
     case Proj(e, name) => getType(K, Gamma, e).flatMap {
-      case RecType(fields) => fields.get(name)
+      case RecordType(fields) => fields.get(name)
       case _ => None
     }
     case Inst(t, rec) =>
@@ -86,9 +86,9 @@ object PersimmonTyping {
             isSubtype(K, input2, input1) && isSubtype(K, output1, output2)
           case _ => false
         }
-      case RecType(fields1) =>
+      case RecordType(fields1) =>
         t2 match {
-          case RecType(fields2) =>
+          case RecordType(fields2) =>
             fields2.forall {(name2, ft2) =>
               fields1.get(name2).exists { ft1 =>
                 isSubtype(K, ft1, ft2)

@@ -96,7 +96,7 @@ object PersimmonWF {
     L_S.adts.contains(cd.matchType.name) &&
     (cd.t.output match {
       // TODO: I think the way this is written in the rule WF-CasesDef is confusing because 'C' and 'T' are used for both 'R' and the case names/types in the cases definition.
-      case RecType(rec) => rec.forall { (name, t) =>
+      case RecordType(rec) => rec.forall { (name, t) =>
         L_S.adts(cd.matchType.name).adtBody.get(name) == Some(t)
       }
       case _ => throw Exception("Output type for cases signature is not a record type.") // TODO: Is this the right way to handle this error?
@@ -111,7 +111,7 @@ object PersimmonWF {
       val L_S_prime = computeTypLinkage(K, cases.mt.path.get)
       L_S_prime.adts.contains(name) &&
       (cases.t.output match {
-        case RecType(rec) => {
+        case RecordType(rec) => {
           L_S_prime.adts(name).adtBody == rec.map { (name, t) =>
             t match {
               case FunType(input, _) => input
@@ -140,7 +140,7 @@ object PersimmonWF {
     case PathType(path, name) =>
       val linkage = computeTypLinkage(K, path.get)
       linkage.types.contains(name) || linkage.adts.contains(name)
-    case RecType(fields) =>
+    case RecordType(fields) =>
       fields.forall { (name, t) => wfType(K, t) }
   }
 }

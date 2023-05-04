@@ -4,7 +4,13 @@
 - [ ] (Ana) Case studies, based on old res files
   - [ ] STLC example, with some internal TODOs fixed
 - [ ] (Ana) Finish up stubs and loose ends in linkages.scala
-- [ ] (Ana) fix function names parsing as variables
+- [ ] (Ana) fix function names parsing as variables (if it's a var in scope it's a var, otherwise fun call)
+- [ ] (Ana) add plus to expressions
+- [ ] (Ana) abstract function in linkages 
+- [ ] (Ana) remove either return functions
+- [x] (Ana) replace rec with record 
+- [ ] (Ana) take def linkage and convert to typ linkage instead of 2nd parser
+- [ ] (Ana) add typing of programs function
 
 
 

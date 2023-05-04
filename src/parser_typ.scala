@@ -96,11 +96,11 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
   // TYPES
   lazy val pFunType: PackratParser[FunType] = pType ~ ("->" ~> pType) ^^ { case inp~out => FunType(inp, out) }
   lazy val pRecField: PackratParser[(String, Type)] = pFieldName ~ (":" ~> pType) ^^ { case f~t => f->t }
-  lazy val pRecType: PackratParser[RecType] = between("{", "}", repsep(pRecField, ",") ^^ {
+  lazy val pRecType: PackratParser[RecordType] = between("{", "}", repsep(pRecField, ",") ^^ {
     lst =>
       if hasDuplicateName(lst) // disallow records with duplicate fields
       then throw new Exception("Parsing a record type with duplicate fields.")
-      else RecType(lst.toMap)
+      else RecordType(lst.toMap)
   })
   lazy val pFamType: PackratParser[PathType] =
     pPathExtra ^^ { case (p,t) => PathType(Some(p), t) }
@@ -113,20 +113,20 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
   lazy val pDefaultRecField: PackratParser[(String, Type)] =
     pFieldName ~ (":" ~> pType) ~ ("=" ~> pExp).? ^^ { case f~t~_ => f -> t }
   // separate parser for record type definition with defaults
-  lazy val pDefaultRecType: PackratParser[RecType] = "{"~> repsep(pDefaultRecField, ",") <~"}" ^^ {
+  lazy val pDefaultRecType: PackratParser[RecordType] = "{"~> repsep(pDefaultRecField, ",") <~"}" ^^ {
     lst =>
       if hasDuplicateName(lst) // disallow records with duplicate fields
       then throw new Exception("Parsing a record type with duplicate fields.")
       else { 
         val type_fields = lst.collect{case (s, t) => (s, t)}.toMap;
-        RecType(type_fields) }
+        RecordType(type_fields) }
   }
 
   lazy val pType: PackratParser[Type] = pFunType | pRecType | pNType | pBType 
     | pFamType | between("(", ")", pType)
 
   // ADTS
-  lazy val pAdtConstructor: PackratParser[(String, RecType)] = pConstructorName ~ pRecType ^^ { case k ~ v => k -> v }
+  lazy val pAdtConstructor: PackratParser[(String, RecordType)] = pConstructorName ~ pRecType ^^ { case k ~ v => k -> v }
   lazy val pAdt: PackratParser[AdtDefn] =
     (kwType ~> pTypeName) ~ pMarker ~ repsep(pAdtConstructor, "|") ^^ {
       case n~m~cs =>
@@ -158,11 +158,11 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
   lazy val pExpApp: PackratParser[App] = pExp ~ pExp ^^ { case e~g => App(e, g) }
   lazy val pExpProj: PackratParser[Proj] = pExp ~ "." ~ pFieldName ^^ {case e~_~n => Proj(e, n)}
   lazy val pFieldVal: PackratParser[(String, Expression)] = pFieldName ~ "=" ~ pExp ^^ {case k~_~v => k -> v}
-  lazy val pExpRec: PackratParser[Rec] = "{"~> repsep(pFieldVal, ",") <~"}" ^^ {
+  lazy val pExpRec: PackratParser[Record] = "{"~> repsep(pFieldVal, ",") <~"}" ^^ {
     lst =>
       if hasDuplicateName(lst) // disallow records with duplicate fields
       then throw new Exception("Parsing a record with duplicate fields.")
-      else Rec(lst.toMap)
+      else Record(lst.toMap)
   }
 
   lazy val pExpInst: PackratParser[Inst] =
@@ -191,7 +191,7 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
     "=" ^^ {_ => Eq} | "+=" ^^ {_ => PlusEq}
 
   // DEFINITIONS
-  lazy val pTypeDef: PackratParser[(String, (Marker, RecType))] =
+  lazy val pTypeDef: PackratParser[(String, (Marker, RecordType))] =
     kwType ~> pTypeName ~ pMarker ~ pDefaultRecType ^^ { case n~m~rt => n -> (m -> rt) }
   lazy val pAdtDef: PackratParser[(String, AdtDefn)] =
     pAdt ^^ { a => a.name -> a }
@@ -219,8 +219,8 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
       val name_cases = name+cases_suffix
       val x = Var("$x")
       val matched_var = Var("$m")
-      val casesType = RecType(bodies.map{c => (c.constructor -> FunType(RecType(c.params.toMap), returnType))}.toMap)
-      val inputType = RecType(params.toMap)
+      val casesType = RecordType(bodies.map{c => (c.constructor -> FunType(RecordType(c.params.toMap), returnType))}.toMap)
+      val inputType = RecordType(params.toMap)
       val foldedType = params.foldRight(FunType(matchType, returnType)){
         case ((p,t),r) => FunType(t, r)}
       val t = FunType(inputType, casesType)
