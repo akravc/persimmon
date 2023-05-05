@@ -1,6 +1,6 @@
 FamType extends Type --> PathType extends Type
 
 Match(e: Expression, g: Expression) extends Expression -->
-    Match(e: Expression, c: FamCases, r: Rec) extends Expression
+    Match(e: Expression, c: FamCases, r: Record) extends Expression
 
 In linkage def, depot --> cases

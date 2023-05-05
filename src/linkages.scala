@@ -186,8 +186,8 @@ object PersimmonLinkages {
           case None => t
           case Some(p) => PathType(Some(subInPath(p, p1, p2)), name)
         }
-      case RecType(fields) => 
-        RecType(fields.map( (s, t) => (s, subInType(t, p1, p2))))
+      case RecordType(fields) => 
+        RecordType(fields.map( (s, t) => (s, subInType(t, p1, p2))))
       case _ => t
     }
   }
@@ -202,16 +202,16 @@ object PersimmonLinkages {
       case IfThenElse(condExpr, ifExpr, elseExpr) => 
         IfThenElse(subInExp(condExpr, p1, p2), subInExp(ifExpr, p1, p2), subInExp(elseExpr, p1, p2))
       case Inst(t, rec) => 
-        Inst(subInType(t, p1, p2).asInstanceOf[PathType], subInExp(rec, p1, p2).asInstanceOf[Rec])
+        Inst(subInType(t, p1, p2).asInstanceOf[PathType], subInExp(rec, p1, p2).asInstanceOf[Record])
       case InstADT(t, cname, rec) => 
-        InstADT(subInType(t, p1, p2).asInstanceOf[PathType], cname, subInExp(rec, p1, p2).asInstanceOf[Rec])
+        InstADT(subInType(t, p1, p2).asInstanceOf[PathType], cname, subInExp(rec, p1, p2).asInstanceOf[Record])
       case Lam(v, t, body) => 
         Lam(v, subInType(t, p1, p2), subInExp(body, p1, p2))
       case Match(e, c, r) => 
-        Match(subInExp(e, p1, p2), subInExp(c, p1, p2).asInstanceOf[FamCases], subInExp(r, p1, p2).asInstanceOf[Rec])
+        Match(subInExp(e, p1, p2), subInExp(c, p1, p2).asInstanceOf[FamCases], subInExp(r, p1, p2).asInstanceOf[Record])
       case Proj(e, name) => Proj(subInExp(e, p1, p2), name)
-      case Rec(fields) => 
-        Rec(fields.map((s, r) => (s, subInExp(r, p1, p2))))
+      case Record(fields) => 
+        Record(fields.map((s, r) => (s, subInExp(r, p1, p2))))
       case _ => e
     }
   }
@@ -219,19 +219,19 @@ object PersimmonLinkages {
   def subInTypeDefn(td: TypeDefn, p1: Path, p2: Path): TypeDefn = {
     TypeDefn(
       td.name, td.marker, 
-      subInType(td.typeBody, p1, p2).asInstanceOf[RecType])
+      subInType(td.typeBody, p1, p2).asInstanceOf[RecordType])
   }
 
   def subInDefaultDefn(dd: DefaultDefn, p1: Path, p2: Path): DefaultDefn = {
     DefaultDefn(
       dd.name, dd.marker, 
-      subInExp(dd.defaultBody, p1, p2).asInstanceOf[Rec])
+      subInExp(dd.defaultBody, p1, p2).asInstanceOf[Record])
   }
 
   def subInAdt(adt: AdtDefn, p1: Path, p2: Path): AdtDefn = {
     AdtDefn(
       adt.name, adt.marker, 
-      adt.adtBody.map((s, rt) => (s, subInType(rt, p1, p2).asInstanceOf[RecType])))
+      adt.adtBody.map((s, rt) => (s, subInType(rt, p1, p2).asInstanceOf[RecordType])))
   }
 
   def subInFunDefn(fd: FunDefn, p1: Path, p2: Path): FunDefn = {
@@ -317,7 +317,7 @@ object PersimmonLinkages {
           else if type2.typeBody.fields.keySet.exists { name =>
             type1.typeBody.fields.contains(name)
           } then throw LinkageException("Concattenating types with duplicate fields.")
-          else (name, TypeDefn(name, Eq, RecType(type1.typeBody.fields ++ type2.typeBody.fields)))
+          else (name, TypeDefn(name, Eq, RecordType(type1.typeBody.fields ++ type2.typeBody.fields)))
         case None => (name, type2)
       }
     }
@@ -353,7 +353,7 @@ object PersimmonLinkages {
           else if def2.defaultBody.fields.keySet.exists { name =>
             def1.defaultBody.fields.contains(name)
           } then throw LinkageException("Concattenating types with duplicate default values.") // TODO: Not sure if updating default values should be allowed
-          else (name, DefaultDefn(name, Eq, Rec(def1.defaultBody.fields ++ def2.defaultBody.fields)))
+          else (name, DefaultDefn(name, Eq, Record(def1.defaultBody.fields ++ def2.defaultBody.fields)))
         case None => (name, def2)
       }
     }
@@ -390,11 +390,11 @@ object PersimmonLinkages {
           else {
             // TODO: I am guessing a bit here about what you mean by "T' + T'' = T'". Also, I think you might mean to write "T' + T'' = T'''" and use T''' as the final output.
             val rec1 = case1.t.output match {
-              case RecType(rec) => rec
+              case RecordType(rec) => rec
               case _ => throw LinkageException("Output type for cases signature is not a record type.") // This should never happen.
             };
             val rec2 = case2.t.output match {
-              case RecType(rec) => rec
+              case RecordType(rec) => rec
               case _ => throw LinkageException("Output type for cases signature is not a record type.") // This should never happen.
             };
             val rec: Map[String, Type] = rec1.flatMap { (fieldName, t1) =>
@@ -410,7 +410,7 @@ object PersimmonLinkages {
             };
             if case1.mt != case2.mt || case1.t.input != case2.t.input then
               throw LinkageException("Concattenating linkages with incompatible cases signatures.")
-            else (name, CasesSig(name, case1.mt, Eq, FunType(case1.t.input, RecType(rec))))
+            else (name, CasesSig(name, case1.mt, Eq, FunType(case1.t.input, RecordType(rec))))
           }
         case None => (name, case2)
       }
@@ -433,7 +433,8 @@ object PersimmonLinkages {
   }
   
   // TODO: Placeholder function.
-  def subsRec(r: Map[String, Expression], v: Var, e: Expression): Map[String, Expression] = {
+  // RENAME
+  def subsRecord(r: Map[String, Expression], v: Var, e: Expression): Map[String, Expression] = {
     throw Exception("Not implemented yet.")
   }
 
@@ -452,11 +453,11 @@ object PersimmonLinkages {
           else {
             // TODO: Currently redoing all the computation done for cases signatures. Not sure if this is intended.
             val rec1 = case1.t.output match {
-              case RecType(rec) => rec
+              case RecordType(rec) => rec
               case _ => throw LinkageException("Output type for cases signature is not a record type.") // This should never happen.
             };
             val rec2 = case2.t.output match {
-              case RecType(rec) => rec
+              case RecordType(rec) => rec
               case _ => throw LinkageException("Output type for cases signature is not a record type.") // This should never happen.
             };
             val rec: Map[String, Type] = rec1.flatMap { (fieldName, t1) =>
@@ -474,17 +475,17 @@ object PersimmonLinkages {
               throw LinkageException("Concattenating linkages with incompatible cases signatures.")
             val v = Var("") // TODO: I don't think fresh vars have been implemented yet.
             val body1 = case1.casesBody match {
-              case Lam(v1, t, Rec(body)) => subsRec(body, v1, v)
+              case Lam(v1, t, Record(body)) => subsRecord(body, v1, v)
               case _ => throw LinkageException("Body of cases definition is invalid.") // This should never happen.
             }
             val body2 = case2.casesBody match {
-              case Lam(v2, t, Rec(body)) => subsRec(body, v2, v)
+              case Lam(v2, t, Record(body)) => subsRecord(body, v2, v)
               case _ => throw LinkageException("Body of cases definition is invalid.") // This should never happen.
             }
             val body: Map[String, Expression] = body1.flatMap { (fieldName, e1) =>
               if body2.contains(fieldName) then None else Some((fieldName, e1))
             } ++ body2;
-            (name, CasesDefn(name, case1.matchType, FunType(case1.t.input, RecType(rec)), Eq, Lam(v, case1.t.input, Rec(body))))
+            (name, CasesDefn(name, case1.matchType, FunType(case1.t.input, RecordType(rec)), Eq, Lam(v, case1.t.input, Record(body))))
           }
         case None => (name, case2)
       }

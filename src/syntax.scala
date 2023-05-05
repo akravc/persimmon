@@ -63,7 +63,7 @@ object PersimmonSyntax {
   case object BType extends Type // B
   case class PathType(var path: Option[Path], name: String) extends Type // a.R
   case class FunType(input: Type, output: Type) extends Type // T -> T'
-  case class RecType(fields: Map[String, Type]) extends Type // {(f: T)*}
+  case class RecordType(fields: Map[String, Type]) extends Type // {(f: T)*}
 
 
   //////////////////////// Type helper functions ////////////////////////
@@ -72,7 +72,7 @@ object PersimmonSyntax {
   def mapPathInType(f: Path => Path)(t: Type): Type = t match {
     case PathType(path, name) => PathType(path.map(f), name)
     case FunType(input, output) => FunType(mapPathInType(f)(input), mapPathInType(f)(output))
-    case RecType(fields) => RecType(fields.view.mapValues(mapPathInType(f)).toMap)
+    case RecordType(fields) => RecordType(fields.view.mapValues(mapPathInType(f)).toMap)
     case _ => t
   }
 
@@ -89,11 +89,11 @@ object PersimmonSyntax {
   case class FamFun(var path: Option[Path], name: String) extends Expression // a.m
   case class FamCases(var path: Option[Path], name: String) extends Expression // a.r
   case class App(e1: Expression, e2: Expression) extends Expression // e g
-  case class Rec(fields: Map[String, Expression]) extends Expression // {(f = e)*}
+  case class Record(fields: Map[String, Expression]) extends Expression // {(f = e)*}
   case class Proj(e: Expression, name: String) extends Expression // e.f
-  case class Inst(t: PathType, rec: Rec) extends Expression // a.R({(f = e)*})
-  case class InstADT(t: PathType, cname: String, rec: Rec) extends Expression // a.R(C {(f = e)*})
-  case class Match(e: Expression, c: FamCases, r: Rec) extends Expression // match e with a.c {(f_arg = e_arg)*}
+  case class Inst(t: PathType, rec: Record) extends Expression // a.R({(f = e)*})
+  case class InstADT(t: PathType, cname: String, rec: Record) extends Expression // a.R(C {(f = e)*})
+  case class Match(e: Expression, c: FamCases, r: Record) extends Expression // match e with a.c {(f_arg = e_arg)*}
   case class IfThenElse(condExpr: Expression, ifExpr: Expression, elseExpr: Expression) extends Expression
 
   /* ======================== DEFINITIONS ======================== */
@@ -116,13 +116,13 @@ object PersimmonSyntax {
 
   sealed trait Definition
   // types
-  case class TypeDefn(name: String, marker: Marker, typeBody: RecType) extends Definition
+  case class TypeDefn(name: String, marker: Marker, typeBody: RecordType) extends Definition
   
   // defaults
-  case class DefaultDefn(name: String, marker: Marker, defaultBody: Rec) extends Definition
+  case class DefaultDefn(name: String, marker: Marker, defaultBody: Record) extends Definition
 
   // ADTs
-  case class AdtDefn(name: String, marker: Marker, adtBody: Map[String, RecType]) extends Definition
+  case class AdtDefn(name: String, marker: Marker, adtBody: Map[String, RecordType]) extends Definition
 
   // Functions
   case class FunDefn(name: String, t: FunType, funBody: Lam) extends Definition
@@ -151,7 +151,6 @@ object PersimmonSyntax {
 
     // retrieve self path from linkage
     def getSelfPath(): Path = {
-        assert(this != null)
         this match {
             case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => self
             case TypingLinkage(self, sup, types, adts, funs, cases, nested) => self
@@ -160,7 +159,6 @@ object PersimmonSyntax {
 
     // retrieve super path from linkage
     def getSuperPath(): Option[AbsoluteFamily] = {
-        assert(this != null)
         this match {
             case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => sup
             case TypingLinkage(self, sup, types, adts, funs, cases, nested) => sup
@@ -169,7 +167,6 @@ object PersimmonSyntax {
 
     // retrieve nested linkage for family "fam", if it exists
     def getNestedLinkage(fam: String): Option[Linkage] = {
-        assert(this != null)
         this match {
             case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => nested.get(fam)
             case TypingLinkage(self, sup, types, adts, funs, cases, nested) => nested.get(fam) 
@@ -177,7 +174,6 @@ object PersimmonSyntax {
     }
 
     def getAllNested(): Map[String, Linkage] = {
-        assert(this != null)
         this match {
             case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => nested
             case TypingLinkage(self, sup, types, adts, funs, cases, nested) => nested
@@ -185,7 +181,6 @@ object PersimmonSyntax {
     }
 
     def getTypes(): Map[String, TypeDefn] = {
-        assert(this != null)
         this match {
             case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => types
             case TypingLinkage(self, sup, types, adts, funs, cases, nested) => types
@@ -193,7 +188,6 @@ object PersimmonSyntax {
     }
 
     def getDefaults(): Option[Map[String, DefaultDefn]] = {
-        assert(this != null)
         this match {
             case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => Some(defaults)
             case TypingLinkage(self, sup, types, adts, funs, cases, nested) => None
@@ -201,7 +195,6 @@ object PersimmonSyntax {
     }
 
     def getAdts(): Map[String, AdtDefn] = {
-        assert(this != null)
         this match {
             case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => adts
             case TypingLinkage(self, sup, types, adts, funs, cases, nested) => adts
@@ -209,7 +202,6 @@ object PersimmonSyntax {
     }
 
     def getFuns(): Either[Map[String, FunSig], Map[String, FunDefn]]= {
-        assert(this != null)
         this match {
             case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => Right(funs)
             case TypingLinkage(self, sup, types, adts, funs, cases, nested) => Left(funs)
@@ -217,7 +209,6 @@ object PersimmonSyntax {
     }
 
     def getCases(): Either[Map[String, CasesSig], Map[String, CasesDefn]] = {
-        assert(this != null)
         this match {
             case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => Right(cases)
             case TypingLinkage(self, sup, types, adts, funs, cases, nested) => Left(cases)
@@ -263,7 +254,7 @@ object PersimmonSyntax {
     case Lam(v, t, body) => true
     case Inst(t, rec) => rec.fields.forall { case (_, exp) => isValue(exp) }
     case InstADT(t, cname, rec) => rec.fields.forall { case (_, exp) => isValue(exp) }
-    case Rec(fields) => fields.forall { case (_, exp) => isValue(exp) }
+    case Record(fields) => fields.forall { case (_, exp) => isValue(exp) }
     case _ => false
   }
 

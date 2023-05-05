@@ -97,11 +97,11 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
   // TYPES
   lazy val pFunType: PackratParser[FunType] = pType ~ ("->" ~> pType) ^^ { case inp~out => FunType(inp, out) }
   lazy val pRecField: PackratParser[(String, Type)] = pFieldName ~ (":" ~> pType) ^^ { case f~t => f->t }
-  lazy val pRecType: PackratParser[RecType] = between("{", "}", repsep(pRecField, ",") ^^ {
+  lazy val pRecType: PackratParser[RecordType] = between("{", "}", repsep(pRecField, ",") ^^ {
     lst =>
       if hasDuplicateName(lst) // disallow records with duplicate fields
       then throw new Exception("Parsing a record type with duplicate fields.")
-      else RecType(lst.toMap)
+      else RecordType(lst.toMap)
   })
   lazy val pFamType: PackratParser[PathType] =
     pPathExtra ^^ { case (p,t) => PathType(Some(p), t) }
@@ -114,14 +114,14 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
   lazy val pDefaultRecField: PackratParser[(String, (Type, Option[Expression]))] =
     pFieldName ~ (":" ~> pType) ~ ("=" ~> pExp).? ^^ { case f~t~oe => f->(t->oe) }
   // separate parser for record type definition with defaults
-  lazy val pDefaultRecType: PackratParser[(RecType, Rec)] = "{"~> repsep(pDefaultRecField, ",") <~"}" ^^ {
+  lazy val pDefaultRecType: PackratParser[(RecordType, Record)] = "{"~> repsep(pDefaultRecField, ",") <~"}" ^^ {
     lst =>
       if hasDuplicateName(lst) // disallow records with duplicate fields
       then throw new Exception("Parsing a record type with duplicate fields.")
       else {
         val type_fields = lst.collect{case (s, (t, _)) => (s, t)}.toMap;
         val defaults = lst.collect{case (s, (t, Some(e))) => (s, e)}.toMap;
-        RecType(type_fields) -> Rec(defaults)
+        RecordType(type_fields) -> Record(defaults)
       }
   }
 
@@ -129,7 +129,7 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
     | pFamType | between("(", ")", pType)
 
   // ADTS
-  lazy val pAdtConstructor: PackratParser[(String, RecType)] = pConstructorName ~ pRecType ^^ { case k ~ v => k -> v }
+  lazy val pAdtConstructor: PackratParser[(String, RecordType)] = pConstructorName ~ pRecType ^^ { case k ~ v => k -> v }
   lazy val pAdt: PackratParser[AdtDefn] =
     (kwType ~> pTypeName) ~ pMarker ~ repsep(pAdtConstructor, "|") ^^ {
       case n~m~cs =>
@@ -161,11 +161,11 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
   lazy val pExpApp: PackratParser[App] = pExp ~ pExp ^^ { case e~g => App(e, g) }
   lazy val pExpProj: PackratParser[Proj] = pExp ~ "." ~ pFieldName ^^ {case e~_~n => Proj(e, n)}
   lazy val pFieldVal: PackratParser[(String, Expression)] = pFieldName ~ "=" ~ pExp ^^ {case k~_~v => k -> v}
-  lazy val pExpRec: PackratParser[Rec] = "{"~> repsep(pFieldVal, ",") <~"}" ^^ {
+  lazy val pExpRec: PackratParser[Record] = "{"~> repsep(pFieldVal, ",") <~"}" ^^ {
     lst =>
       if hasDuplicateName(lst) // disallow records with duplicate fields
       then throw new Exception("Parsing a record with duplicate fields.")
-      else Rec(lst.toMap)
+      else Record(lst.toMap)
   }
 
   lazy val pExpInst: PackratParser[Inst] =
@@ -194,7 +194,7 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
     "=" ^^ {_ => Eq} | "+=" ^^ {_ => PlusEq}
 
   // DEFINITIONS
-  lazy val pTypeDef: PackratParser[(String, (Marker, (RecType, Rec)))] =
+  lazy val pTypeDef: PackratParser[(String, (Marker, (RecordType, Record)))] =
     kwType ~> pTypeName ~ pMarker ~ pDefaultRecType ^^ { case n~m~rt => n -> (m -> rt) }
   lazy val pAdtDef: PackratParser[(String, AdtDefn)] =
     pAdt ^^ { a => a.name -> a }
@@ -219,11 +219,11 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
       case Var(id) if s.contains(id) => Proj(x, id)
       case Lam(v, t, body) => Lam(v, t, f(body))
       case App(e1, e2) => App(f(e1), f(e2))
-      case Rec(fields) => Rec(fields.mapValues(f).toMap)
+      case Record(fields) => Record(fields.mapValues(f).toMap)
       case Proj(e, name) => Proj(f(e), name)
-      case Inst(t, rec) => Inst(t, f(rec).asInstanceOf[Rec])
-      case InstADT(t, cname, rec) => InstADT(t, cname, f(rec).asInstanceOf[Rec])
-      case Match(e, c, r) => Match(f(e), f(c).asInstanceOf[FamCases], f(r).asInstanceOf[Rec])
+      case Inst(t, rec) => Inst(t, f(rec).asInstanceOf[Record])
+      case InstADT(t, cname, rec) => InstADT(t, cname, f(rec).asInstanceOf[Record])
+      case Match(e, c, r) => Match(f(e), f(c).asInstanceOf[FamCases], f(r).asInstanceOf[Record])
       case IfThenElse(a, b, c) => IfThenElse(f(a), f(b), f(c))
       case _ => e
     }
@@ -239,15 +239,15 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
       val name_cases = name+cases_suffix
       val x = Var("$x")
       val matched_var = Var("$m")
-      val casesType = RecType(bodies.map{c => (c.constructor -> FunType(RecType(c.params.toMap), returnType))}.toMap)
-      val inputType = RecType(params.toMap)
+      val casesType = RecordType(bodies.map{c => (c.constructor -> FunType(RecordType(c.params.toMap), returnType))}.toMap)
+      val inputType = RecordType(params.toMap)
       val foldedType = params.foldRight(FunType(matchType, returnType)){
         case ((p,t),r) => FunType(t, r)}
       val t = FunType(inputType, casesType)
       val fun = marker match {
         case Eq => {
           val body0 = Lam(matched_var, matchType, Match(matched_var,
-            FamCases(None, name_cases), Rec(params.map{(k,_) => (k -> Var("_"+k))}.toMap)))
+            FamCases(None, name_cases), Record(params.map{(k,_) => (k -> Var("_"+k))}.toMap)))
           val paramsTr = params.map{(k,v) => ("_"+k, v)}.toMap
           val body = paramsTr.foldRight(body0){case ((p,t),r) =>
             Lam(Var(p), t, r)
@@ -256,9 +256,9 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
         }
         case PlusEq => None
       }
-      val b = Lam(x, inputType, Rec(bodies.map{c => c.constructor ->
+      val b = Lam(x, inputType, Record(bodies.map{c => c.constructor ->
         var2proj(x, params.map(_._1).toSet)(
-          Lam(matched_var, RecType(c.params.toMap),
+          Lam(matched_var, RecordType(c.params.toMap),
             var2proj(matched_var, c.params.map(_._1).toSet)(
               c.body)))}.toMap))
       val cases = CasesDefn(name_cases, matchType, t, marker, b)

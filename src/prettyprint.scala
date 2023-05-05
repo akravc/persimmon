@@ -24,7 +24,7 @@ object PrettyPrint {
       case BType => "B"
       case FunType(a, b) => "(" + printType(a) + " -> " + printType(b) + ")"
       case PathType(path, n) => path.map(printPath).getOrElse("None") + "." + n
-      case RecType(fields) =>
+      case RecordType(fields) =>
         val printmap = fields.map{case (f, t) =>
           if fields.last == (f, t) then f + ": " + printType(t)
           else f + ": " + printType(t) + ", "}
@@ -48,7 +48,7 @@ object PrettyPrint {
       case FamFun(p, n) => p.map(printPath).getOrElse("None") + "." + n
       case FamCases(p, n) => "<" + p.map(printPath).getOrElse("None") + "." + n + ">"
       case App(e, g) => "(" + printExp(e) + " " + printExp(g) + ")"
-      case Rec(fields) =>
+      case Record(fields) =>
         val printmap = fields.map{case (f, e) =>
           if ((f, e) == fields.last) then f + " = " + printExp(e)
           else f + " = " + printExp(e) + ", "}
