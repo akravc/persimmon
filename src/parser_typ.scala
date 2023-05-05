@@ -251,11 +251,8 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
       case c~p~_ => extendedDefCase(c, p)
     }) | (kwCase ~> "_" ~> "=" ~> pExp >> {_ => extendedDefCase("_", Nil)})
 
-  // A family can extend another family. If it does not, the parent is None.
-  def pFamDef(selfPrefix: SelfPath): PackratParser[(String, TypingLinkage)] = {
+  def pFamBody(curSelfPath: SelfPath): PackratParser[TypingLinkage] = {
     for {
-      fam <- kwFamily ~> pFamilyName
-      curSelfPath = SelfFamily(Sp(selfPrefix), fam)
       supFam <- (kwExtends ~> pAbsoluteFamPath).?
       typs~adts~funs0~extended~cases0~mixins~nested <- between("{", "}",
         rep(pTypeDef) ~ rep(pAdtDef) ~ rep(pFunDef) ~ rep(pExtendedDef) ~ rep(pCasesDef) ~
@@ -275,7 +272,7 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
         val typedefs = typs.map { 
           case (s, (m, rt)) => s -> TypeDefn(s, m, rt) }.toMap
         
-        fam -> TypingLinkage(
+        TypingLinkage(
           Sp(curSelfPath),
           supFam,
           typedefs,
@@ -287,54 +284,36 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
       }
     }
   }
+    
+  // A family can extend another family. If it does not, the parent is None.
+  def pFamDef(selfPrefix: SelfPath): PackratParser[(String, TypingLinkage)] = {
+    for {
+      fam <- kwFamily ~> pFamilyName
+      linkage <- pFamBody(SelfFamily(Sp(selfPrefix), fam))
+    } yield {
+      fam -> linkage
+    }
+  }
   
   // TODO: Finish implementing mixin parsing.
   def pMixDef(selfPrefix: SelfPath): PackratParser[(String, TypingLinkage)] = {
     for {
       mix <- kwMixin ~> pFamilyName
       curSelfPath = SelfFamily(Sp(selfPrefix), mix)
-      baseSelfPath = SelfFamily(Sp(curSelfPath), "#Base")
-      derivedSelfPath = SelfFamily(Sp(curSelfPath), "#Derived")
-      supFam <- (kwExtends ~> pAbsoluteFamPath).?
-      typs~adts~funs0~extended~cases0~mixins~nested <- between("{", "}",
-        rep(pTypeDef) ~ rep(pAdtDef) ~ rep(pFunDef) ~ rep(pExtendedDef) ~ rep(pCasesDef) ~
-        rep(pMixDef(baseSelfPath)) ~ rep(pFamDef(baseSelfPath))
-      )
+      linkage <- pFamBody(SelfFamily(Sp(curSelfPath), "#Base"))
     } yield {
-      val funs = funs0 ++ extended.filter{_._2._1.nonEmpty}.map{(k,v) => (k -> v._1.get)}
-      val cases = cases0 ++ extended.map{(k,v) => (k+cases_suffix -> v._2)}
-      val new_nested = mixins ++ nested
-      
-      if hasDuplicateName(typs) then throw new Exception("Parsing duplicate type names.")
-      else if hasDuplicateName(adts) then throw new Exception("Parsing duplicate ADT names.")
-      else if hasDuplicateName(funs) then throw new Exception("Parsing duplicate function names.")
-      else if hasDuplicateName(cases) then throw new Exception("Parsing duplicate cases names.")
-      else if hasDuplicateName(new_nested) then throw new Exception("Parsing duplicate family names.")
-      else {
-        val typedefs = typs.map { 
-          case (s, (m, rt)) => s -> TypeDefn(s, m, rt) }.toMap
-        
-        mix -> TypingLinkage(
-          Sp(curSelfPath),
-          None, Map(), Map(), Map(), Map(),
-          Map(
-            "#Base" -> TypingLinkage(
-              Sp(baseSelfPath),
-              supFam,
-              typedefs,
-              adts.toMap,
-              funs.toMap,
-              cases.toMap,
-              nested.toMap
-            ),
-            "#Derived" -> TypingLinkage(
-              Sp(derivedSelfPath),
-              Some(AbsoluteFamily(Sp(curSelfPath), "#Base")), // TODO: Is this right?
-              Map(), Map(), Map(), Map(), Map(),
-            ),
+      mix -> TypingLinkage(
+        Sp(curSelfPath),
+        None, Map(), Map(), Map(), Map(),
+        Map(
+          "#Base" -> linkage,
+          "#Derived" -> TypingLinkage(
+            Sp(SelfFamily(Sp(curSelfPath), "#Derived")),
+            Some(AbsoluteFamily(Sp(curSelfPath), "#Base")), // TODO: Is this right?
+            Map(), Map(), Map(), Map(), Map(),
           ),
-        )
-      }
+        ),
+      )
     }
   }
 
