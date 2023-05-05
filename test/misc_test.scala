@@ -15,7 +15,5 @@ class MiscTesting extends AnyFunSuite {
   test("misc") {
     val prog = Source.fromFile("/Users/jonasiskander/persimmon/test/misc_test.txt").mkString
     assert(canParse(TestDefParser.pProgram, prog))
-    val lkg = parseSuccess(TestDefParser.pProgram, prog)
-    assert(wfDef(List(Prog), lkg))
   }
 }

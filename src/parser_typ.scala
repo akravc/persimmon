@@ -28,6 +28,7 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
   val kwType: Parser[String] = "type\\b".r
   val kwVal: Parser[String] = "val\\b".r
   val kwFamily: Parser[String] = "Family\\b".r
+  val kwMixin: Parser[String] = "Mixin\\b".r
   val kwExtends: Parser[String] = "extends\\b".r
   val kwN: Parser[String] = "N\\b".r
   val kwB: Parser[String] = "B\\b".r
@@ -290,8 +291,8 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
   // TODO: Finish implementing mixin parsing.
   def pMixDef(selfPrefix: SelfPath): PackratParser[(String, TypingLinkage)] = {
     for {
-      fam <- kwFamily ~> pFamilyName
-      curSelfPath = SelfFamily(Sp(selfPrefix), fam)
+      mix <- kwMixin ~> pFamilyName
+      curSelfPath = SelfFamily(Sp(selfPrefix), mix)
       baseSelfPath = SelfFamily(Sp(curSelfPath), "#Base")
       derivedSelfPath = SelfFamily(Sp(curSelfPath), "#Derived")
       supFam <- (kwExtends ~> pAbsoluteFamPath).?
@@ -313,7 +314,7 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
         val typedefs = typs.map { 
           case (s, (m, rt)) => s -> TypeDefn(s, m, rt) }.toMap
         
-        fam -> TypingLinkage(
+        mix -> TypingLinkage(
           Sp(curSelfPath),
           None, Map(), Map(), Map(), Map(),
           Map(
@@ -338,11 +339,10 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
   }
 
   lazy val pProgram: PackratParser[TypingLinkage] =
-    rep(pFamDef(Prog)) ^^ {
-      fams => 
-        TypingLinkage(Sp(Prog), None, Map(), Map(), Map(), Map(),
-          fams.toMap
-        )
+    (rep(pMixDef(Prog)) ~ rep(pFamDef(Prog))) ^^ { case (mixins ~ fams) =>
+      val new_fams = mixins ++ fams
+      if hasDuplicateName(new_fams) then throw new Exception("Parsing duplicate family names.")
+      TypingLinkage(Sp(Prog), None, Map(), Map(), Map(), Map(), new_fams.toMap)
     }
 
   // Simple preprocessing to remove eol comments

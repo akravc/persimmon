@@ -28,6 +28,7 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
   val kwType: Parser[String] = "type\\b".r
   val kwVal: Parser[String] = "val\\b".r
   val kwFamily: Parser[String] = "Family\\b".r
+  val kwMixin: Parser[String] = "Mixin\\b".r
   val kwExtends: Parser[String] = "extends\\b".r
   val kwN: Parser[String] = "N\\b".r
   val kwB: Parser[String] = "B\\b".r
@@ -344,8 +345,8 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
   
   def pMixDef(selfPrefix: SelfPath): PackratParser[(String, DefinitionLinkage)] = {
     for {
-      fam <- kwFamily ~> pFamilyName
-      curSelfPath = SelfFamily(Sp(selfPrefix), fam)
+      mix <- kwMixin ~> pFamilyName
+      curSelfPath = SelfFamily(Sp(selfPrefix), mix)
       baseSelfPath = SelfFamily(Sp(curSelfPath), "#Base")
       derivedSelfPath = SelfFamily(Sp(curSelfPath), "#Derived")
       supFam <- (kwExtends ~> pAbsoluteFamPath).?
@@ -388,7 +389,7 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
           case (s, casedefn) => s -> (casedefn.matchType, casedefn.t)
         }.toMap
         
-        fam -> DefinitionLinkage(
+        mix -> DefinitionLinkage(
           Sp(curSelfPath),
           supFam,
           typedefs,
@@ -403,11 +404,10 @@ class PersimmonDefParser extends RegexParsers with PackratParsers {
   }
 
   lazy val pProgram: PackratParser[DefinitionLinkage] =
-    rep(pFamDef(Prog)) ^^ {
-      fams => 
-        DefinitionLinkage(Sp(Prog), None, Map(), Map(), Map(), Map(), Map(),
-          fams.toMap
-        )
+    (rep(pMixDef(Prog)) ~ rep(pFamDef(Prog))) ^^ { case mixins ~ fams =>
+      val new_fams = mixins ++ fams
+      if hasDuplicateName(new_fams) then throw new Exception("Parsing duplicate family names.")
+      DefinitionLinkage(Sp(Prog), None, Map(), Map(), Map(), Map(), Map(), new_fams.toMap)
     }
 
   // Simple preprocessing to remove eol comments
