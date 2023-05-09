@@ -143,7 +143,7 @@ object PersimmonSyntax {
   case class FunSig(name: String, t: FunType) extends Signature
 
   // cases signature
-  case class CasesSig(name: String, mt: PathType, marker: Marker, t: FunType) extends Signature
+  case class CasesSig(name: String, matchType: PathType, marker: Marker, t: FunType) extends Signature
 
   /* ======================== LINKAGE SYNTAX ======================== */
 

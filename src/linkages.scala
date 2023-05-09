@@ -132,27 +132,27 @@ object PersimmonLinkages {
     }
     
     // new self
-    val newself = subInPath(lkg.getSelfPath(), p1, p2)
+    val newself = subPathInPath(lkg.getSelfPath(), p1, p2)
 
     // new super
     val newsup = lkg.getSuperPath() match {
       case None => None
-      case Some(p) => Some(subInPath(p, p1, p2).asInstanceOf[AbsoluteFamily])
+      case Some(p) => Some(subPathInPath(p, p1, p2).asInstanceOf[AbsoluteFamily])
     }
 
-    val newtypes = lkg.getTypes().map{ (s, td) => (s, subInTypeDefn(td, p1, p2))}
-    val newadts = lkg.getAdts().map{ (s, adt) => (s, subInAdt(adt, p1, p2))}
+    val newtypes = lkg.getTypes().map{ (s, td) => (s, subPathInTypeDefn(td, p1, p2))}
+    val newadts = lkg.getAdts().map{ (s, adt) => (s, subPathInAdt(adt, p1, p2))}
 
     lkg match {
       case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => 
-        val newdefaults = defaults.map{ (s, dd) => (s, subInDefaultDefn(dd, p1, p2))}
-        val newfuns = funs.map{ (s, fdef) => (s, subInFunDefn(fdef, p1, p2))}
-        val newcases = cases.map{ (s, cdef) => (s, subInCasesDefn(cdef, p1, p2))}
+        val newdefaults = defaults.map{ (s, dd) => (s, subPathInDefaultDefn(dd, p1, p2))}
+        val newfuns = funs.map{ (s, fdef) => (s, subPathInFunDefn(fdef, p1, p2))}
+        val newcases = cases.map{ (s, cdef) => (s, subPathInCasesDefn(cdef, p1, p2))}
         val newnested = nested.map( (s, link) => (s, pathSub(link, p1, p2).asInstanceOf[DefinitionLinkage]))
         DefinitionLinkage(newself, newsup, newtypes, newdefaults, newadts, newfuns, newcases, newnested)
       case TypingLinkage(self, sup, types, adts, funs, cases, nested) => 
-        val newfuns = funs.map{ (s, fsig) => (s, subInFunSig(fsig, p1, p2))}
-        val newcases = cases.map{ (s, csig) => (s, subInCasesSig(csig, p1, p2))}
+        val newfuns = funs.map{ (s, fsig) => (s, subPathInFunSig(fsig, p1, p2))}
+        val newcases = cases.map{ (s, csig) => (s, subPathInCasesSig(csig, p1, p2))}
         val newnested = nested.map( (s, link) => (s, pathSub(link, p1, p2).asInstanceOf[TypingLinkage]))
         TypingLinkage(newself, newsup, newtypes, newadts, newfuns, newcases, newnested)
     }
@@ -160,7 +160,7 @@ object PersimmonLinkages {
 
   // substitute path p2 in any path p with p1
   // including any prefix of p if it matches
-  def subInPath(p: Path, p1: Path, p2: Path): Path = {
+  def subPathInPath(p: Path, p1: Path, p2: Path): Path = {
     // print("substituting: "  + printPath(p2) + " with " + printPath(p1) + 
     // " in " + printPath(p) + " \n")
     if (p == p2) then p1 else
@@ -170,95 +170,95 @@ object PersimmonLinkages {
           case Prog => 
             p // don't sub prog, nothing extends prog.
           case SelfFamily(pref, fam) => 
-            Sp(SelfFamily(subInPath(pref, p1, p2), fam))
+            Sp(SelfFamily(subPathInPath(pref, p1, p2), fam))
         }
       case AbsoluteFamily(pref, fam) => 
-        AbsoluteFamily(subInPath(pref, p1, p2), fam)
+        AbsoluteFamily(subPathInPath(pref, p1, p2), fam)
     }
   }
 
-  def subInType(t: Type, p1: Path, p2: Path): Type = {
+  def subPathInType(t: Type, p1: Path, p2: Path): Type = {
     t match {
       case FunType(input, output) => 
-        FunType(subInType(input, p1, p2), subInType(output, p1, p2))
+        FunType(subPathInType(input, p1, p2), subPathInType(output, p1, p2))
       case PathType(path, name) => 
         path match {
           case None => t
-          case Some(p) => PathType(Some(subInPath(p, p1, p2)), name)
+          case Some(p) => PathType(Some(subPathInPath(p, p1, p2)), name)
         }
       case RecordType(fields) => 
-        RecordType(fields.map( (s, t) => (s, subInType(t, p1, p2))))
+        RecordType(fields.map( (s, t) => (s, subPathInType(t, p1, p2))))
       case _ => t
     }
   }
 
-  def subInExp(e: Expression, p1: Path, p2: Path): Expression = {
+  def subPathInExp(e: Expression, p1: Path, p2: Path): Expression = {
     e match {
-      case App(e1, e2) => App(subInExp(e1, p1, p2), subInExp(e2, p1, p2))
+      case App(e1, e2) => App(subPathInExp(e1, p1, p2), subPathInExp(e2, p1, p2))
       case FamCases(path, name) => 
         if (path == Some(p2)) then FamCases(Some(p1), name) else e
       case FamFun(path, name) => 
         if (path == Some(p2)) then FamFun(Some(p1), name) else e
       case IfThenElse(condExpr, ifExpr, elseExpr) => 
-        IfThenElse(subInExp(condExpr, p1, p2), subInExp(ifExpr, p1, p2), subInExp(elseExpr, p1, p2))
+        IfThenElse(subPathInExp(condExpr, p1, p2), subPathInExp(ifExpr, p1, p2), subPathInExp(elseExpr, p1, p2))
       case Inst(t, rec) => 
-        Inst(subInType(t, p1, p2).asInstanceOf[PathType], subInExp(rec, p1, p2).asInstanceOf[Record])
+        Inst(subPathInType(t, p1, p2).asInstanceOf[PathType], subPathInExp(rec, p1, p2).asInstanceOf[Record])
       case InstADT(t, cname, rec) => 
-        InstADT(subInType(t, p1, p2).asInstanceOf[PathType], cname, subInExp(rec, p1, p2).asInstanceOf[Record])
+        InstADT(subPathInType(t, p1, p2).asInstanceOf[PathType], cname, subPathInExp(rec, p1, p2).asInstanceOf[Record])
       case Lam(v, t, body) => 
-        Lam(v, subInType(t, p1, p2), subInExp(body, p1, p2))
+        Lam(v, subPathInType(t, p1, p2), subPathInExp(body, p1, p2))
       case Match(e, c, r) => 
-        Match(subInExp(e, p1, p2), subInExp(c, p1, p2).asInstanceOf[FamCases], subInExp(r, p1, p2).asInstanceOf[Record])
-      case Proj(e, name) => Proj(subInExp(e, p1, p2), name)
+        Match(subPathInExp(e, p1, p2), subPathInExp(c, p1, p2).asInstanceOf[FamCases], subPathInExp(r, p1, p2).asInstanceOf[Record])
+      case Proj(e, name) => Proj(subPathInExp(e, p1, p2), name)
       case Record(fields) => 
-        Record(fields.map((s, r) => (s, subInExp(r, p1, p2))))
+        Record(fields.map((s, r) => (s, subPathInExp(r, p1, p2))))
       case _ => e
     }
   }
 
-  def subInTypeDefn(td: TypeDefn, p1: Path, p2: Path): TypeDefn = {
+  def subPathInTypeDefn(td: TypeDefn, p1: Path, p2: Path): TypeDefn = {
     TypeDefn(
       td.name, td.marker, 
-      subInType(td.typeBody, p1, p2).asInstanceOf[RecordType])
+      subPathInType(td.typeBody, p1, p2).asInstanceOf[RecordType])
   }
 
-  def subInDefaultDefn(dd: DefaultDefn, p1: Path, p2: Path): DefaultDefn = {
+  def subPathInDefaultDefn(dd: DefaultDefn, p1: Path, p2: Path): DefaultDefn = {
     DefaultDefn(
       dd.name, dd.marker, 
-      subInExp(dd.defaultBody, p1, p2).asInstanceOf[Record])
+      subPathInExp(dd.defaultBody, p1, p2).asInstanceOf[Record])
   }
 
-  def subInAdt(adt: AdtDefn, p1: Path, p2: Path): AdtDefn = {
+  def subPathInAdt(adt: AdtDefn, p1: Path, p2: Path): AdtDefn = {
     AdtDefn(
       adt.name, adt.marker, 
-      adt.adtBody.map((s, rt) => (s, subInType(rt, p1, p2).asInstanceOf[RecordType])))
+      adt.adtBody.map((s, rt) => (s, subPathInType(rt, p1, p2).asInstanceOf[RecordType])))
   }
 
-  def subInFunDefn(fd: FunDefn, p1: Path, p2: Path): FunDefn = {
+  def subPathInFunDefn(fd: FunDefn, p1: Path, p2: Path): FunDefn = {
     FunDefn(
-      fd.name, subInType(fd.t, p1, p2).asInstanceOf[FunType], 
-      subInExp(fd.funBody, p1, p2).asInstanceOf[Lam])
+      fd.name, subPathInType(fd.t, p1, p2).asInstanceOf[FunType], 
+      subPathInExp(fd.funBody, p1, p2).asInstanceOf[Lam])
   }
 
-  def subInCasesDefn(cd: CasesDefn, p1: Path, p2: Path): CasesDefn = {
-    CasesDefn(cd.name, subInType(cd.matchType, p1, p2).asInstanceOf[PathType], subInType(cd.t, p1, p2).asInstanceOf[FunType], 
-    cd.ts.map((t) => (subInType(t, p1, p2))), cd.marker,
-    subInExp(cd.casesBody, p1, p2))
+  def subPathInCasesDefn(cd: CasesDefn, p1: Path, p2: Path): CasesDefn = {
+    CasesDefn(cd.name, subPathInType(cd.matchType, p1, p2).asInstanceOf[PathType], subPathInType(cd.t, p1, p2).asInstanceOf[FunType], 
+    cd.ts.map((t) => (subPathInType(t, p1, p2))), cd.marker,
+    subPathInExp(cd.casesBody, p1, p2))
   }
 
-  def subInFunSig(fs: FunSig, p1: Path, p2: Path): FunSig = {
+  def subPathInFunSig(fs: FunSig, p1: Path, p2: Path): FunSig = {
     FunSig(
-      fs.name, subInType(fs.t, p1, p2).asInstanceOf[FunType])
+      fs.name, subPathInType(fs.t, p1, p2).asInstanceOf[FunType])
   }
 
-  def subInCasesSig(cs: CasesSig, p1: Path, p2: Path): CasesSig = {
-    CasesSig(cs.name, subInType(cs.mt, p1, p2).asInstanceOf[PathType], 
-    cs.marker, subInType(cs.t, p1, p2).asInstanceOf[FunType])
+  def subPathInCasesSig(cs: CasesSig, p1: Path, p2: Path): CasesSig = {
+    CasesSig(cs.name, subPathInType(cs.matchType, p1, p2).asInstanceOf[PathType], 
+    cs.marker, subPathInType(cs.t, p1, p2).asInstanceOf[FunType])
   }
 
 
 
-  /* ====================== Linkage Concatenation ====================== */
+  /* ====================== LINKAGE CONCATENATION ====================== */
 
   // Rule CAT-TOP
   def concatenateLinkages(lkgSuper: Linkage, lkgExt: Linkage): Linkage = {
@@ -334,7 +334,7 @@ object PersimmonLinkages {
             throw LinkageException("Concattenating linkages with duplicate ADT definitions.")
           else if adt2.adtBody.keySet.exists { name =>
             adt1.adtBody.contains(name)
-          } then throw LinkageException("Concattenating types with duplicate constructors.") // TODO: Assuming we should not be able to add fields to existing constructors. Is this the intended behavior?
+          } then throw LinkageException("Concattenating types with duplicate constructors.") 
           else (name, AdtDefn(name, Eq, adt1.adtBody ++ adt2.adtBody))
         case None => (name, adt2)
       }
@@ -349,10 +349,10 @@ object PersimmonLinkages {
       defs1.get(name) match {
         case Some(def1) =>
           if def2.marker == Eq then
-            throw LinkageException("Concattenating linkages with duplicate type definitions.") // TODO: Assuming there is one record of defaults for each record type.
+            throw LinkageException("Concattenating linkages with duplicate type definitions.") 
           else if def2.defaultBody.fields.keySet.exists { name =>
             def1.defaultBody.fields.contains(name)
-          } then throw LinkageException("Concattenating types with duplicate default values.") // TODO: Not sure if updating default values should be allowed
+          } then throw LinkageException("Concattenating types with duplicate default values.") 
           else (name, DefaultDefn(name, Eq, Record(def1.defaultBody.fields ++ def2.defaultBody.fields)))
         case None => (name, def2)
       }
@@ -384,11 +384,10 @@ object PersimmonLinkages {
         case Some(case1) =>
           // TODO: I'm not 100% sure why having "=" here is useful.
           if case2.marker == Eq then
-            if case1.mt != case2.mt || case1.t != case2.t then
+            if case1.matchType != case2.matchType || case1.t != case2.t then
               throw LinkageException("Concattenating linkages with duplicate incompatible cases signatures.")
             else (name, case1)
           else {
-            // TODO: I am guessing a bit here about what you mean by "T' + T'' = T'". Also, I think you might mean to write "T' + T'' = T'''" and use T''' as the final output.
             val rec1 = case1.t.output match {
               case RecordType(rec) => rec
               case _ => throw LinkageException("Output type for cases signature is not a record type.") // This should never happen.
@@ -408,9 +407,9 @@ object PersimmonLinkages {
                 case None => (fieldName, t2)
               }
             };
-            if case1.mt != case2.mt || case1.t.input != case2.t.input then
+            if case1.matchType != case2.matchType || case1.t.input != case2.t.input then
               throw LinkageException("Concattenating linkages with incompatible cases signatures.")
-            else (name, CasesSig(name, case1.mt, Eq, FunType(case1.t.input, RecordType(rec))))
+            else (name, CasesSig(name, case1.matchType, Eq, FunType(case1.t.input, RecordType(rec))))
           }
         case None => (name, case2)
       }
@@ -425,18 +424,14 @@ object PersimmonLinkages {
       funs1.get(name) match {
         case Some(fun1) =>
           if fun1.t != fun2.t then
-            throw LinkageException("Concattenating linkages with incompatible function signatures.") // TODO: This should never happen if "concatFunSigs" is called first.
+            throw LinkageException("Concattenating linkages with incompatible function signatures.")
           else (name, FunDefn(fun1.name, fun1.t, fun2.funBody))
         case None => (name, fun2)
       }
     }
   }
   
-  // TODO: Placeholder function.
-  // RENAME
-  def subsRecord(r: Map[String, Expression], v: Var, e: Expression): Map[String, Expression] = {
-    throw Exception("Not implemented yet.")
-  }
+
 
   // Rule CAT-CASES-DEF
   def concatCasesDefns(cases1: Map[String, CasesDefn], cases2: Map[String, CasesDefn]): Map[String, CasesDefn] = {
@@ -446,9 +441,8 @@ object PersimmonLinkages {
       cases1.get(name) match {
         case Some(case1) =>
           if case2.marker == Eq then
-            // TODO: There is an inconsistency: the fields here are named "matchType", but for the signatures, they are named "mt".
             if case1.matchType != case2.matchType || case1.t != case2.t then
-              throw LinkageException("Concattenating linkages with duplicate incompatible cases signatures.") // TODO: This should never happen if "concatCaseSigs" is called first.
+              throw LinkageException("Concattenating linkages with duplicate incompatible cases signatures.")
             else (name, case2)
           else {
             // TODO: Currently redoing all the computation done for cases signatures. Not sure if this is intended.
@@ -473,13 +467,17 @@ object PersimmonLinkages {
             };
             if case1.matchType != case2.matchType || case1.t.input != case2.t.input then
               throw LinkageException("Concattenating linkages with incompatible cases signatures.")
-            val v = Var("") // TODO: I don't think fresh vars have been implemented yet.
+            // generate var that is fresh to both cases bodies
+            val v = freshVar(boundVarsInExp(case1.casesBody) ++ 
+                      boundVarsInExp(case2.casesBody))
             val body1 = case1.casesBody match {
-              case Lam(v1, t, Record(body)) => subsRecord(body, v1, v)
+              case Lam(v1, t, Record(body)) => 
+                subVarInExp(Record(body), v1, v).asInstanceOf[Record].fields
               case _ => throw LinkageException("Body of cases definition is invalid.") // This should never happen.
             }
             val body2 = case2.casesBody match {
-              case Lam(v2, t, Record(body)) => subsRecord(body, v2, v)
+              case Lam(v2, t, Record(body)) => 
+                subVarInExp(Record(body), v2, v).asInstanceOf[Record].fields
               case _ => throw LinkageException("Body of cases definition is invalid.") // This should never happen.
             }
             val body: Map[String, Expression] = body1.flatMap { (fieldName, e1) =>
@@ -489,6 +487,59 @@ object PersimmonLinkages {
           }
         case None => (name, case2)
       }
+    }
+  }
+
+  /* ====================== FRESH VARIABLES ====================== */
+
+  // returns all variables bound in this expression
+  def boundVarsInExp(e: Expression): List[String] = {
+    e match {
+      case App(e1, e2) => boundVarsInExp(e1) ++ boundVarsInExp(e2)
+      case IfThenElse(condExpr, ifExpr, elseExpr) => 
+        boundVarsInExp(condExpr) ++ boundVarsInExp(ifExpr) ++ boundVarsInExp(elseExpr)
+      case Inst(t, rec) => boundVarsInExp(rec)
+      case InstADT(t, cname, rec) => boundVarsInExp(rec)
+      case Lam(v, t, body) => List(v.id) ++ boundVarsInExp(body)
+      case Match(e, c, r) => boundVarsInExp(e) ++ boundVarsInExp(r)
+      case Proj(e, name) => boundVarsInExp(e)
+      case Record(fields) => 
+        fields.map((s, e) => (s, boundVarsInExp(e))).values.foldLeft(List())( (a: List[String], b: List[String]) => a ++ b)
+      case _ => List()
+    }
+  }
+
+  def freshVar(bound: List[String]): Var = {
+    var alphabet = ('a' to 'z') ++ ('A' to 'Z')
+    var x = "" + alphabet(scala.util.Random.nextInt(52))
+    if (bound.contains(x)) then freshVar(bound)
+    else Var(x)
+  }
+
+  /* ====================== VARIABLE SUBSTITUTION ====================== */
+
+  // Substitute variable v2 with variable v1 in expression e
+  // e [v1 / v2]
+  def subVarInExp(e: Expression, v1: Var, v2: Var): Expression = {
+    e match {
+      case Var(id) => if e == v2 then v1 else e
+      case App(e1, e2) => App(subVarInExp(e1, v1, v2), subVarInExp(e2, v1, v2))
+      case IfThenElse(condExpr, ifExpr, elseExpr) => 
+        IfThenElse(subVarInExp(condExpr, v1, v2), subVarInExp(ifExpr, v1, v2), subVarInExp(elseExpr, v1, v2))
+      case Inst(t, rec) => 
+        Inst(t, subVarInExp(rec, v1, v2).asInstanceOf[Record])
+      case InstADT(t, cname, rec) => 
+        InstADT(t, cname, subVarInExp(rec, v1, v2).asInstanceOf[Record])
+      case Lam(v, t, body) => 
+        if (v2 == v) 
+        then Lam(v1, t, subVarInExp(body, v1, v2))
+        else Lam(v, t, subVarInExp(body, v1, v2))
+      case Match(e, c, r) => 
+        Match(subVarInExp(e, v1, v2), c, subVarInExp(r, v1, v2).asInstanceOf[Record])
+      case Proj(e, name) => Proj(subVarInExp(e, v1, v2), name)
+      case Record(fields) => 
+        Record(fields.map((s, r) => (s, subVarInExp(r, v1, v2))))
+      case _ => e
     }
   }
 }

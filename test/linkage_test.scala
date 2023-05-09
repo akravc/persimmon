@@ -16,13 +16,38 @@ class LinkageTesting extends AnyFunSuite {
 
     test("linkage - path sub 1") {
         assertResult(
-            subInPath(Sp(SelfFamily(Sp(Prog), "A")), 
+            subPathInPath(Sp(SelfFamily(Sp(Prog), "A")), 
                 Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K")),
                 Sp(SelfFamily(Sp(Prog), "A"))
             )
         ){
             Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K"))
         }
+    }
+
+    /* ============= TEST FRESH VARS ============= */
+
+    test("linkage - bound vars 1") {
+        var exp = Lam(Var("x"), BType, 
+                    Lam(Var("y"), FunType(BType, NType), 
+                        App(Var("y"), Var("x"))))
+        assertResult(boundVarsInExp(exp)){List("x", "y")}
+    }
+
+    test("linkage - bound vars 2") {
+        var exp = Lam(Var("x"), BType, 
+                    Lam(Var("z"), FunType(BType, NType), 
+                        App(Var("y"), Var("x"))))
+        assertResult(boundVarsInExp(exp)){List("x", "z")}
+    }
+
+    test("linkage - fresh vars 1") {
+        var exp = Lam(Var("x"), BType, 
+                    Lam(Var("y"), FunType(BType, NType), 
+                        App(Var("y"), Var("x"))))
+        var bound = boundVarsInExp(exp)
+        var fresh = freshVar(bound)
+        assert(!bound.contains(fresh.id))
     }
 
     /* ============= TEST LINKAGE COMPUTATION: PROG ============= */

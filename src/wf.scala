@@ -108,7 +108,7 @@ object PersimmonWF {
   // rule EC-Nest
   def exhaustivityCheck(K: PathCtx, lkg: TypingLinkage): Boolean = {
     lkg.cases.forall { (name, cases) => {
-      val L_S_prime = computeTypLinkage(K, cases.mt.path.get)
+      val L_S_prime = computeTypLinkage(K, cases.matchType.path.get)
       L_S_prime.adts.contains(name) &&
       (cases.t.output match {
         case RecordType(rec) => {

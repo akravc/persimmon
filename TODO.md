@@ -3,7 +3,7 @@
 - [x] (Ana) Fix substitution of of prefixes in paths
 - [ ] (Ana) Case studies, based on old res files
   - [ ] STLC example, with some internal TODOs fixed
-- [ ] (Ana) Finish up stubs and loose ends in linkages.scala
+- [x] (Ana) Finish up stubs and loose ends in linkages.scala
 - [ ] (Ana) fix function names parsing as variables (if it's a var in scope it's a var, otherwise fun call)
 - [ ] (Ana) add plus to expressions
 - [ ] (Ana) abstract function in linkages 

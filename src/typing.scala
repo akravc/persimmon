@@ -53,7 +53,7 @@ object PersimmonTyping {
         case Some(t: PathType) =>
           computeTypLinkage(K, c.path.get).cases.get(c.name).flatMap { sig => 
             val funType = sig.t
-            if sig.mt == t && getType(K, Gamma, r) == Some(funType.input)
+            if sig.matchType == t && getType(K, Gamma, r) == Some(funType.input)
             then Some(funType.output) else None
           }
         case _ => None
