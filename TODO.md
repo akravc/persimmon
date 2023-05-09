@@ -9,7 +9,7 @@
 - [x] (Ana) abstract function in linkages 
 - [x] (Ana) remove either return functions
 - [x] (Ana) replace rec with record 
-- [ ] (Ana) take def linkage and convert to typ linkage instead of 2nd parser
+- [x] (Ana) take def linkage and convert to typ linkage instead of 2nd parser
 - [ ] (Ana) add typing of programs function
 
 

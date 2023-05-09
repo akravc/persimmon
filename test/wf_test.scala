@@ -1,8 +1,7 @@
 import org.scalatest.funsuite.AnyFunSuite
 import PersimmonSyntax._
 import PersimmonLinkages._
-import TestDefParser._
-import TestTypParser._
+import TestParser._
 import PrettyPrint._
 import PersimmonWF._
 import scala.language.postfixOps
@@ -23,7 +22,7 @@ class WFTesting extends AnyFunSuite {
             |
             |}
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var lkg = computeDefLinkage(List(Prog), prog)
         var a = Sp(SelfFamily(prog, "A"))
@@ -37,7 +36,7 @@ class WFTesting extends AnyFunSuite {
             |   type T = C1 {} | C2 {}
             |}
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var lkg = computeDefLinkage(List(Prog), prog)
         var a = Sp(SelfFamily(prog, "A"))
@@ -52,7 +51,7 @@ class WFTesting extends AnyFunSuite {
             |}
             """.stripMargin
         // duplicate constructor names, error thrown while parsing
-        assertThrows[Exception](canParse(TestDefParser.pProgram, fam))
+        assertThrows[Exception](canParse(TestParser.pProgram, fam))
     }
 
     test("wf - type - duplicate fields") {
@@ -63,7 +62,7 @@ class WFTesting extends AnyFunSuite {
             |}
             """.stripMargin
         // duplicate field names, error thrown while parsing
-        assertThrows[Exception](canParse(TestDefParser.pProgram, fam))
+        assertThrows[Exception](canParse(TestParser.pProgram, fam))
     }
 
     test("wf - type - duplicate type names") {
@@ -74,7 +73,7 @@ class WFTesting extends AnyFunSuite {
             |   type T = C1 {}
             |}
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var lkg = computeDefLinkage(List(Prog), prog)
         var a = Sp(SelfFamily(prog, "A"))
@@ -88,7 +87,7 @@ class WFTesting extends AnyFunSuite {
             |   val g: N -> B = lam (x: N). true
             |}
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var lkg = computeDefLinkage(List(Prog), Sp(Prog))
         var prog = Sp(Prog)
@@ -104,7 +103,7 @@ class WFTesting extends AnyFunSuite {
             |   val foo: N -> B = lam (y: N). (goo y)
             |}
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var lkg = computeDefLinkage(List(Prog), Sp(Prog))
         var prog = Sp(Prog)
@@ -123,7 +122,7 @@ class WFTesting extends AnyFunSuite {
             |           {C1 = lam (_: {}). 1, C2 = lam (_:{}). 2 }
             |}
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var lkg = computeDefLinkage(List(Prog), prog)
         var a = Sp(SelfFamily(prog, "A"))
@@ -140,7 +139,7 @@ class WFTesting extends AnyFunSuite {
             |       case C2() = 2
             |}
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var lkg = computeDefLinkage(List(Prog), prog)
         var a = Sp(SelfFamily(prog, "A"))
@@ -158,7 +157,7 @@ class WFTesting extends AnyFunSuite {
             |   type T += C3 {a: B, n: N}
             | }
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var lkg = computeDefLinkage(List(Prog), prog)
         var a = Sp(SelfFamily(prog, "A"))
@@ -202,7 +201,7 @@ class WFTesting extends AnyFunSuite {
               |     case _ = NoneVal({})
               | }
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var lkg = computeDefLinkage(List(Prog), prog)
         var stlcbase = Sp(SelfFamily(prog, "STLCBase"))
@@ -231,7 +230,7 @@ class WFTesting extends AnyFunSuite {
             |   }
             |}
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var lkg = computeTypLinkage(List(Prog), Sp(Prog))
         var p1 = SelfFamily(Sp(Prog), "A")
@@ -255,7 +254,7 @@ class WFTesting extends AnyFunSuite {
             |   }
             |}
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var lkg = computeTypLinkage(List(Prog), Sp(Prog))
         var p1 = SelfFamily(Sp(Prog), "A")
@@ -279,7 +278,7 @@ class WFTesting extends AnyFunSuite {
     //         |   }
     //         |}
     //         """.stripMargin
-    //     assert(canParse(TestDefParser.pProgram, fam))
+    //     assert(canParse(TestParser.pProgram, fam))
     //     PersimmonLinkages.p = fam
     //     var lkg = computeTypLinkage(List(Prog), Sp(Prog))
     //     var p1 = SelfFamily(Sp(Prog), "A")

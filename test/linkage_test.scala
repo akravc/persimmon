@@ -2,8 +2,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import PersimmonSyntax._
 import PersimmonLinkages._ 
 import PersimmonTyping._ 
-import TestDefParser._
-import TestTypParser._
+import TestParser._
 import PrettyPrint._
 import PersimmonWF._
 import scala.language.postfixOps
@@ -60,7 +59,7 @@ class LinkageTesting extends AnyFunSuite {
             |   }
             |}
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var p1 = Sp(Prog)
         var p2 = Sp(SelfFamily(p1, "A"))
@@ -96,7 +95,7 @@ class LinkageTesting extends AnyFunSuite {
             |   }
             | }
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var p = Sp(Prog)
         var a1 = Sp(SelfFamily(p, "A1"))
@@ -130,7 +129,7 @@ class LinkageTesting extends AnyFunSuite {
             |   }
             |}
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         var p1 = SelfFamily(Sp(Prog), "A")
         var p2 = SelfFamily(Sp(p1), "K")
         PersimmonLinkages.p = fam
@@ -154,7 +153,7 @@ class LinkageTesting extends AnyFunSuite {
             |   }
             |}
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         var p1 = SelfFamily(Sp(Prog), "A")
         var p2 = SelfFamily(Sp(p1), "K")
         var p3 = SelfFamily(Sp(p2), "K")
@@ -194,7 +193,7 @@ class LinkageTesting extends AnyFunSuite {
             |   }
             | }
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         var p = Sp(Prog)
         var a1 = Sp(SelfFamily(p, "A1"))

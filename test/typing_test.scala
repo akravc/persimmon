@@ -2,8 +2,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import PersimmonSyntax._
 import PersimmonLinkages._ 
 import PersimmonTyping._ 
-import TestDefParser._
-import TestTypParser._
+import TestParser._
 import PrettyPrint._
 import PersimmonWF._
 import scala.language.postfixOps
@@ -91,7 +90,7 @@ class TypecheckerTesting extends AnyFunSuite {
             |   type T = C1 {} 
             | }
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         val self_a = SelfFamily(Sp(Prog), "A") // path self(A)
         assertResult(true)(wfType(List(Prog, self_a), PathType(Some(Sp(self_a)), "T")))
@@ -105,7 +104,7 @@ class TypecheckerTesting extends AnyFunSuite {
             |   type T = C1 {} 
             | }
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         val self_a = SelfFamily(Sp(Prog), "A") // path self(A)
         assertResult(true)(wfType(List(Prog, self_a), 
@@ -120,7 +119,7 @@ class TypecheckerTesting extends AnyFunSuite {
             |   type T = C1 {} 
             | }
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         val self_a = SelfFamily(Sp(Prog), "A") // path self(A)
         assertResult(false)(wfType(List(Prog, self_a), 
@@ -182,7 +181,7 @@ class TypecheckerTesting extends AnyFunSuite {
             |   type T = {f: B}
             | }
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         assertResult(true)(isSubtype(List(Prog, self_a), PathType(Some(Sp(self_a)), "T"), RecordType(Map("f"->BType))))
     }
@@ -195,7 +194,7 @@ class TypecheckerTesting extends AnyFunSuite {
             |   type T = {f: B}
             | }
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         assertResult(false)(isSubtype(List(Prog, self_a), PathType(Some(Sp(self_a)), "T"), RecordType(Map("g"->BType))))
     }
@@ -208,7 +207,7 @@ class TypecheckerTesting extends AnyFunSuite {
             |   type T = {f: B}
             | }
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         assertResult(false)(isSubtype(List(Prog, self_a), PathType(Some(Sp(self_a)), "T"), FunType(BType, NType)))
     }
@@ -302,7 +301,7 @@ class TypecheckerTesting extends AnyFunSuite {
             |   val m: (B -> N) = lam (x: B). 5
             | }
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         assertResult(Some(FunType(BType, NType))){
         getType(List(Prog, self_a), emptyG, FamFun(Some(Sp(self_a)), "m"))
@@ -318,7 +317,7 @@ class TypecheckerTesting extends AnyFunSuite {
             |   val g: (B -> N) = lam (x: B). 5
             | }
             """.stripMargin
-        assert(canParse(TestDefParser.pProgram, fam))
+        assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
         assertResult(None){
             getType(List(Prog, self_a), emptyG, FamFun(Some(Sp(self_a)), "m"))

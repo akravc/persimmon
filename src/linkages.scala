@@ -1,6 +1,5 @@
 import PersimmonSyntax.*
-import TestDefParser._
-import TestTypParser._
+import TestParser._
 import PrettyPrint._
 import scala.io.Source
 
@@ -25,9 +24,9 @@ object PersimmonLinkages {
   // L-Prog-Typ
   def computeLProgTyp(K: PathCtx): TypingLinkage = {
     // if parsing successful
-    if (canParseTyp(TestTypParser.pProgram, p)) {
+    if (canParse(pProgram, p)) {
       // return what was parsed
-      parseSuccessTyp(TestTypParser.pProgram, p)
+      parseProgramTypLink(p)
     } else {
       throw new Exception("L-Prog-Def: Cannot parse the program.")
     }
@@ -36,9 +35,9 @@ object PersimmonLinkages {
   // L-Prog-Def
   def computeLProgDef(K: PathCtx): DefinitionLinkage = {
     // if parsing successful
-    if (canParse(TestDefParser.pProgram, p)) {
+    if (canParse(pProgram, p)) {
       // return what was parsed
-      parseSuccess(TestDefParser.pProgram, p)
+      parseProgramDefLink(p)
     } else {
       throw new Exception("L-Prog-Def: Cannot parse the program.")
     }
