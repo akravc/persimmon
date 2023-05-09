@@ -2,7 +2,6 @@ import scala.util.parsing.combinator.*
 import scala.annotation.tailrec
 import PersimmonSyntax.*
 
-
 class PersimmonParser extends RegexParsers with PackratParsers {
 
   def hasDuplicateName[K, V](kvList: List[(K, V)]): Boolean = 
@@ -428,8 +427,64 @@ object TestParser extends PersimmonParser {
   def canParse[T](p: PackratParser[T], inp: String): Boolean = parse0(p, inp).successful
   def parseSuccess[T](p: PackratParser[T], inp: String): T = parse0(p, inp).get
 
+  def fillNonePaths(lkg: DefinitionLinkage): DefinitionLinkage = {
+    var selfpath = lkg.self
+    DefinitionLinkage(
+      lkg.self, lkg.sup, 
+      lkg.types.map((s, tdef) => 
+        (s, TypeDefn(tdef.name, tdef.marker, fillNonePathsInType(tdef.typeBody, selfpath).asInstanceOf[RecordType]))),
+      lkg.defaults.map((s, ddef) => 
+        (s, DefaultDefn(ddef.name, ddef.marker, fillNonePathsInExp(ddef.defaultBody, selfpath).asInstanceOf[Record]))),
+      lkg.adts.map((s, adef) => 
+        (s, AdtDefn(adef.name, adef.marker, 
+          adef.adtBody.map((c, rt) => 
+            (c, fillNonePathsInType(rt, selfpath).asInstanceOf[RecordType]))))),
+      lkg.funs.map((s, fd) => 
+        (s, FunDefn(fd.name, fillNonePathsInType(fd.t, selfpath).asInstanceOf[FunType], fillNonePathsInExp(fd.funBody, selfpath).asInstanceOf[Lam]))),
+      lkg.cases.map((s, cd) => (s, CasesDefn(cd.name, 
+      fillNonePathsInType(cd.matchType, selfpath).asInstanceOf[PathType], 
+      fillNonePathsInType(cd.t, selfpath).asInstanceOf[FunType], 
+      cd.ts.map(x => fillNonePathsInType(x, selfpath)), cd.marker, 
+      fillNonePathsInExp(cd.casesBody, selfpath)))),
+      lkg.nested.map((s, l) => (s, fillNonePaths(l)))
+    )
+  }
+
+  def fillNonePathsInType(t: Type, p: Path): Type = {
+    t match {
+      case FunType(input, output) => 
+        FunType(fillNonePathsInType(input, p), fillNonePathsInType(output, p))
+      case PathType(path, name) => 
+        if (path == None) then PathType(Some(p), name) else t
+      case RecordType(fields) => 
+        RecordType(fields.map{(s, t) => (s, fillNonePathsInType(t, p))})
+      case _ => t
+    }
+  }
+
+  def fillNonePathsInExp(e: Expression, p: Path): Expression = {
+    e match {
+      case Lam(v, t, body) => 
+        Lam(v, fillNonePathsInType(t, p), fillNonePathsInExp(body, p))
+      case FamFun(path, name) =>
+        if (path == None) then FamFun(Some(p), name) else e
+      case FamCases(path, name) =>
+        if (path == None) then FamCases(Some(p), name) else e
+      case App(e1, e2) => App(fillNonePathsInExp(e1, p), fillNonePathsInExp(e2, p))
+      case Record(fields) => 
+        Record(fields.map{(s, d) => (s, fillNonePathsInExp(d, p))})
+      case Proj(r, name) => Proj(fillNonePathsInExp(r, p), name)
+      case Inst(t, rec) => Inst(fillNonePathsInType(t, p).asInstanceOf[PathType], fillNonePathsInExp(rec, p).asInstanceOf[Record])
+      case InstADT(t, cname, rec) => InstADT(fillNonePathsInType(t, p).asInstanceOf[PathType], cname, fillNonePathsInExp(rec, p).asInstanceOf[Record])
+      case Match(m, c, r) => Match(fillNonePathsInExp(m, p), fillNonePathsInExp(c, p).asInstanceOf[FamCases], fillNonePathsInExp(r, p).asInstanceOf[Record])
+      case IfThenElse(condExpr, ifExpr, elseExpr) => 
+        IfThenElse(fillNonePathsInExp(condExpr, p), fillNonePathsInExp(ifExpr, p), fillNonePathsInExp(elseExpr, p))
+      case _ => e
+    }
+  }
+
   def parseProgramDefLink(inp: String): DefinitionLinkage = {
-    parse0(pProgram, inp).get
+    fillNonePaths(parse0(pProgram, inp).get)
   }
 
   def convertDefToTyp(lkg: DefinitionLinkage): TypingLinkage = {

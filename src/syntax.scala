@@ -127,11 +127,6 @@ object PersimmonSyntax {
   // Functions
   case class FunDefn(name: String, t: FunType, funBody: Lam) extends Definition
 
-  // Cases
-  // case class CasesDefn(name: String, matchType: PathType, t: FunType, ts: List[Type], marker: Marker, casesBody: DefnBody[Expression]) extends Definition
-  // def CasesDefn(name: String, matchType: PathType, t: FunType, marker: Marker, casesBody: DefnBody[Expression]): CasesDefn =
-  //   CasesDefn(name, matchType, t, List(t), marker, casesBody)
-
   case class CasesDefn(name: String, matchType: PathType, t: FunType, ts: List[Type], marker: Marker, casesBody: Expression) extends Definition
   def CasesDefn(name: String, matchType: PathType, t: FunType, marker: Marker, casesBody: Expression): CasesDefn =
     CasesDefn(name, matchType, t, List(t), marker, casesBody)
