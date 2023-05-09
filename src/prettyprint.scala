@@ -101,18 +101,15 @@ object PrettyPrint {
       print("\n\n")
     }
     
-    
-    lkg.getDefaults() match {
-        case None => print("")
-        case Some(map) =>
-            val defmap = map.view.mapValues {
+    if (lkg.isInstanceOf[DefinitionLinkage]) {
+      val defmap = lkg.asInstanceOf[DefinitionLinkage].defaults.view.mapValues {
                 case DefaultDefn(s, m, defaultBody) => "type " + s + printMarker(m) +  printExp(defaultBody) + "\n" + offset
             }
-            if (defmap.nonEmpty) {
-              print(offset + "DEFAULTS:\n")
-              print(offset + defmap.mkString)
-              print("\n\n")
-            }
+      if (defmap.nonEmpty) {
+        print(offset + "DEFAULTS:\n")
+        print(offset + defmap.mkString)
+        print("\n\n")
+      }
     }
 
     if (lkg.getAdts().nonEmpty) {
