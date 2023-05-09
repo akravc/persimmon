@@ -1,0 +1,26 @@
+
+// self(a.A)  ===  a~A
+
+
+Family A1 [a1] {
+  Family B1 [b1] {
+    type X = X1 {}
+    
+    val foo : {} -> prog.A1~B1.X = ...
+  }
+  Family B2 extends prog~A1.B1 {
+    // foo : prog.A1~B1.X ???
+  }
+  Family B3 extends prog.A1.B1 {
+    // foo : prog.A1~B3 ???
+  }
+}
+
+Family A2 extends prog.A1 {
+  Family B1 {
+    
+  }
+  Family B2 {
+    
+  }
+}

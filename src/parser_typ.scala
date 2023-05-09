@@ -28,6 +28,7 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
   val kwType: Parser[String] = "type\\b".r
   val kwVal: Parser[String] = "val\\b".r
   val kwFamily: Parser[String] = "Family\\b".r
+  val kwMixin: Parser[String] = "Mixin\\b".r
   val kwExtends: Parser[String] = "extends\\b".r
   val kwN: Parser[String] = "N\\b".r
   val kwB: Parser[String] = "B\\b".r
@@ -250,47 +251,77 @@ class PersimmonTypParser extends RegexParsers with PackratParsers {
       case c~p~_ => extendedDefCase(c, p)
     }) | (kwCase ~> "_" ~> "=" ~> pExp >> {_ => extendedDefCase("_", Nil)})
 
-  // A family can extend another family. If it does not, the parent is None.
-  def pFamDef(selfPrefix: SelfPath): PackratParser[(String, TypingLinkage)] = {
+  def pFamBody(curSelfPath: SelfPath): PackratParser[TypingLinkage] = {
     for {
-      fam <- kwFamily ~> pFamilyName
-      curSelfPath = SelfFamily(Sp(selfPrefix), fam)
       supFam <- (kwExtends ~> pAbsoluteFamPath).?
-      typs~adts~funs0~extended~cases0~nested <- between("{", "}",
-        rep(pTypeDef) ~ rep(pAdtDef) ~ rep(pFunDef) ~ rep(pExtendedDef) ~ rep(pCasesDef) ~ rep(pFamDef(curSelfPath))
+      typs~adts~funs0~extended~cases0~mixins~nested <- between("{", "}",
+        rep(pTypeDef) ~ rep(pAdtDef) ~ rep(pFunDef) ~ rep(pExtendedDef) ~ rep(pCasesDef) ~
+        rep(pMixDef(curSelfPath)) ~ rep(pFamDef(curSelfPath))
       )
     } yield {
       val funs = funs0 ++ extended.filter{_._2._1.nonEmpty}.map{(k,v) => (k -> v._1.get)}
       val cases = cases0 ++ extended.map{(k,v) => (k+cases_suffix -> v._2)}
+      val new_nested = mixins ++ nested
 
       if hasDuplicateName(typs) then throw new Exception("Parsing duplicate type names.")
       else if hasDuplicateName(adts) then throw new Exception("Parsing duplicate ADT names.")
       else if hasDuplicateName(funs) then throw new Exception("Parsing duplicate function names.")
       else if hasDuplicateName(cases) then throw new Exception("Parsing duplicate cases names.")
-      else if hasDuplicateName(nested) then throw new Exception("Parsing duplicate family names.")
+      else if hasDuplicateName(new_nested) then throw new Exception("Parsing duplicate family names.")
       else {
         val typedefs = typs.map { 
           case (s, (m, rt)) => s -> TypeDefn(s, m, rt) }.toMap
         
-        fam -> TypingLinkage(
+        TypingLinkage(
           Sp(curSelfPath),
           supFam,
           typedefs,
           adts.toMap,
           funs.toMap,
           cases.toMap,
-          nested.toMap
+          new_nested.toMap
         )
       }
     }
   }
+    
+  // A family can extend another family. If it does not, the parent is None.
+  def pFamDef(selfPrefix: SelfPath): PackratParser[(String, TypingLinkage)] = {
+    for {
+      fam <- kwFamily ~> pFamilyName
+      linkage <- pFamBody(SelfFamily(Sp(selfPrefix), fam))
+    } yield {
+      fam -> linkage
+    }
+  }
+  
+  // TODO: Finish implementing mixin parsing.
+  def pMixDef(selfPrefix: SelfPath): PackratParser[(String, TypingLinkage)] = {
+    for {
+      mix <- kwMixin ~> pFamilyName
+      curSelfPath = SelfFamily(Sp(selfPrefix), mix)
+      linkage <- pFamBody(SelfFamily(Sp(curSelfPath), "#Base"))
+    } yield {
+      mix -> TypingLinkage(
+        Sp(curSelfPath),
+        None, Map(), Map(), Map(), Map(),
+        Map(
+          "#Base" -> linkage,
+          "#Derived" -> TypingLinkage(
+            Sp(SelfFamily(Sp(curSelfPath), "#Derived")),
+            Some(AbsoluteFamily(Sp(curSelfPath), "#Base")), // TODO: Is this right?
+            Map(), Map(), Map(), Map(), Map(),
+          ),
+        ),
+      )
+    }
+  }
 
   lazy val pProgram: PackratParser[TypingLinkage] =
-    rep(pFamDef(Prog)) ^^ {
-      fams => 
-        TypingLinkage(Sp(Prog), None, Map(), Map(), Map(), Map(),
-          fams.toMap
-        )
+    (rep(pMixDef(Prog)) ~ rep(pFamDef(Prog))) ^^ { case (mixins ~ fams) =>
+      val new_fams = mixins ++ fams
+      if hasDuplicateName(new_fams) then throw new Exception("Parsing duplicate family names.")
+      TypingLinkage(Sp(Prog), None, Map(), Map(), Map(), Map(), new_fams.toMap)
     }
 
   // Simple preprocessing to remove eol comments
