@@ -11,6 +11,41 @@ import java.io.File
 
 class LinkageTesting extends AnyFunSuite {
 
+    test("linkage - extension alternating self-paths") {
+        var fam = 
+            """
+            | Family A1 {
+            |   Family B1 {
+            |       type X = C1 {}
+            |
+            |       val foo: X -> N = lam(x: X). 1
+            |   }
+            |   Family B2 extends self(A1).B1 {
+            |   }
+            |   Family B3 extends A1.B1 {
+            |   }
+            | }
+            |
+            | Family A2 extends A1 {
+            | }
+            """.stripMargin
+        assert(canParse(TestParser.pProgram, fam))
+        PersimmonLinkages.p = fam
+        var p = Sp(Prog)
+        var a1 = Sp(SelfFamily(p, "A1"))
+        var b1 = Sp(SelfFamily(a1, "B1"))
+        var b2 = Sp(SelfFamily(a1, "B2"))
+        var b3 = Sp(SelfFamily(a1, "B3"))
+        var a2 = Sp(SelfFamily(p, "A2"))
+        var a2b1 = Sp(SelfFamily(a2, "B1"))
+        var a2b2 = Sp(SelfFamily(a2, "B2"))
+        var a2b3 = Sp(SelfFamily(a2, "B3"))
+        var paths = List(p.sp, a1.sp, b1.sp, b2.sp, b3.sp, a2.sp, a2b1.sp, a2b2.sp, a2b3.sp)
+        //printLkg(parseProgramDefLink(fam), "")
+        printLkg(computeDefLinkage(paths, b1), "")
+
+    }
+
     /* ============= TEST PATH SUBSTITUTION ============= */
 
     test("linkage - path sub 1") {

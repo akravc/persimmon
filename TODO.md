@@ -11,6 +11,8 @@
 - [x] (Ana) replace rec with record 
 - [x] (Ana) take def linkage and convert to typ linkage instead of 2nd parser
 - [ ] (Ana) add typing of programs function
+- [ ] (Ana) test out the alternating self-paths example Jonas brought up
+- [ ] (Ana) fill in None paths when parsing types with implied paths
 
 
 
