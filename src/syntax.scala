@@ -200,20 +200,6 @@ object PersimmonSyntax {
             case TypingLinkage(self, sup, types, adts, funs, cases, nested) => adts
         }
     }
-
-    def getFuns(): Either[Map[String, FunSig], Map[String, FunDefn]]= {
-        this match {
-            case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => Right(funs)
-            case TypingLinkage(self, sup, types, adts, funs, cases, nested) => Left(funs)
-        }
-    }
-
-    def getCases(): Either[Map[String, CasesSig], Map[String, CasesDefn]] = {
-        this match {
-            case DefinitionLinkage(self, sup, types, defaults, adts, funs, cases, nested) => Right(cases)
-            case TypingLinkage(self, sup, types, adts, funs, cases, nested) => Left(cases)
-        }
-    }
   }
   
   // This version of the linkage 
