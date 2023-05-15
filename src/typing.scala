@@ -23,6 +23,12 @@ object PersimmonTyping {
         }
       case _ => None
     }
+    case Plus(e1, e2) => getType(K, Gamma, e1) match {
+      case Some(NType) => getType(K, Gamma, e2) match {
+          case Some(NType) => Some(NType)
+          case _ => None }
+      case _ => None
+    }
     case Record(fields) =>
       val types = fields.mapValues { field => getType(K, Gamma, field) }.toMap
       if types.exists((_, t) => t.isEmpty) then None

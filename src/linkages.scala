@@ -194,6 +194,7 @@ object PersimmonLinkages {
   def subPathInExp(e: Expression, p1: Path, p2: Path): Expression = {
     e match {
       case App(e1, e2) => App(subPathInExp(e1, p1, p2), subPathInExp(e2, p1, p2))
+      case Plus(e1, e2) => Plus(subPathInExp(e1, p1, p2), subPathInExp(e2, p1, p2))
       case FamCases(path, name) => 
         if (path == Some(p2)) then FamCases(Some(p1), name) else e
       case FamFun(path, name) => 
@@ -495,6 +496,7 @@ object PersimmonLinkages {
   def boundVarsInExp(e: Expression): List[String] = {
     e match {
       case App(e1, e2) => boundVarsInExp(e1) ++ boundVarsInExp(e2)
+      case Plus(e1, e2) => boundVarsInExp(e1) ++ boundVarsInExp(e2)
       case IfThenElse(condExpr, ifExpr, elseExpr) => 
         boundVarsInExp(condExpr) ++ boundVarsInExp(ifExpr) ++ boundVarsInExp(elseExpr)
       case Inst(t, rec) => boundVarsInExp(rec)
@@ -523,6 +525,7 @@ object PersimmonLinkages {
     e match {
       case Var(id) => if e == v2 then v1 else e
       case App(e1, e2) => App(subVarInExp(e1, v1, v2), subVarInExp(e2, v1, v2))
+      case Plus(e1, e2) => Plus(subVarInExp(e1, v1, v2), subVarInExp(e2, v1, v2))
       case IfThenElse(condExpr, ifExpr, elseExpr) => 
         IfThenElse(subVarInExp(condExpr, v1, v2), subVarInExp(ifExpr, v1, v2), subVarInExp(elseExpr, v1, v2))
       case Inst(t, rec) => 

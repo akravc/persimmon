@@ -159,6 +159,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
     between("<", ">", (pPath <~ ".").? ~ pFunctionName) ^^ { case p~n => FamCases(p, n) }
 
   lazy val pExpApp: PackratParser[App] = pExp ~ pExp ^^ { case e~g => App(e, g) }
+  lazy val pExpPlus: PackratParser[Plus] = pExp ~ "+" ~ pExp ^^ { case e~_~g => Plus(e, g) }
   lazy val pExpProj: PackratParser[Proj] = pExp ~ "." ~ pFieldName ^^ {case e~_~n => Proj(e, n)}
   lazy val pFieldVal: PackratParser[(String, Expression)] = pFieldName ~ "=" ~ pExp ^^ {case k~_~v => k -> v}
   lazy val pExpRec: PackratParser[Record] = "{"~> repsep(pFieldVal, ",") <~"}" ^^ {
@@ -182,7 +183,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
     }
 
   lazy val pExp: PackratParser[Expression] = 
-    pExpProj | pExpMatch | pExpInstAdt | pExpInst | pExpApp | pExpRec
+    pExpProj | pExpMatch | pExpInstAdt | pExpInst | pExpApp | pExpPlus | pExpRec
     | pExpExtendedApp
     | pExpIfThenElse | pExpLam | pExpBool | pExpNat
     | pExpFamFun | pExpFamCases
@@ -219,6 +220,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
       case Var(id) if s.contains(id) => Proj(x, id)
       case Lam(v, t, body) => Lam(v, t, f(body))
       case App(e1, e2) => App(f(e1), f(e2))
+      case Plus(e1, e2) => Plus(f(e1), f(e2))
       case Record(fields) => Record(fields.mapValues(f).toMap)
       case Proj(e, name) => Proj(f(e), name)
       case Inst(t, rec) => Inst(t, f(rec).asInstanceOf[Record])
@@ -471,6 +473,7 @@ object TestParser extends PersimmonParser {
       case FamCases(path, name) =>
         if (path == None) then FamCases(Some(p), name) else e
       case App(e1, e2) => App(fillNonePathsInExp(e1, p), fillNonePathsInExp(e2, p))
+      case Plus(e1, e2) => Plus(fillNonePathsInExp(e1, p), fillNonePathsInExp(e2, p))
       case Record(fields) => 
         Record(fields.map{(s, d) => (s, fillNonePathsInExp(d, p))})
       case Proj(r, name) => Proj(fillNonePathsInExp(r, p), name)

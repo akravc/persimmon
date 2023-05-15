@@ -48,6 +48,7 @@ object PrettyPrint {
       case FamFun(p, n) => p.map(printPath).getOrElse("None") + "." + n
       case FamCases(p, n) => "<" + p.map(printPath).getOrElse("None") + "." + n + ">"
       case App(e, g) => "(" + printExp(e) + " " + printExp(g) + ")"
+      case Plus(e, g) => "(" + printExp(e) + "+" + printExp(g) + ")"
       case Record(fields) =>
         val printmap = fields.map{case (f, e) =>
           if ((f, e) == fields.last) then f + " = " + printExp(e)

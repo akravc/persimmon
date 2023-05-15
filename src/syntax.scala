@@ -89,6 +89,7 @@ object PersimmonSyntax {
   case class FamFun(var path: Option[Path], name: String) extends Expression // a.m
   case class FamCases(var path: Option[Path], name: String) extends Expression // a.r
   case class App(e1: Expression, e2: Expression) extends Expression // e g
+  case class Plus(e1: Expression, e2: Expression) extends Expression // e + g
   case class Record(fields: Map[String, Expression]) extends Expression // {(f = e)*}
   case class Proj(e: Expression, name: String) extends Expression // e.f
   case class Inst(t: PathType, rec: Record) extends Expression // a.R({(f = e)*})
@@ -103,16 +104,6 @@ object PersimmonSyntax {
   case object Eq extends Marker // type definition marker
 
   //////////////////////// Definitions and Signatures ////////////////////////
-
-  // Things that could be defined or extended / further bound
-  // case class DefnBody[B](defn: Option[B], extendsFrom: Option[Path], furtherBindsFrom: Option[Path], allDefns: List[B])
-  // def DefnBody[B](defn: Option[B], extendsFrom: Option[Path], furtherBindsFrom: Option[Path]): DefnBody[B] = {
-  //   val allDefns: List[B] = defn match {
-  //     case None => List()
-  //     case Some(x) => List(x)
-  //   }
-  //   DefnBody[B](defn, extendsFrom, furtherBindsFrom, allDefns)
-  // }
 
   sealed trait Definition
   // types
