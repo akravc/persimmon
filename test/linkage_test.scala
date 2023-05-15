@@ -43,6 +43,8 @@ class LinkageTesting extends AnyFunSuite {
         var paths = List(p.sp, a1.sp, b1.sp, b2.sp, b3.sp, a2.sp, a2b1.sp, a2b2.sp, a2b3.sp)
         //printLkg(parseProgramDefLink(fam), "")
         printLkg(computeDefLinkage(paths, b1), "")
+        printLkg(computeDefLinkage(paths, b2), "")
+        printLkg(computeDefLinkage(paths, b3), "")
 
     }
 
