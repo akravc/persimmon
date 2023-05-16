@@ -14,6 +14,7 @@
 - [ ] (Ana) add typing of programs function
 - [ ] (Ana) test out the alternating self-paths example Jonas brought up
 - [ ] (Ana) parse A and .A differently for paths (fully absolute vs full self-prefix)
+- [ ] (Ana) add matcherr example to this impl
 
 
 - [ ] (Jonas) Implement mixin encoding
