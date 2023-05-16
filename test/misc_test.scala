@@ -13,7 +13,8 @@ import scala.io.Source
 class MiscTesting extends AnyFunSuite {
   test("misc") {
     val prog = Source.fromFile("test/misc_test.txt").mkString
-    // assert(canParse(TestTypParser.pProgram, prog))
     assert(canParse(TestParser.pProgram, prog))
+    val linkage = TestParser.parseProgramDefLink(prog)
+    assert(wfDef(List(), linkage))
   }
 }
