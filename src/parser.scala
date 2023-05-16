@@ -284,12 +284,9 @@ class PersimmonParser extends RegexParsers with PackratParsers {
     (kwCase ~> pConstructorName ~ ("(" ~> repsep(pRecField, ",") <~ ")" <~ "=") ~ pExp >> {
       case c~p~e => extendedDefCase(c, p, e)
     }) | (kwCase ~> "_" ~> "=" ~> pExp >> {e => extendedDefCase("_", Nil, e)})
-
-  // A family can extend another family. If it does not, the parent is None.
-  def pFamDef(selfPrefix: SelfPath): PackratParser[(String, DefinitionLinkage)] = {
+  
+  def pFamBody(curSelfPath: SelfPath): PackratParser[DefinitionLinkage] = {
     for {
-      fam <- kwFamily ~> pFamilyName
-      curSelfPath = SelfFamily(Sp(selfPrefix), fam)
       supFam <- (kwExtends ~> pAbsoluteFamPath).?
       typs~adts~funs0~extended~cases0~mixins~nested <- between("{", "}",
         rep(pTypeDef) ~ rep(pAdtDef) ~ rep(pFunDef) ~ rep(pExtendedDef) ~ rep(pCasesDef) ~
@@ -330,7 +327,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
           case (s, casedefn) => s -> (casedefn.matchType, casedefn.t)
         }.toMap
         
-        fam -> DefinitionLinkage(
+        DefinitionLinkage(
           Sp(curSelfPath),
           supFam,
           typedefs,
@@ -343,64 +340,26 @@ class PersimmonParser extends RegexParsers with PackratParsers {
       }
     }
   }
+
+  // A family can extend another family. If it does not, the parent is None.
+  def pFamDef(selfPrefix: SelfPath): PackratParser[(String, DefinitionLinkage)] = {
+    for {
+      fam <- kwFamily ~> pFamilyName
+      curSelfPath = SelfFamily(Sp(selfPrefix), fam)
+      linkage <- pFamBody(curSelfPath)
+    } yield {
+      fam -> linkage
+    }
+  }
   
   def pMixDef(selfPrefix: SelfPath): PackratParser[(String, DefinitionLinkage)] = {
     for {
       mix <- kwMixin ~> pFamilyName
       curSelfPath = SelfFamily(Sp(selfPrefix), mix)
       baseSelfPath = SelfFamily(Sp(curSelfPath), "#Base")
-      derivedSelfPath = SelfFamily(Sp(curSelfPath), "#Derived")
-      supFam <- (kwExtends ~> pAbsoluteFamPath).?
-      typs~adts~funs0~extended~cases0~mixins~nested <- between("{", "}",
-        rep(pTypeDef) ~ rep(pAdtDef) ~ rep(pFunDef) ~ rep(pExtendedDef) ~ rep(pCasesDef) ~
-        rep(pMixDef(baseSelfPath)) ~ rep(pFamDef(baseSelfPath))
-      )
+      linkage <- pFamBody(baseSelfPath)
     } yield {
-      val funs = funs0 ++ extended.filter{_._2._1.nonEmpty}.map{(k,v) => (k -> v._1.get)}
-      val cases = cases0 ++ extended.map{(k,v) => (k+cases_suffix -> v._2)}
-      val new_nested = mixins ++ nested
-
-      if hasDuplicateName(typs) then throw new Exception("Parsing duplicate type names.")
-      else if hasDuplicateName(adts) then throw new Exception("Parsing duplicate ADT names.")
-      else if hasDuplicateName(funs) then throw new Exception("Parsing duplicate function names.")
-      else if hasDuplicateName(cases) then throw new Exception("Parsing duplicate cases names.")
-      else if hasDuplicateName(new_nested) then throw new Exception("Parsing duplicate family names.")
-      else {
-        supFam match {
-          case Some(b) =>
-            /* TODO: Do this in the extend cycle check in later phase.
-            if (a == b) then
-              throw new Exception("Parsing a family that extends itself.")
-            else
-             */
-            // family extends another
-            if typs.exists{case (s, (m, (rt, r))) => (m == PlusEq) && (rt.fields.keySet != r.fields.keySet)} then
-              throw new Exception("In a type extension, not all fields have defaults.");
-            else ()
-          // family does not extend another
-          case None => ()
-        }
-        val typedefs = typs.map { case (s, (m, (rt, r))) => s -> TypeDefn(s, m, rt) }.toMap
-        val defaults = typs.collect{ case (s, (m, (rt, r))) => s -> DefaultDefn(s, m, r) }.toMap
-
-        val funHeaders = funs.map { 
-          case (s, fundefn) => s -> fundefn.t
-        }.toMap
-        val casesHeaders = cases.map { 
-          case (s, casedefn) => s -> (casedefn.matchType, casedefn.t)
-        }.toMap
-        
-        mix -> DefinitionLinkage(
-          Sp(curSelfPath),
-          supFam,
-          typedefs,
-          defaults,
-          adts.toMap,
-          funs.toMap,
-          cases.toMap,
-          new_nested.toMap
-        )
-      }
+      mix -> linkage
     }
   }
 
