@@ -394,7 +394,9 @@ object TestParser extends PersimmonParser {
     // infer missing type prefixes
     var filled = fillNonePaths(raw)
     // correct function calls parsed as variable names
-    resolveFunCalls(filled)
+    var resolved = resolveFunCalls(filled)
+    // unfold wildcards in cases
+    unfoldWildcards(resolved)
   }
 
   def convertDefToTyp(lkg: DefinitionLinkage): TypingLinkage = {
