@@ -11,7 +11,7 @@ import scala.io.Source
 class ParserTesting extends AnyFunSuite {
 
   def readFile(filename: String): String = { 
-    return Source.fromFile(filename).getLines.mkString
+    return Source.fromFile(filename).getLines.mkString("\n")
   }
 
 
@@ -65,6 +65,10 @@ class ParserTesting extends AnyFunSuite {
     val p = readFile("res/even_odd")
     assert(canParse(pProgram, p))
   }
+  test("parse - ex: comment") {
+    val p = readFile("res/comment")
+    assert(canParse(pProgram, p))
+  }
   test("parse - ex: example") {
     val p = readFile("res/example")
     assert(canParse(pProgram, p))
@@ -99,7 +103,6 @@ class ParserTesting extends AnyFunSuite {
   }
   test("parse - ex: stlc") {
     val p = readFile("res/stlc")
-    print(parse0(pProgram, p))
     assert(canParse(pProgram, p))
   }
   test("parse - ex: test1") {
