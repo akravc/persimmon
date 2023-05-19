@@ -20,6 +20,7 @@
 - [ ] (Ana) add wf paths relation
 - [ ] (Ana) fix context in tests that use WFDef
 - [ ] (Ana) wildcard unfolding for pattern matching
+- [ ] (Ana) fix test examples that have strings
 
 
 - [ ] (Jonas) Implement mixin encoding
