@@ -4,7 +4,7 @@ import PersimmonWF.*
 import PrettyPrint.*
 
 object PersimmonTyping {
-  def getType(K: PathCtx, Gamma: TypingCtx, e: Expression): Option[Type] = e match {
+  def getType(K: PathCtx, Gamma: TypingCtx, e: Expression): Option[Type] = debugType(s"${printExp(e)} : ", e match {
     case NExp(n) => Some(NType)
     case BExp(b) => Some(BType)
     case Var(id) => Gamma.get(id)
@@ -92,7 +92,7 @@ object PersimmonTyping {
           }
         }
       } else None
-  }
+  })
   
   def hasType(K: PathCtx, Gamma: TypingCtx, e: Expression, t: Type): Boolean = {
     getType(K, Gamma, e).exists { et =>
@@ -124,5 +124,12 @@ object PersimmonTyping {
         }
       case _ => false
     }
+  }
+
+  def debugType(msg: => String, o: Option[Type]): Option[Type] = {
+    if (o.isEmpty) {
+      println("bad type at "+msg)
+    }
+    o
   }
 }
