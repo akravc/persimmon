@@ -9,7 +9,7 @@ object PersimmonWF {
   // Well-formedness of definitions
   // the top level rule recursively checks 
   // the definition linkage for path prog
-  def wfDef(K: PathCtx, lkg: DefinitionLinkage): Boolean = {
+  def wfDef(K: PathCtx, lkg: DefinitionLinkage): Boolean = debug(s"wfDef($K,$lkg)", {
     // Notes:
     // - K here corresponds to sp::K in WF-FamDef the paper.
     // - lkg.self corresponds to self(sp.A) in WF-FamDef in the paper.
@@ -44,7 +44,7 @@ object PersimmonWF {
       // definition is WF if all hold
       exhaustive && wfNested && wfTypes && wfAdts && wfFuns && wfCases
     }
-  }
+  })
 
   // this recursively gets all paths from the program 
   // by traversing the typing linkage for prog
@@ -74,33 +74,33 @@ object PersimmonWF {
   }
 
   // well-formedness of type definitions
-  def wfTypDef(K: PathCtx, td: TypeDefn): Boolean = {
+  def wfTypDef(K: PathCtx, td: TypeDefn): Boolean = debug(s"wfTypDef($K,$td)", {
     wfType(K, td.typeBody);
-  }
+  })
 
   // well-formedness of type extensions and their defaults
-  def wfTypDefExt(K: PathCtx, td: TypeDefn, dd: DefaultDefn): Boolean = {
+  def wfTypDefExt(K: PathCtx, td: TypeDefn, dd: DefaultDefn): Boolean = debug(s"wfType($K,$td,$dd)", {
     wfType(K, td.typeBody) && dd.defaultBody.fields.forall { (name, e) =>
       td.typeBody.fields.contains(name) &&
       hasType(K, Map(), e, td.typeBody.fields(name))
     }
-  }
+  })
 
   // well-formedness of ADT definitions
-  def wfAdtDef(K: PathCtx, adt: AdtDefn): Boolean = {
+  def wfAdtDef(K: PathCtx, adt: AdtDefn): Boolean = debug(s"wfAdtDef($K,$adt)", {
     adt.adtBody.forall { (name, rec) => wfType(K, rec) }
-  }
+  })
 
   // well-formedness of functions
-  def wfFunDef(K: PathCtx, fd: FunDefn): Boolean = {
+  def wfFunDef(K: PathCtx, fd: FunDefn): Boolean = debug(s"wfFunDef($K,$fd)", {
     val typeWF = wfType(K, fd.t)
     val bodyWF = hasType(K, Map(), fd.funBody, fd.t)
 
     typeWF && bodyWF
-  }
+  })
 
   // well-formedness of cases definitions
-  def wfCasesDef(K: PathCtx, cd: CasesDefn): Boolean = {
+  def wfCasesDef(K: PathCtx, cd: CasesDefn): Boolean = debug(s"wfCasesDef($K,$cd)", {
     val L_S = computeTypLinkage(cd.matchType.path.get);
     val matchTypeExists = L_S.adts.contains(cd.matchType.name)
     val typeWF = wfType(K, cd.t)
@@ -111,34 +111,37 @@ object PersimmonWF {
       case RecordType(rec) => 
         (rec.forall { (constructorName, handlerType) =>
           // all handler types must be arrow types
-          if(!handlerType.isInstanceOf[FunType]) then false
+          if(!handlerType.isInstanceOf[FunType]) then debug("expect arrow type", false)
           else {
             // all handler types must have the same output type
             if (handlerType.asInstanceOf[FunType].output != 
                 rec.head._2.asInstanceOf[FunType].output) 
-            then false 
+            then debug("expect same output type", false)
             else {
               val constructorArgsInLkg = adtDefinition.get(constructorName)
               constructorArgsInLkg match {
                 // if no such constructor in type definition
-                case None => false
+                case None => debug("missing constructor", false)
                 case Some(t) => 
                   // the handler input type must match the 
                   // constructor arguments in ADT definition
-                  handlerType.asInstanceOf[FunType].input == t
+                  debug("handler mismatch", handlerType.asInstanceOf[FunType].input == t)
               }
             }
           }
         })
-      case _ => false // output type for cases sig is not a record type
+      case _ => debug("output type must be a record type", false) // output type for cases sig is not a record type
     })
 
     // WF if all hold
-    matchTypeExists && allHandlerTypesValid && typeWF && bodyWT
-  }
+    debug("matchTypeExists", matchTypeExists) &&
+    debug("allHandlerTypesValid", allHandlerTypesValid) &&
+    debug("typeWF", typeWF) &&
+    debug("bodyWT", bodyWT)
+  })
 
   //rule EC-Nest
-  def exhaustivityCheck(K: PathCtx, lkg: TypingLinkage): Boolean = {
+  def exhaustivityCheck(K: PathCtx, lkg: TypingLinkage): Boolean = debug(s"exhaustivityCheck($K,$lkg)", {
     val currentFamChecked = (lkg.cases.forall { (name, cases) => {
       val L_S_prime = computeTypLinkage(cases.matchType.path.get)
       val adtName = cases.matchType.name
@@ -172,11 +175,11 @@ object PersimmonWF {
     }}
 
     currentFamChecked && nestedFamsChecked
-  }
+  })
 
 
   // Well-formedness of types
-  def wfType(K: PathCtx, t: Type): Boolean = t match {
+  def wfType(K: PathCtx, t: Type): Boolean = debug(s"wfType($K,$t)", t match {
     case NType => true
     case BType => true
     case FunType(input, output) => wfType(K, input) && wfType(K, output)
@@ -185,5 +188,12 @@ object PersimmonWF {
       linkage.types.contains(name) || linkage.adts.contains(name)
     case RecordType(fields) =>
       fields.forall { (name, t) => wfType(K, t) }
+  })
+
+  def debug(msg: => String, b: Boolean): Boolean = {
+    if (!b) {
+      println("false at "+msg)
+    }
+    b
   }
 }
