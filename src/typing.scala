@@ -4,7 +4,7 @@ import PersimmonWF.*
 import PrettyPrint.*
 
 object PersimmonTyping {
-  def getType(K: PathCtx, Gamma: TypingCtx, e: Expression): Option[Type] = debugType(s"${printExp(e)} : ", e match {
+  def getType(K: PathCtx, Gamma: TypingCtx, e: Expression): Option[Type] = debugType(s"${printExp(e)} ($e)", e match {
     case NExp(n) => Some(NType)
     case BExp(b) => Some(BType)
     case Var(id) => Gamma.get(id)
