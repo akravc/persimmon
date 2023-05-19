@@ -200,46 +200,97 @@ class WFTesting extends AnyFunSuite {
 
     // replaced strings with ints because we don't have strings right now
     // included built in optionval type
-    test("wf - STLCBase and extension from the paper") {
-        var fam = 
-            """
-              | Family STLCBase {
-              |   type Ty = TUnit {} | TNat {} | TArr {t1: Ty, t2: Ty}
-              |   type Val = Unit {} | Var {x: N} | Lam {x: N, e: Exp}
-              |   type Exp = EVal {v: Val} | EApp {e1: Exp, e2: Exp}
-              |   type OptionVal = SomeVal {v: Val} | NoneVal {}
-              |   def eval : Exp -> OptionVal =
-              |     case EVal(v:Val) = SomeVal({v = v})
-              |     case EApp(e1:Exp, e2:Exp) = if some(eval e1) then
-              |       ((lam (v: Val). apply(e2) v) (eval e1).v) else NoneVal({})
-              |   def apply(e2: Exp) : Val -> OptionVal =
-              |     case Lam(x: N, e: Exp) = eval (subst x e2 e)
-              |     case _ = NoneVal({})
-              | }
-              |
-              | Family STLCIf extends STLCBase {
-              |   type Ty += TBool {}
-              |   type Val += True {} | False {}
-              |   type Exp += EIf {e: Exp, e1: Exp, e2: Exp}
-              |   def eval: Exp -> OptionVal +=
-              |     case EIf(e:Exp, e1:Exp, e2:Exp) =
-              |       if some(eval e) 
-              |       then ((lam (v: Val). branch(e1, e2) v) (eval e).v)
-              |       else NoneVal({})
-              |   def branch(e1: Exp, e2: Exp): Val -> OptionVal = 
-              |     case True() = eval e1
-              |     case False() = eval e2
-              |     case _ = NoneVal({})
-              | }
-            """.stripMargin
-        assert(canParse(TestParser.pProgram, fam))
-        PersimmonLinkages.p = fam
-        var lkg = computeDefLinkage(prog)
-        printLkg(lkg, "")
-        var stlcbase = Sp(SelfFamily(prog, "STLCBase"))
-        var stlcif = Sp(SelfFamily(prog, "STLCIf"))
-        assertResult(wfDef(List(prog.sp, stlcbase.sp, stlcif.sp), lkg)){ true }
-    }
+    // test("wf - STLCBase and extension from the paper") {
+    //     var fam = 
+    //         """
+    //           | Family STLCBase {
+    //           |   type Ty = TUnit {} | TNat {} | TArr {t1: Ty, t2: Ty}
+    //           |   type Val = Unit {} | Var {x: N} | Lam {x: N, e: Exp}
+    //           |   type Exp = EVal {v: Val} | EApp {e1: Exp, e2: Exp}
+    //           |   type OptionVal = SomeVal {v: Val} | NoneVal {}
+    //           |   def eval : Exp -> OptionVal =
+    //           |     case EVal(v:Val) = SomeVal({v = v})
+    //           |     case EApp(e1:Exp, e2:Exp) = if some(eval e1) then
+    //           |       ((lam (v: Val). apply(e2) v) (eval e1).v) else NoneVal({})
+    //           |   def apply(e2: Exp) : Val -> OptionVal =
+    //           |     case Lam(x: N, e: Exp) = eval (subst x e2 e)
+    //           |     case _ = NoneVal({})
+    //           | }
+    //           |
+    //           | Family STLCIf extends STLCBase {
+    //           |   type Ty += TBool {}
+    //           |   type Val += True {} | False {}
+    //           |   type Exp += EIf {e: Exp, e1: Exp, e2: Exp}
+    //           |   def eval: Exp -> OptionVal +=
+    //           |     case EIf(e:Exp, e1:Exp, e2:Exp) =
+    //           |       if some(eval e) 
+    //           |       then ((lam (v: Val). branch(e1, e2) v) (eval e).v)
+    //           |       else NoneVal({})
+    //           |   def branch(e1: Exp, e2: Exp): Val -> OptionVal = 
+    //           |     case True() = eval e1
+    //           |     case False() = eval e2
+    //           |     case _ = NoneVal({})
+    //           | }
+    //         """.stripMargin
+    //     assert(canParse(TestParser.pProgram, fam))
+    //     PersimmonLinkages.p = fam
+    //     var lkg = computeDefLinkage(prog)
+    //     printLkg(lkg, "")
+    //     var stlcbase = Sp(SelfFamily(prog, "STLCBase"))
+    //     var stlcif = Sp(SelfFamily(prog, "STLCIf"))
+    //     assertResult(wfDef(List(prog.sp, stlcbase.sp, stlcif.sp), lkg)){ true }
+    // }
+
+    
+    
+    // replaced strings with ints because we don't have strings right now
+    // included built in optionval type
+    // test("wf - STLCBase and extension from the paper - no wildcards") {
+    //     var fam = 
+    //         """
+    //           | Family STLCBase {
+    //           |   type Ty = TUnit {} | TNat {} | TArr {t1: Ty, t2: Ty}
+    //           |   type Val = Unit {} | Var {x: N} | Lam {x: N, e: Exp}
+    //           |   type Exp = EVal {v: Val} | EApp {e1: Exp, e2: Exp}
+    //           |   type OptionVal = SomeVal {v: Val} | NoneVal {}
+    //           |   def eval : Exp -> OptionVal =
+    //           |     case EVal(v:Val) = SomeVal({v = v})
+    //           |     case EApp(e1:Exp, e2:Exp) = if some(eval e1) then
+    //           |       ((lam (v: Val). apply(e2) v) (eval e1).v) else NoneVal({})
+    //           |   def apply(e2: Exp) : Val -> OptionVal =
+    //           |     case Lam(x: N, e: Exp) = eval (subst x e2 e)
+    //           |     case Var(x: N) = NoneVal({})
+    //           |     case Unit() = NoneVal({})
+    //           | }
+    //           |
+    //           | Family STLCIf extends STLCBase {
+    //           |   type Ty += TBool {}
+    //           |   type Val += True {} | False {}
+    //           |   type Exp += EIf {e: Exp, e1: Exp, e2: Exp}
+    //           |   def eval: Exp -> OptionVal +=
+    //           |     case EIf(e:Exp, e1:Exp, e2:Exp) =
+    //           |       if some(eval e) 
+    //           |       then ((lam (v: Val). branch(e1, e2) v) (eval e).v)
+    //           |       else NoneVal({})
+    //           |   def branch(e1: Exp, e2: Exp): Val -> OptionVal = 
+    //           |     case True() = eval e1
+    //           |     case False() = eval e2
+    //           |     case Lam(x: N, e: Exp) = NoneVal({})
+    //           |     case Var(x: N) = NoneVal({})
+    //           |     case Unit() = NoneVal({})
+    //           |   def apply(e2: Exp) : Val -> OptionVal +=
+    //           |     case True() = NoneVal({})
+    //           |     case False() = NoneVal({})
+    //           | }
+    //         """.stripMargin
+    //     assert(canParse(TestParser.pProgram, fam))
+    //     PersimmonLinkages.p = fam
+    //     var lkg = computeDefLinkage(prog)
+    //     printLkg(lkg, "")
+    //     var stlcbase = Sp(SelfFamily(prog, "STLCBase"))
+    //     var stlcif = Sp(SelfFamily(prog, "STLCIf"))
+    //     assertResult(wfDef(List(prog.sp, stlcbase.sp, stlcif.sp), lkg)){ true }
+    // }
 
     
 

@@ -3,14 +3,14 @@ Family Outer {
   Family Inner {
     val foo: self(Outer).A -> B -> B = lam(x: self(Outer).A). lam(y: B). bar(x)
     def bar: self(Outer).A -> B =
-      case SomeA{} = false
+      case SomeA() = false
   }
 }
 Family OuterExt extends Outer {
   type A += SomeExtA{}
   Family Inner {
     def bar: self(OuterExt).A -> B +=
-      case SomeExtA{} = true
+      case SomeExtA() = true
   }
 }
 Family WrapperMain {

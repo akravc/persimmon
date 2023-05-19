@@ -3,7 +3,7 @@ Family A1 {
     type Exp = ENat {n : N}
     val f: N -> N = lam (n: N). n
     def ev(n1: N, n2: N): Exp -> N =
-      case ENat{n: N} = n1 + n2 + n
+      case ENat(n: N) = n1 + n2 + n
   }
   Family B2 extends self(A1).B1 {
     val f: N -> N = lam (n: N). n+1
@@ -17,7 +17,7 @@ Family A2 extends A1 {
     type X = {x: B}
     type Exp += EPlus {e1: Exp, e2: Exp}
     def ev(n1: N, n2: N): Exp -> N +=
-      case EPlus{e1: Exp, e2: Exp} = (ev(n1, n2, e1) + ev(n1, n2, e2))
+      case EPlus(e1: Exp, e2: Exp) = (ev(n1, n2, e1) + ev(n1, n2, e2))
   }
 }
 Family ABMain {

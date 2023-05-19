@@ -5,25 +5,25 @@ Family STLCBase {
 
   type OptionVal = None{} | Some{v: Val}
   def bind(f: Val -> OptionVal): OptionVal -> OptionVal =
-    case None{} = OptionVal(None{});
-    case Some{v: Val} = f(v)
+    case None() = OptionVal(None{});
+    case Some(v: Val) = f(v)
 
   def eval: Exp -> OptionVal =
-    case EVal{v: Val} = OptionVal(Some{v = v});
-    case EApp{e1: Exp, e2: Exp} = bind(lam(v: Val).apply(e2,v), eval(e1))
+    case EVal(v: Val) = OptionVal(Some{v = v});
+    case EApp(e1: Exp, e2: Exp) = bind(lam(v: Val).apply(e2,v), eval(e1))
 
   def apply(e2: Exp): Val -> OptionVal =
-    case Lam{x: String, e: Exp} = eval (subst(x, e2, e));
+    case Lam(x: String, e: Exp) = eval (subst(x, e2, e));
     case _ = OptionVal(None{})
 
   def subst(x: String, e0: Exp): Exp -> Exp =
-    case EVal{v: Val} = substVal(x, e0, v);
-    case EApp{e1: Exp, e2: Exp} = Exp(EApp{e1 = subst(x, e0, e1), e2 = subst(x, e0, e2)})
+    case EVal(v: Val) = substVal(x, e0, v);
+    case EApp(e1: Exp, e2: Exp) = Exp(EApp{e1 = subst(x, e0, e1), e2 = subst(x, e0, e2)})
 
   def substVal(y: String, e0: Exp): Val -> Exp =
-    case U{} = Exp(EVal{v = Val(U{})});
-    case Var{x: String} = if x==y then e0 else Exp(EVal{v = Val(Var{x = x})});
-    case Lam{x: String, e: Exp} = Exp(EVal{v = if x==y then Val(Lam{x = x, e = e}) else Val(Lam{x = x, e = subst(y, e0, e)})})
+    case U() = Exp(EVal{v = Val(U{})});
+    case Var(x: String) = if x==y then e0 else Exp(EVal{v = Val(Var{x = x})});
+    case Lam(x: String, e: Exp) = Exp(EVal{v = if x==y then Val(Lam{x = x, e = e}) else Val(Lam{x = x, e = subst(y, e0, e)})})
 
   def branch(e1: Exp, e2: Exp): Val -> OptionVal =
     case _ = OptionVal(None{})
@@ -35,23 +35,23 @@ Family STLCIf extends STLCBase {
   type Exp += EIf{e: Exp, e1: Exp, e2: Exp}
 
   def eval: Exp -> OptionVal +=
-    case EIf{e: Exp, e1: Exp, e2: Exp} =
+    case EIf(e: Exp, e1: Exp, e2: Exp) =
       bind(branch(e1, e2), eval(e))
 
   def branch(e1: Exp, e2: Exp): Val -> OptionVal +=
-    case True{} = eval e1;
-    case False{} = eval e2;
+    case True() = eval e1;
+    case False() = eval e2;
     case _ = OptionVal(None{})
 
   def apply(e2: Exp): Val -> OptionVal +=
     case _ = OptionVal(None{})
 
   def subst(x: String, e0: Exp): Exp -> Exp +=
-    case EIf{e: Exp, e1: Exp, e2: Exp} = Exp(EIf{e = subst(x, e0, e), e1 = subst(x, e0, e1), e2 = subst(x, e0, e1)})
+    case EIf(e: Exp, e1: Exp, e2: Exp) = Exp(EIf{e = subst(x, e0, e), e1 = subst(x, e0, e1), e2 = subst(x, e0, e1)})
 
   def substVal(y: String, e0: Exp): Val -> Exp +=
-    case True{} = Exp(EVal{v = Val(True{})});
-    case False{} = Exp(EVal{v = Val(False{})})
+    case True() = Exp(EVal{v = Val(True{})});
+    case False() = Exp(EVal{v = Val(False{})})
 }
 
 Family Help {
@@ -86,46 +86,46 @@ Family BaseComp {
       lam(ys: Help.ListString). lam(vs: ListVal). lam(e: Exp). e // TODO
 
     def map(f: Val -> Val): ListVal -> ListVal =
-      case NilVal{} = ListVal(NilVal{});
-      case ConsVal{head: Val, tail: ListVal} = ListVal(ConsVal{head = f(head), tail = map(f, tail)})
+      case NilVal() = ListVal(NilVal{});
+      case ConsVal(head: Val, tail: ListVal) = ListVal(ConsVal{head = f(head), tail = map(f, tail)})
 
     def eval(fs: ListFun): Exp -> OptionVal =
-      case ELet{x: String, v: Val, e: Exp} = eval(fs, subst(x, v, e));
-      case EApp{v: Val, vs: ListVal} = apply(fs, vs, v);
-      case EHalt{v: Val} = OptionVal(Some{v = v})
+      case ELet(x: String, v: Val, e: Exp) = eval(fs, subst(x, v, e));
+      case EApp(v: Val, vs: ListVal) = apply(fs, vs, v);
+      case EHalt(v: Val) = OptionVal(Some{v = v})
 
     def apply(fs: ListFun, vs: ListVal): Val -> OptionVal =
       // TODO: should be possible to define this way
       // case _ = OptionVal(None{})
-      case U{} = OptionVal(None{});
-      case Var{x: String} = OptionVal(None{})
+      case U() = OptionVal(None{});
+      case Var(x: String) = OptionVal(None{})
 
     def subst(y: String, v0: Val): Exp -> Exp =
-      case ELet{x: String, v: Val, e: Exp} =
+      case ELet(x: String, v: Val, e: Exp) =
         if x==y then Exp(ELet{x=x, v=substVal(y, v0, v), e=e}) else Exp(ELet{x=x, v=substVal(y, v0, v), e=subst(y, v0, e)});
-      case EApp{v: Val, vs: ListVal} = Exp(EApp{v = substVal(y, v0, v), vs = map(substVal(y, v0), vs)});
-      case EHalt{v: Val} = Exp(EHalt{v = substVal(y, v0, v)})
+      case EApp(v: Val, vs: ListVal) = Exp(EApp{v = substVal(y, v0, v), vs = map(substVal(y, v0), vs)});
+      case EHalt(v: Val) = Exp(EHalt{v = substVal(y, v0, v)})
 
     def substVal(y: String, v0: Val): Val -> Val =
-      case U{} = Val(U{});
-      case Var{x: String} = if x==y then v0 else Val(Var{x = x})
+      case U() = Val(U{});
+      case Var(x: String) = if x==y then v0 else Val(Var{x = x})
 
     // TODO: this should be defined only in ILC
     def unpack(fs: ListFun, alpha: String, x: String, e: Exp): Val -> OptionVal =
       // TODO: should be possible to define this way
       // case _ = OptionVal(None{})
-      case U{} = OptionVal(None{});
-      case Var{x: String} = OptionVal(None{})
+      case U() = OptionVal(None{});
+      case Var(x: String) = OptionVal(None{})
   }
 
   Family ILK extends self(BaseComp).IL {
     type Val += Lam{xs: Help.ListString, e: Exp}
 
     def apply(fs: ListFun, vs: ListVal): Val -> OptionVal +=
-      case Lam{xs: Help.ListString, e: Exp} = eval(fs, substs(xs, vs, e))
+      case Lam(xs: Help.ListString, e: Exp) = eval(fs, substs(xs, vs, e))
 
     def substVal(y: String, v0: Val): Val -> Val +=
-      case Lam{xs: Help.ListString, e: Exp} = Val(Lam{xs = xs, e = e}) // TODO
+      case Lam(xs: Help.ListString, e: Exp) = Val(Lam{xs = xs, e = e}) // TODO
 
     // TODO: shouldn't be needed here!
     def unpack(fs: ListFun, alpha: String, x: String, e: Exp): Val -> OptionVal +=
@@ -141,23 +141,23 @@ Family BaseComp {
       lam(y: String). lam(t: Ty). lam(e: Exp). e // TODO
 
     def eval(fs: ListFun): Exp -> OptionVal +=
-      case EUnpack{alpha: String, x: String, v: Val, e: Exp} = unpack(fs, alpha, x, e)(v)
+      case EUnpack(alpha: String, x: String, v: Val, e: Exp) = unpack(fs, alpha, x, e)(v)
 
     def unpack(fs: ListFun, alpha: String, x: String, e: Exp): Val -> OptionVal +=
-      case Pack{t: Ty, v: Val} = eval(fs, subst(x, v, substTy(alpha, t, e)));
+      case Pack(t: Ty, v: Val) = eval(fs, subst(x, v, substTy(alpha, t, e)));
       case _ = OptionVal(None{})
 
     def subst(y: String, v0: Val): Exp -> Exp +=
-      case EUnpack{alpha: String, x: String, v: Val, e: Exp} =
+      case EUnpack(alpha: String, x: String, v: Val, e: Exp) =
         Exp(EUnpack{alpha = alpha, x = x, v = v, e = if x==y then e else subst(y, v0, e)})
 
     def substVal(y: String, v0: Val): Val -> Val +=
-      case Pack{t: Ty, v: Val} = Val(Pack{t = t, v = substVal(y, v0, v)});
-      case Name{n: String} = Val(Name{n = n})
+      case Pack(t: Ty, v: Val) = Val(Pack{t = t, v = substVal(y, v0, v)});
+      case Name(n: String) = Val(Name{n = n})
 
     def apply(fs: ListFun, vs: ListVal): Val -> OptionVal +=
-      case Name{n: String} = OptionVal(None{}); // TODO
-      case Pack{t: Ty, v: Val} = OptionVal(None{})
+      case Name(n: String) = OptionVal(None{}); // TODO
+      case Pack(t: Ty, v: Val) = OptionVal(None{})
   }
 }
 
@@ -173,13 +173,13 @@ Family IfExt extends BaseComp {
        case _ = OptionVal(None{}) // ... TODO EIf case
 
     def apply(fs: ListFun, vs: ListVal): Val -> OptionVal +=
-      case Int{i: N} = OptionVal(None{})
+      case Int(i: N) = OptionVal(None{})
 
     def subst(y: String, v0: Val): Exp -> Exp +=
-      case EIf{v: Val, e1: Exp, e2: Exp} = Exp(EIf{v = substVal(y, v0, v), e1 = subst(y, v0, e1), e2 = subst(y, v0, e2)})
+      case EIf(v: Val, e1: Exp, e2: Exp) = Exp(EIf{v = substVal(y, v0, v), e1 = subst(y, v0, e1), e2 = subst(y, v0, e2)})
 
     def substVal(y: String, v0: Val): Val -> Val +=
-      case Int{i: N} = Val(Int{i = i})
+      case Int(i: N) = Val(Int{i = i})
 
    def unpack(fs: ListFun, alpha: String, x: String, e: Exp): Val -> OptionVal +=
       case _ = OptionVal(None{})

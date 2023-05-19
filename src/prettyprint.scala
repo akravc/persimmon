@@ -143,7 +143,7 @@ object PrettyPrint {
     if (lkg.isInstanceOf[DefinitionLinkage]) {
       casemap = lkg.asInstanceOf[DefinitionLinkage].cases.map{ 
         case (_, CasesDefn(s, mt, ft, _, m, body)) =>
-          "cases " + s + "<" + printType(mt) + ">" + ": " + printType(ft) + printMarker(m) + printExp(body) + "\n" + offset}
+          "cases " + s + " <" + printType(mt) + "> " + ": " + printType(ft) + printMarker(m) + printExp(body) + "\n" + offset}
     } else {
       casemap = lkg.asInstanceOf[TypingLinkage].cases.map{ 
         case (_, CasesSig(s, mt, m, ft)) =>
