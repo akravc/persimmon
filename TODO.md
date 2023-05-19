@@ -8,14 +8,19 @@
 - [x] (Ana) take def linkage and convert to typ linkage instead of 2nd parser
 - [x] (Ana) fill in None paths when parsing types with implied paths
 - [x] (Ana) add plus to expressions
+- [x] (Ana) test out the alternating self-paths example Jonas brought up
+- [x] (Ana) take out the path context from linkage comp and uses
+- [x] (Ana) fix function names parsing as variables (if it's a var in scope it's a var, otherwise fun call)
 - [ ] (Ana) Case studies, based on old res files
   - [ ] STLC example, with some internal TODOs fixed
-- [ ] (Ana) fix function names parsing as variables (if it's a var in scope it's a var, otherwise fun call)
 - [ ] (Ana) add typing of programs function
-- [ ] (Ana) test out the alternating self-paths example Jonas brought up
 - [ ] (Ana) parse A and .A differently for paths (fully absolute vs full self-prefix)
 - [ ] (Ana) add matcherr example to this impl
+- [ ] (Ana) add wf checking of paths in typing etc
+- [ ] (Ana) add wf paths relation
+- [ ] (Ana) fix context in tests that use WFDef
 
 
 - [ ] (Jonas) Implement mixin encoding
 - [ ] (Jonas) Think about problematic examples
+- [ ] (Jonas) operational semantics

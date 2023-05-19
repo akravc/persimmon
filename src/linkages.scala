@@ -22,7 +22,7 @@ object PersimmonLinkages {
   /* ===================== Linkage Computation Rules ===================== */
   
   // L-Prog-Typ
-  def computeLProgTyp(K: PathCtx): TypingLinkage = {
+  def computeLProgTyp(): TypingLinkage = {
     // if parsing successful
     if (canParse(pProgram, p)) {
       // return what was parsed
@@ -33,7 +33,7 @@ object PersimmonLinkages {
   }
 
   // L-Prog-Def
-  def computeLProgDef(K: PathCtx): DefinitionLinkage = {
+  def computeLProgDef(): DefinitionLinkage = {
     // if parsing successful
     if (canParse(pProgram, p)) {
       // return what was parsed
@@ -44,34 +44,31 @@ object PersimmonLinkages {
   }
 
   // L-Self
-  def computeLSelf(K: PathCtx, a: Sp, opt: LinkageType): Linkage = {
+  def computeLSelf(a: Sp, opt: LinkageType): Linkage = {
     // can assume shape self(a.A) for path
     a.sp match {
       case SelfFamily(pref, fam) => 
-        if (K.contains(SelfFamily(pref, fam))) {
-          computeLNest(K, AbsoluteFamily(pref, fam), opt)
-        } else throw new Exception("L-Self: Path is not in scope.")
+        computeLNest(AbsoluteFamily(pref, fam), opt)
       case _ => throw new Exception("L-Self: Path shape is incorrect.")
     }
   }
 
   // L-Sub
-  def computeLSub(K: PathCtx, a: AbsoluteFamily, opt: LinkageType): Linkage = {
-    val lkg = computeLNest(K, a, opt)
+  def computeLSub(a: AbsoluteFamily, opt: LinkageType): Linkage = {
+    val lkg = computeLNest(a, opt)
     pathSub(lkg, a, Sp(SelfFamily(a.pref, a.fam)))
   }
 
   // L-Nest
-  def computeLNest(K: PathCtx, a: AbsoluteFamily, opt: LinkageType): Linkage = {
-    val lkgWrap = computeLinkage(K, a.pref, opt)
-    //printLkg(lkgWrap, "")
+  def computeLNest(a: AbsoluteFamily, opt: LinkageType): Linkage = {
+    val lkgWrap = computeLinkage(a.pref, opt)
     val lkg = lkgWrap.getNestedLinkage(a.fam)
     
     lkg match {
       case Some(lkgA) => 
         val superPath = lkgA.getSuperPath()
         val superLkg = superPath match {
-          case Some(p) => computeLNest(K, p, opt)
+          case Some(p) => computeLNest(p, opt)
           case _ => opt match { 
             // no parent, so return dummy empty linkage
             case LinkageType.DefLink => 
@@ -91,31 +88,31 @@ object PersimmonLinkages {
   // Universal computation function for linkages
   // opt 1 computes typing linkage, 
   // opt 2 computes definition linkage
-  def computeLinkage(K: PathCtx, a: Path, opt: LinkageType): Linkage = {
+  def computeLinkage(a: Path, opt: LinkageType): Linkage = {
     a match {
-      // K |- a.A ~> L (L-Sub applies)
+      // a.A ~> L (L-Sub applies)
       case AbsoluteFamily(pref, fam) => 
-        computeLSub(K, a.asInstanceOf[AbsoluteFamily], opt)
+        computeLSub(a.asInstanceOf[AbsoluteFamily], opt)
       // L-Self or L-Prog applies
       case Sp(sp) => sp match {
         case Prog => 
           opt match {
-            case LinkageType.DefLink => computeLProgDef(K)
-            case LinkageType.TypLink => computeLProgTyp(K)
+            case LinkageType.DefLink => computeLProgDef()
+            case LinkageType.TypLink => computeLProgTyp()
           }
         case SelfFamily(pref, fam) => 
-          computeLSelf(K, a.asInstanceOf[Sp], opt)
+          computeLSelf(a.asInstanceOf[Sp], opt)
       }
     }
   }
   
   // user friendly computation functions with built-in casting
-  def computeTypLinkage(K: PathCtx, a: Path): TypingLinkage = {
-    computeLinkage(K, a, LinkageType.TypLink).asInstanceOf[TypingLinkage]
+  def computeTypLinkage(a: Path): TypingLinkage = {
+    computeLinkage(a, LinkageType.TypLink).asInstanceOf[TypingLinkage]
   }
 
-  def computeDefLinkage(K: PathCtx, a: Path): DefinitionLinkage = {
-    computeLinkage(K, a, LinkageType.DefLink).asInstanceOf[DefinitionLinkage]
+  def computeDefLinkage(a: Path): DefinitionLinkage = {
+    computeLinkage(a, LinkageType.DefLink).asInstanceOf[DefinitionLinkage]
   }
 
   /* ======================== Path Substitution ======================== */

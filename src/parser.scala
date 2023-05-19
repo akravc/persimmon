@@ -388,6 +388,48 @@ object TestParser extends PersimmonParser {
   def canParse[T](p: PackratParser[T], inp: String): Boolean = parse0(p, inp).successful
   def parseSuccess[T](p: PackratParser[T], inp: String): T = parse0(p, inp).get
 
+  def resolveFunCalls(lkg: DefinitionLinkage): DefinitionLinkage = {
+    var selfpath = lkg.self
+    DefinitionLinkage(
+      lkg.self, lkg.sup, 
+      lkg.types,
+      lkg.defaults.map((s, ddef) => 
+        (s, DefaultDefn(ddef.name, ddef.marker, resolveFunCallsInExp(ddef.defaultBody, selfpath, List()).asInstanceOf[Record]))),
+      lkg.adts,
+      lkg.funs.map((s, fd) => 
+        (s, FunDefn(fd.name, fd.t, resolveFunCallsInExp(fd.funBody, selfpath, List()).asInstanceOf[Lam]))),
+      lkg.cases.map((s, cd) => (s, CasesDefn(cd.name, cd.matchType, cd.t, 
+        cd.ts, cd.marker, resolveFunCallsInExp(cd.casesBody, selfpath, List())))),
+      lkg.nested.map((s, l) => (s, resolveFunCalls(l)))
+    )
+  }
+
+  // TODO: do we need to check all vars or just on the left of an application?
+  // cases calls are differentiated in the parser using brackets < > 
+  def resolveFunCallsInExp(e: Expression, sp: Path, bound: List[Var]): Expression = {
+    e match {
+      case Var(id) => if !bound.contains(e) then FamFun(Some(sp), id) else e
+      case Lam(v, t, body) => 
+        Lam(v, t, resolveFunCallsInExp(body, sp, (List(v) ++ bound)))
+      case App(e1, e2) => 
+        App(resolveFunCallsInExp(e1, sp, bound), resolveFunCallsInExp(e2, sp, bound))
+      case Plus(e1, e2) => Plus(resolveFunCallsInExp(e1, sp, bound), resolveFunCallsInExp(e2, sp, bound))
+      case Record(fields) => 
+        Record(fields.map( (s, ex) => (s, resolveFunCallsInExp(ex, sp, bound))))
+      case Proj(e, name) => Proj(resolveFunCallsInExp(e, sp, bound), name)
+      case Inst(t, rec) => 
+        Inst(t, resolveFunCallsInExp(rec, sp, bound).asInstanceOf[Record])
+      case InstADT(t, cname, rec) => 
+        InstADT(t, cname, resolveFunCallsInExp(rec, sp, bound).asInstanceOf[Record])
+      case Match(e, c, r) => 
+        Match(resolveFunCallsInExp(e, sp, bound), c, resolveFunCallsInExp(r, sp, bound).asInstanceOf[Record])
+      case IfThenElse(condExpr, ifExpr, elseExpr) => 
+        IfThenElse(resolveFunCallsInExp(condExpr, sp, bound), resolveFunCallsInExp(ifExpr, sp, bound), resolveFunCallsInExp(elseExpr, sp, bound))
+      case _ => e
+    }
+  }
+
+
   def fillNonePaths(lkg: DefinitionLinkage): DefinitionLinkage = {
     var selfpath = lkg.self
     DefinitionLinkage(
@@ -446,7 +488,11 @@ object TestParser extends PersimmonParser {
   }
 
   def parseProgramDefLink(inp: String): DefinitionLinkage = {
-    fillNonePaths(parse0(pProgram, inp).get)
+    var raw = parse0(pProgram, inp).get
+    // infer missing type prefixes
+    var filled = fillNonePaths(raw)
+    // correct function calls parsed as variable names
+    resolveFunCalls(filled)
   }
 
   def convertDefToTyp(lkg: DefinitionLinkage): TypingLinkage = {

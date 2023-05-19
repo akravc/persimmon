@@ -1,7 +1,7 @@
 import PersimmonSyntax.*
 import PersimmonLinkages.*
 import PersimmonWF.*
-import PrettyPrint.printType
+import PrettyPrint.*
 
 object PersimmonTyping {
   def getType(K: PathCtx, Gamma: TypingCtx, e: Expression): Option[Type] = e match {
@@ -13,9 +13,13 @@ object PersimmonTyping {
         getType(K, Gamma + (v.id -> t), b).map { bt => FunType(t, bt) }
       else None
     case FamFun(path, name) =>
-      computeTypLinkage(K, path.get).funs.get(name).map { sig => sig.t }
+      if path == None then None else {
+        computeTypLinkage(path.get).funs.get(name).map { sig => sig.t }
+      }
     case FamCases(path, name) =>
-      computeTypLinkage(K, path.get).cases.get(name).map { sig => sig.t }
+      if path == None then None else {
+        computeTypLinkage(path.get).cases.get(name).map { sig => sig.t }
+      }
     case App(e1, e2) => getType(K, Gamma, e1) match {
       case Some(t1: FunType) =>
         getType(K, Gamma, e2).flatMap { t2 =>
@@ -29,7 +33,7 @@ object PersimmonTyping {
           case _ => None }
       case _ => None
     }
-    case Record(fields) =>
+    case Record(fields) => 
       val types = fields.mapValues { field => getType(K, Gamma, field) }.toMap
       if types.exists((_, t) => t.isEmpty) then None
       else Some(RecordType(types.mapValues { t => t.get }.toMap))
@@ -38,14 +42,14 @@ object PersimmonTyping {
       case _ => None
     }
     case Inst(t, rec) =>
-      computeTypLinkage(K, t.path.get).types.get(t.name).flatMap { typeDefn =>
+      computeTypLinkage(t.path.get).types.get(t.name).flatMap { typeDefn =>
         val fields = typeDefn.typeBody.fields
         if fields.keySet == rec.fields.keySet && fields.forall(
           (name, ft) => getType(K, Gamma, rec.fields.get(name).get) == Some(ft)
         ) then Some(t) else None
       }
     case InstADT(t, cname, rec) =>
-      computeTypLinkage(K, t.path.get).adts.get(t.name).flatMap { adtDefn =>
+      computeTypLinkage(t.path.get).adts.get(t.name).flatMap { adtDefn =>
         adtDefn.adtBody.get(cname).flatMap { recType =>
           val fields = rec.fields
           if fields.keySet == rec.fields.keySet &&
@@ -57,11 +61,27 @@ object PersimmonTyping {
     case Match(e, c, r) =>
       getType(K, Gamma, e) match {
         case Some(t: PathType) =>
-          computeTypLinkage(K, c.path.get).cases.get(c.name).flatMap { sig => 
-            val funType = sig.t
-            if sig.matchType == t && getType(K, Gamma, r) == Some(funType.input)
-            then Some(funType.output) else None
-          }
+          val matchTypeLkg = computeTypLinkage(c.path.get)
+          val adtDefinition = matchTypeLkg.adts.get(t.name)
+          val argsType = getType(K, Gamma, r)
+          val cType = getType(K, Gamma, c)
+
+          if (adtDefinition == None || argsType == None || cType == None) 
+          then None
+          else {
+            val cOutputType = cType.get.asInstanceOf[FunType].output.asInstanceOf[RecordType].fields
+            val cInputType = cType.get.asInstanceOf[FunType].input
+            val T = cOutputType.head._2.asInstanceOf[FunType].output
+
+            if ((cInputType == argsType.get) && adtDefinition.get.adtBody.forall {
+              (constructorName, arguments) =>
+                val handlerType = cOutputType.get(constructorName)
+                if (handlerType == None) then false else {
+                  arguments == handlerType.get.asInstanceOf[FunType].input && 
+                  handlerType.get.asInstanceOf[FunType].output == T
+                }
+            }) then Some(T) else None
+        }
         case _ => None
       }
     case IfThenElse(condExpr, ifExpr, elseExpr) =>
@@ -84,7 +104,7 @@ object PersimmonTyping {
     if t1 == t2 then true
     else t1 match {
       case PathType(path, name) =>
-        val typeDefn = computeTypLinkage(K, path.get).types.get(name).get
+        val typeDefn = computeTypLinkage(path.get).types.get(name).get
         isSubtype(K, typeDefn.typeBody, t2)
       case FunType(input1, output1) =>
         t2 match {

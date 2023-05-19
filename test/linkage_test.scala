@@ -36,15 +36,9 @@ class LinkageTesting extends AnyFunSuite {
         var b1 = Sp(SelfFamily(a1, "B1"))
         var b2 = Sp(SelfFamily(a1, "B2"))
         var b3 = Sp(SelfFamily(a1, "B3"))
-        var a2 = Sp(SelfFamily(p, "A2"))
-        var a2b1 = Sp(SelfFamily(a2, "B1"))
-        var a2b2 = Sp(SelfFamily(a2, "B2"))
-        var a2b3 = Sp(SelfFamily(a2, "B3"))
-        var paths = List(p.sp, a1.sp, b1.sp, b2.sp, b3.sp, a2.sp, a2b1.sp, a2b2.sp, a2b3.sp)
-        //printLkg(parseProgramDefLink(fam), "")
-        printLkg(computeDefLinkage(paths, b1), "")
-        printLkg(computeDefLinkage(paths, b2), "")
-        printLkg(computeDefLinkage(paths, b3), "")
+        //printLkg(computeDefLinkage(b1), "")
+        //printLkg(computeDefLinkage(b2), "")
+        //printLkg(computeDefLinkage(b3), "")
 
     }
 
@@ -102,7 +96,7 @@ class LinkageTesting extends AnyFunSuite {
         var p2 = Sp(SelfFamily(p1, "A"))
         var p3 = Sp(SelfFamily(p2, "K"))
         assertResult(
-            computeDefLinkage(List(), p1)
+            computeDefLinkage(p1)
         ){
             DefinitionLinkage(
                 p1, None, Map(), Map(), Map(), Map(), Map(),
@@ -142,7 +136,7 @@ class LinkageTesting extends AnyFunSuite {
         var a2b1 = Sp(SelfFamily(a2, "B1"))
         var a2b2 = Sp(SelfFamily(a2, "B2"))
         assertResult(
-            computeDefLinkage(List(), p)
+            computeDefLinkage(p)
         ){
             DefinitionLinkage(p, None, Map(), Map(), Map(), Map(), Map(),
                 Map("A1" -> DefinitionLinkage(a1, None, Map(), Map(), Map(), Map(), Map(), 
@@ -171,7 +165,7 @@ class LinkageTesting extends AnyFunSuite {
         var p2 = SelfFamily(Sp(p1), "K")
         PersimmonLinkages.p = fam
         assertResult(
-        computeDefLinkage(List(p1, p2), Sp(p2))
+        computeDefLinkage(Sp(p2))
         ){
         DefinitionLinkage(
             Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K")), 
@@ -240,7 +234,7 @@ class LinkageTesting extends AnyFunSuite {
         var a2b1 = Sp(SelfFamily(a2, "B1"))
         var a2b2 = Sp(SelfFamily(a2, "B2"))
         assertResult(
-            computeDefLinkage(List(), p)
+            computeDefLinkage(p)
         ){
             DefinitionLinkage(p, None, Map(), Map(), Map(), Map(), Map(),
                 Map("A1" -> DefinitionLinkage(a1, None, Map(), Map(), Map(), Map(), Map(), 

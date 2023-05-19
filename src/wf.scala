@@ -1,7 +1,7 @@
 import PersimmonSyntax.*
 import PersimmonTyping.*
 import PersimmonLinkages.*
-import PrettyPrint.printExp
+import PrettyPrint.*
 
 
 object PersimmonWF {
@@ -23,24 +23,39 @@ object PersimmonWF {
     if ancestors(selfpath).contains(selfpath) then false
     else {
       val K_prime = selfpath :: K
-      val L_S = computeTypLinkage(K_prime, Sp(selfpath))
-      exhaustivityCheck(K_prime, L_S) &&
-      lkg.nested.forall { (_, nested_lkg) => wfDef(K_prime, nested_lkg) } &&
-      lkg.types.forall { (name, td) =>
+      val L_S = computeTypLinkage(Sp(selfpath))
+
+      val exhaustive = exhaustivityCheck(K_prime, L_S) 
+      if (!exhaustive) print("non-exhaustive cases detected \n")    
+
+      val wfNested = lkg.nested.forall { (_, nested_lkg) => wfDef(K_prime, nested_lkg) }
+      if (!wfNested) print("non-wf nested family detected \n")
+
+      val wfTypes = lkg.types.forall { (name, td) =>
         !lkg.adts.contains(name) && 
         ( if td.marker == Eq then wfTypDef(K_prime, td)
           else lkg.defaults.contains(name) && wfTypDefExt(K_prime, td, lkg.defaults(name)))
-      } &&
-      lkg.adts.forall { (name, adt) => !lkg.types.contains(name) && wfAdtDef(K_prime, adt) } &&
-      lkg.funs.forall { (_, fd) => wfFunDef(K_prime, fd) } &&
-      lkg.cases.forall { (_, cd) => wfCasesDef(K_prime, cd) }
+      }
+      if (!wfTypes) print("non-wf type detected \n")
+
+      val wfAdts = lkg.adts.forall { (name, adt) => !lkg.types.contains(name) && wfAdtDef(K_prime, adt) }
+      if (!wfAdts) print("non-wf adt detected \n")
+
+      val wfFuns = lkg.funs.forall { (_, fd) => wfFunDef(K_prime, fd) } 
+      if (!wfFuns) print("non-wf function def detected \n")
+
+      val wfCases = lkg.cases.forall { (_, cd) => wfCasesDef(K_prime, cd) }
+      if (!wfCases) print("non-wf cases def detected \n")
+
+      // definition is WF if all hold
+      exhaustive && wfNested && wfTypes && wfAdts && wfFuns && wfCases
     }
   }
 
   // this recursively gets all paths from the program 
   // by traversing the typing linkage for prog
   def allPathsContext(): List[SelfPath] = {
-    var lkg = computeTypLinkage(List(), Sp(Prog))
+    var lkg = computeTypLinkage(Sp(Prog))
     collectAllPathsWithin(lkg)
   }
 
@@ -60,7 +75,7 @@ object PersimmonWF {
   // in the program
   def ancestors(p: SelfPath): List[SelfPath] = {
     var K = allPathsContext()
-    var currLkg = computeTypLinkage(K, Sp(p))
+    var currLkg = computeTypLinkage(Sp(p))
     currLkg.getSuperPath() match {
       case Some(p) => relativizePath(p) :: ancestors(relativizePath(p))
       case None => return List()
@@ -87,48 +102,98 @@ object PersimmonWF {
 
   // well-formedness of functions
   def wfFunDef(K: PathCtx, fd: FunDefn): Boolean = {
-    wfType(K, fd.t) && hasType(K, Map(), fd.funBody, fd.t)
+    val typeWF = wfType(K, fd.t)
+    val bodyWF = hasType(K, Map(), fd.funBody, fd.t)
+    if (!typeWF) print("fun type not well formed \n")
+    if (!bodyWF) print("body of fun not well formed \n")
+
+    typeWF && bodyWF
   }
 
   // well-formedness of cases definitions
   def wfCasesDef(K: PathCtx, cd: CasesDefn): Boolean = {
-    val L_S = computeTypLinkage(K, cd.matchType.path.get);
-    L_S.adts.contains(cd.matchType.name) &&
-    (cd.t.output match {
-      // TODO: I think the way this is written in the rule WF-CasesDef is confusing because 'C' and 'T' are used for both 'R' and the case names/types in the cases definition.
-      case RecordType(rec) => rec.forall { (name, t) =>
-        L_S.adts(cd.matchType.name).adtBody.get(name) == Some(t)
-      }
-      case _ => throw Exception("Output type for cases signature is not a record type.") // TODO: Is this the right way to handle this error?
-    }) &&
-    wfType(K, cd.t) &&
-    hasType(K, Map(), cd.casesBody, cd.t)
-  }
+    val L_S = computeTypLinkage(cd.matchType.path.get);
+    val matchTypeExists = L_S.adts.contains(cd.matchType.name)
+    if (!matchTypeExists) print("match type for cases statement does not exist\n")
+    val typeWF = wfType(K, cd.t)
+    if (!typeWF) print("type of cases is not well formed \n")
+    val bodyWT = hasType(K, Map(), cd.casesBody, cd.t)
+    if (!bodyWT) print ("body of cases is not well typed \n")
 
-  // rule EC-Nest
-  def exhaustivityCheck(K: PathCtx, lkg: TypingLinkage): Boolean = {
-    lkg.cases.forall { (name, cases) => {
-      val L_S_prime = computeTypLinkage(K, cases.matchType.path.get)
-      L_S_prime.adts.contains(name) &&
-      (cases.t.output match {
-        case RecordType(rec) => {
-          L_S_prime.adts(name).adtBody == rec.map { (name, t) =>
-            t match {
-              case FunType(input, _) => input
-              case _ => throw Exception("Output type for cases signature has fields which are not arrow types.")
+    val adtDefinition = L_S.adts(cd.matchType.name).adtBody
+    val allHandlerTypesValid = (cd.t.output match {
+      case RecordType(rec) => 
+        (rec.forall { (constructorName, handlerType) =>
+          // all handler types must be arrow types
+          if(!handlerType.isInstanceOf[FunType]) then false
+          else {
+            // all handler types must have the same output type
+            if (handlerType.asInstanceOf[FunType].output != 
+                rec.head._2.asInstanceOf[FunType].output) 
+            then false 
+            else {
+              val constructorArgsInLkg = adtDefinition.get(constructorName)
+              constructorArgsInLkg match {
+                // if no such constructor in type definition
+                case None => false
+                case Some(t) => 
+                  // the handler input type must match the 
+                  // constructor arguments in ADT definition
+                  handlerType.asInstanceOf[FunType].input == t
+              }
             }
           }
-        } // TODO: Does this do what I want it to do?
-        case _ => throw Exception("Output type for cases signature is not a record type.") // TODO: Is this the right way to handle this error?
-      })
-    }} && lkg.nested.forall { (name, A) => {
-      // TODO: Is this equivalent to the version in the paper?
+        })
+      case _ => false // output type for cases sig is not a record type
+    })
+    if (!allHandlerTypesValid) print("detected non-wf handler types \n")
+
+    // WF if all hold
+    matchTypeExists && allHandlerTypesValid && typeWF && bodyWT
+  }
+
+  //rule EC-Nest
+  def exhaustivityCheck(K: PathCtx, lkg: TypingLinkage): Boolean = {
+    val currentFamChecked = (lkg.cases.forall { (name, cases) => {
+      val L_S_prime = computeTypLinkage(cases.matchType.path.get)
+      val adtName = cases.matchType.name
+      val adtExists = L_S_prime.adts.contains(adtName)
+      if (!adtExists) print("No adt named " + adtName + " in the corresponding linkage. \n")
+
+      val handlers = cases.t.output.asInstanceOf[RecordType].fields
+      val adtDefinition = L_S_prime.adts(adtName).adtBody
+      // for each constructor in the ADT definition,
+      // it has a corresponding handler in the output type
+      // with the proper input type
+      val allConstructorsHandled = adtDefinition.forall {
+        (constructorName, arguments) => 
+          val constructorHandled = handlers.contains(constructorName)
+          if (!constructorHandled) then {
+            print("constructor " + constructorName + " is not handled by cases definition \n")
+            false
+          } else {
+            val argsMatch = (handlers.get(constructorName).get.asInstanceOf[FunType].input == arguments)
+            if (!argsMatch) print("input arguments for constructor " + constructorName + " do not match handler input type \n")
+
+            argsMatch
+          }
+      }
+      if (!allConstructorsHandled) print("not all constructors are handled by cases definition \n")
+
+      adtExists && allConstructorsHandled
+    }})
+    if (!currentFamChecked) print("cases at path " + lkg.self + " are not exhaustive \n")
+    
+
+    val nestedFamsChecked = lkg.nested.forall { (name, A) => {
       assert(A.self.isInstanceOf[Sp])
       var selfpath = A.self.asInstanceOf[Sp].sp
       val K_prime = List(selfpath) ++ K
-      val L_S_prime_prime = computeTypLinkage(K_prime, Sp(selfpath))
+      val L_S_prime_prime = computeTypLinkage(Sp(selfpath))
       exhaustivityCheck(K_prime, L_S_prime_prime)
     }}
+
+    currentFamChecked && nestedFamsChecked
   }
 
 
@@ -138,7 +203,7 @@ object PersimmonWF {
     case BType => true
     case FunType(input, output) => wfType(K, input) && wfType(K, output)
     case PathType(path, name) =>
-      val linkage = computeTypLinkage(K, path.get)
+      val linkage = computeTypLinkage(path.get)
       linkage.types.contains(name) || linkage.adts.contains(name)
     case RecordType(fields) =>
       fields.forall { (name, t) => wfType(K, t) }

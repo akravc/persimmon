@@ -11,10 +11,17 @@ import java.io.File
 import scala.io.Source
 
 class MiscTesting extends AnyFunSuite {
+
+  def readFile(filename: String): String = { 
+    return Source.fromFile(filename).getLines.mkString
+  }
+
   test("misc") {
-    val prog = Source.fromFile("test/misc_test.txt").mkString
-    assert(canParse(TestParser.pProgram, prog))
-    val linkage = TestParser.parseProgramDefLink(prog)
-    assert(wfDef(List(), linkage))
+    val fam = readFile("res/misc")
+    // must save the program in this global variable
+    PersimmonLinkages.p = fam
+    assert(canParse(TestParser.pProgram, fam))
+    val linkage = TestParser.parseProgramDefLink(fam)
+    assert(wfDef(List(Prog), linkage))
   }
 }
