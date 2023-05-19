@@ -61,7 +61,7 @@ object PersimmonTyping {
     case Match(e, c, r) =>
       getType(K, Gamma, e) match {
         case Some(t: PathType) =>
-          val matchTypeLkg = computeTypLinkage(c.path.get)
+          val matchTypeLkg = computeTypLinkage(t.path.get)
           val adtDefinition = matchTypeLkg.adts.get(t.name)
           val argsType = getType(K, Gamma, r)
           val cType = getType(K, Gamma, c)
