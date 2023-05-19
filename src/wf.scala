@@ -104,7 +104,7 @@ object PersimmonWF {
     val L_S = computeTypLinkage(cd.matchType.path.get);
     val matchTypeExists = L_S.adts.contains(cd.matchType.name)
     val typeWF = wfType(K, cd.t)
-    val bodyWT = hasType(K, Map(), cd.casesBody, cd.t)
+    val bodyWT = debug(s"hasType($K, Map(), ${printExp(cd.casesBody)}, ${printType(cd.t)}) vs ${getType(K, Map(), cd.casesBody)}", hasType(K, Map(), cd.casesBody, cd.t))
 
     val adtDefinition = L_S.adts(cd.matchType.name).adtBody
     val allHandlerTypesValid = (cd.t.output match {
