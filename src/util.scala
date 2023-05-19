@@ -2,6 +2,7 @@ import PersimmonSyntax.*
 import PersimmonTyping.*
 import PersimmonLinkages.*
 import PrettyPrint.*
+import scala.io.Source
 
 // Utility functions needed throughout for pre-processing linkages, 
 // unfolding wildcard cases, etc.
@@ -30,6 +31,66 @@ object PersimmonUtil {
 //     t.input.asInstanceOf[RecordType]
 // }
 
+/* ====================== READ FILE ====================== */
+
+def readFile(filename: String): String = { 
+  return Source.fromFile(filename).getLines.mkString("\n")
+}
+
+/* ====================== FRESH VARIABLES ====================== */
+
+  // returns all variables bound in this expression
+  def boundVarsInExp(e: Expression): List[String] = {
+    e match {
+      case App(e1, e2) => boundVarsInExp(e1) ++ boundVarsInExp(e2)
+      case Plus(e1, e2) => boundVarsInExp(e1) ++ boundVarsInExp(e2)
+      case IfThenElse(condExpr, ifExpr, elseExpr) => 
+        boundVarsInExp(condExpr) ++ boundVarsInExp(ifExpr) ++ boundVarsInExp(elseExpr)
+      case Inst(t, rec) => boundVarsInExp(rec)
+      case InstADT(t, cname, rec) => boundVarsInExp(rec)
+      case Lam(v, t, body) => List(v.id) ++ boundVarsInExp(body)
+      case Match(e, c, r) => boundVarsInExp(e) ++ boundVarsInExp(r)
+      case Proj(e, name) => boundVarsInExp(e)
+      case Record(fields) => 
+        fields.map((s, e) => (s, boundVarsInExp(e))).values.foldLeft(List())( (a: List[String], b: List[String]) => a ++ b)
+      case _ => List()
+    }
+  }
+
+  def freshVar(bound: List[String]): Var = {
+    var alphabet = ('a' to 'z') ++ ('A' to 'Z')
+    var x = "" + alphabet(scala.util.Random.nextInt(52))
+    if (bound.contains(x)) then freshVar(bound)
+    else Var(x)
+  }
+
+  /* ====================== VARIABLE SUBSTITUTION ====================== */
+
+  // Substitute variable v2 with variable v1 in expression e
+  // e [v1 / v2]
+  def subVarInExp(e: Expression, v1: Var, v2: Var): Expression = {
+    e match {
+      case Var(id) => if e == v2 then v1 else e
+      case App(e1, e2) => App(subVarInExp(e1, v1, v2), subVarInExp(e2, v1, v2))
+      case Plus(e1, e2) => Plus(subVarInExp(e1, v1, v2), subVarInExp(e2, v1, v2))
+      case IfThenElse(condExpr, ifExpr, elseExpr) => 
+        IfThenElse(subVarInExp(condExpr, v1, v2), subVarInExp(ifExpr, v1, v2), subVarInExp(elseExpr, v1, v2))
+      case Inst(t, rec) => 
+        Inst(t, subVarInExp(rec, v1, v2).asInstanceOf[Record])
+      case InstADT(t, cname, rec) => 
+        InstADT(t, cname, subVarInExp(rec, v1, v2).asInstanceOf[Record])
+      case Lam(v, t, body) => 
+        if (v2 == v) 
+        then Lam(v1, t, subVarInExp(body, v1, v2))
+        else Lam(v, t, subVarInExp(body, v1, v2))
+      case Match(e, c, r) => 
+        Match(subVarInExp(e, v1, v2), c, subVarInExp(r, v1, v2).asInstanceOf[Record])
+      case Proj(e, name) => Proj(subVarInExp(e, v1, v2), name)
+      case Record(fields) => 
+        Record(fields.map((s, r) => (s, subVarInExp(r, v1, v2))))
+      case _ => e
+    }
+  }
 
 /*================ RESOLVE FUN CALLS PARSED AS VARIABLES ================*/
 

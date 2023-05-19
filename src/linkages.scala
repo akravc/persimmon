@@ -2,6 +2,7 @@ import PersimmonSyntax.*
 import TestParser._
 import PrettyPrint._
 import scala.io.Source
+import PersimmonUtil.*
 
 object PersimmonLinkages {
 
@@ -77,8 +78,6 @@ object PersimmonLinkages {
               TypingLinkage(null, None, Map(), Map(), Map(), Map(), Map())
           }
         }
-        // print("PRINTING SUPER")
-        // printLkg(superLkg, "")
         concatenateLinkages(superLkg, lkgA)
       case _ => 
         throw new LinkageException("L-Nest: no nested linkage for family " + a.fam)
@@ -121,7 +120,6 @@ object PersimmonLinkages {
   // lkg[p1/p2]
   // including prefix substitution
   def pathSub(lkg: Linkage, p1: Path, p2: Path): Linkage = {
-    //print("substituting paths in linkage " + printLkg(lkg, "") + "\n")
 
     if (lkg == null) {
       throw new LinkageException("Cannot substitute paths in a null linkage.")
@@ -157,8 +155,6 @@ object PersimmonLinkages {
   // substitute path p2 in any path p with p1
   // including any prefix of p if it matches
   def subPathInPath(p: Path, p1: Path, p2: Path): Path = {
-    // print("substituting: "  + printPath(p2) + " with " + printPath(p1) + 
-    // " in " + printPath(p) + " \n")
     if (p == p2) then p1 else
     p match {
       case Sp(sp) => 
@@ -372,45 +368,38 @@ object PersimmonLinkages {
   }
   
   // Rule CAT-CASES-TYP
-  // This should definitely be checked.
   def concatCasesSigs(cases1: Map[String, CasesSig], cases2: Map[String, CasesSig]): Map[String, CasesSig] = {
-    cases1.flatMap { (name, case1) => // Calling the variable "case" for consistency with other functions, even though it represents a list of cases
-      if cases2.contains(name) then None else Some((name, case1))
-    } ++ cases2.map { (name, case2) =>
-      cases1.get(name) match {
-        case Some(case1) =>
-          // TODO: I'm not 100% sure why having "=" here is useful.
-          if case2.marker == Eq then
-            if case1.matchType != case2.matchType || case1.t != case2.t then
-              throw LinkageException("Concattenating linkages with duplicate incompatible cases signatures.")
-            else (name, case1)
-          else {
-            val rec1 = case1.t.output match {
-              case RecordType(rec) => rec
-              case _ => throw LinkageException("Output type for cases signature is not a record type.") // This should never happen.
-            };
-            val rec2 = case2.t.output match {
-              case RecordType(rec) => rec
-              case _ => throw LinkageException("Output type for cases signature is not a record type.") // This should never happen.
-            };
-            val rec: Map[String, Type] = rec1.flatMap { (fieldName, t1) =>
-              if rec2.contains(fieldName) then None else Some((name, t1))
-            } ++ rec2.map { (fieldName, t2) =>
-              rec1.get(name) match {
-                case Some(t1) =>
-                  if t1 != t2 then
-                    throw LinkageException("Concattenating linkages with incompatible cases signatures.")
-                  else (fieldName, t1)
-                case None => (fieldName, t2)
-              }
-            };
-            if case1.matchType != case2.matchType || case1.t.input != case2.t.input then
-              throw LinkageException("Concattenating linkages with incompatible cases signatures.")
-            else (name, CasesSig(name, case1.matchType, Eq, FunType(case1.t.input, RecordType(rec))))
-          }
-        case None => (name, case2)
-      }
+    val inheritedUnchanged = cases1.filter((name, sig1) => !cases2.contains(name))
+    val newlyDefined = cases2.filter((name, sig2) => !cases1.contains(name))
+    val difference = cases2.removedAll(newlyDefined.keys)
+
+    val extended = difference.map{
+      (name, sig2) => 
+        // TODO: overriding case
+        if (sig2.marker == Eq) then (name, sig2)
+        // extension case
+        else {
+          val inheritedSig = cases1.get(name).get
+          if (inheritedSig.matchType != sig2.matchType || 
+            inheritedSig.t.input != sig2.t.input) then 
+              throw LinkageException("Concatenating cases with incompatible types.")
+            else {
+              val combinedInpType = inheritedSig.t.input.asInstanceOf[RecordType]
+              val combinedOutputType = concatRecordTypes(inheritedSig.t.output.asInstanceOf[RecordType], sig2.t.output.asInstanceOf[RecordType])
+
+              (name, CasesSig(name, sig2.matchType, Eq, FunType(combinedInpType, combinedOutputType)))
+            }
+        }
     }
+
+    inheritedUnchanged ++ extended ++ newlyDefined
+  }
+
+  def concatRecordTypes(r1: RecordType, r2: RecordType): RecordType = {
+    if (r1.fields.forall((s, t) => !r2.fields.contains(s)) && 
+      r2.fields.forall((s, t) => !r1.fields.contains(s))) 
+    then RecordType(r1.fields ++ r2.fields) 
+    else throw LinkageException("Concatenating cases with duplicate handler names.")
   }
 
   // Rule CAT-FUNS-DEF
@@ -427,118 +416,51 @@ object PersimmonLinkages {
       }
     }
   }
-  
 
 
   // Rule CAT-CASES-DEF
   def concatCasesDefns(cases1: Map[String, CasesDefn], cases2: Map[String, CasesDefn]): Map[String, CasesDefn] = {
-    cases1.flatMap { (name, case1) =>
-      if cases2.contains(name) then None else Some((name, case1))
-    } ++ cases2.map { (name, case2) =>
-      cases1.get(name) match {
-        case Some(case1) =>
-          if case2.marker == Eq then
-            if case1.matchType != case2.matchType || case1.t != case2.t then
-              throw LinkageException("Concattenating linkages with duplicate incompatible cases signatures.")
-            else (name, case2)
-          else {
-            // TODO: Currently redoing all the computation done for cases signatures. Not sure if this is intended.
-            val rec1 = case1.t.output match {
-              case RecordType(rec) => rec
-              case _ => throw LinkageException("Output type for cases signature is not a record type.") // This should never happen.
-            };
-            val rec2 = case2.t.output match {
-              case RecordType(rec) => rec
-              case _ => throw LinkageException("Output type for cases signature is not a record type.") // This should never happen.
-            };
-            val rec: Map[String, Type] = rec1.flatMap { (fieldName, t1) =>
-              if rec2.contains(fieldName) then None else Some((name, t1))
-            } ++ rec2.map { (fieldName, t2) =>
-              rec1.get(name) match {
-                case Some(t1) =>
-                  if t1 != t2 then
-                    throw LinkageException("Concattenating linkages with incompatible cases signatures.")
-                  else (fieldName, t1)
-                case None => (fieldName, t2)
-              }
-            };
-            if case1.matchType != case2.matchType || case1.t.input != case2.t.input then
-              throw LinkageException("Concattenating linkages with incompatible cases signatures.")
-            // generate var that is fresh to both cases bodies
-            val v = freshVar(boundVarsInExp(case1.casesBody) ++ 
-                      boundVarsInExp(case2.casesBody))
-            val body1 = case1.casesBody match {
-              case Lam(v1, t, Record(body)) => 
-                subVarInExp(Record(body), v1, v).asInstanceOf[Record].fields
-              case _ => throw LinkageException("Body of cases definition is invalid.") // This should never happen.
+    val inheritedUnchanged = cases1.filter((name, def1) => !cases2.contains(name))
+    val newlyDefined = cases2.filter((name, def2) => !cases1.contains(name))
+    val difference = cases2.removedAll(newlyDefined.keys)
+
+    val extended = difference.map{
+      (name, def2) =>
+        // TODO: overriding case
+        if (def2.marker == Eq) then (name, def2)
+        // extension case
+        else {
+          val inheritedDef = cases1.get(name).get
+          if (inheritedDef.matchType != def2.matchType || 
+            inheritedDef.t.input != def2.t.input) then 
+              throw LinkageException("Concatenating cases with incompatible types.")
+            else {
+              val combinedInpType = inheritedDef.t.input.asInstanceOf[RecordType]
+              val combinedOutputType = concatRecordTypes(inheritedDef.t.output.asInstanceOf[RecordType], def2.t.output.asInstanceOf[RecordType])
+              val combinedBody = concatCasesBodies(inheritedDef.casesBody, def2.casesBody)
+
+              (name, CasesDefn(name, def2.matchType, FunType(combinedInpType, combinedOutputType), Eq, combinedBody))
             }
-            val body2 = case2.casesBody match {
-              case Lam(v2, t, Record(body)) => 
-                subVarInExp(Record(body), v2, v).asInstanceOf[Record].fields
-              case _ => throw LinkageException("Body of cases definition is invalid.") // This should never happen.
-            }
-            val body: Map[String, Expression] = body1.flatMap { (fieldName, e1) =>
-              if body2.contains(fieldName) then None else Some((fieldName, e1))
-            } ++ body2;
-            (name, CasesDefn(name, case1.matchType, FunType(case1.t.input, RecordType(rec)), Eq, Lam(v, case1.t.input, Record(body))))
-          }
-        case None => (name, case2)
-      }
+        }
     }
+    inheritedUnchanged ++ extended ++ newlyDefined
   }
 
-  /* ====================== FRESH VARIABLES ====================== */
-
-  // returns all variables bound in this expression
-  def boundVarsInExp(e: Expression): List[String] = {
-    e match {
-      case App(e1, e2) => boundVarsInExp(e1) ++ boundVarsInExp(e2)
-      case Plus(e1, e2) => boundVarsInExp(e1) ++ boundVarsInExp(e2)
-      case IfThenElse(condExpr, ifExpr, elseExpr) => 
-        boundVarsInExp(condExpr) ++ boundVarsInExp(ifExpr) ++ boundVarsInExp(elseExpr)
-      case Inst(t, rec) => boundVarsInExp(rec)
-      case InstADT(t, cname, rec) => boundVarsInExp(rec)
-      case Lam(v, t, body) => List(v.id) ++ boundVarsInExp(body)
-      case Match(e, c, r) => boundVarsInExp(e) ++ boundVarsInExp(r)
-      case Proj(e, name) => boundVarsInExp(e)
-      case Record(fields) => 
-        fields.map((s, e) => (s, boundVarsInExp(e))).values.foldLeft(List())( (a: List[String], b: List[String]) => a ++ b)
-      case _ => List()
+  def concatCasesBodies(b1: Expression, b2: Expression): Expression = {
+    val v = freshVar(boundVarsInExp(b1) ++ boundVarsInExp(b2))
+    val body1 = b1 match {
+      case Lam(v1, t, Record(body)) => 
+        subVarInExp(Record(body), v1, v).asInstanceOf[Record].fields
+      case _ => throw LinkageException("Body of cases definition is invalid.") // This should never happen.
     }
-  }
-
-  def freshVar(bound: List[String]): Var = {
-    var alphabet = ('a' to 'z') ++ ('A' to 'Z')
-    var x = "" + alphabet(scala.util.Random.nextInt(52))
-    if (bound.contains(x)) then freshVar(bound)
-    else Var(x)
-  }
-
-  /* ====================== VARIABLE SUBSTITUTION ====================== */
-
-  // Substitute variable v2 with variable v1 in expression e
-  // e [v1 / v2]
-  def subVarInExp(e: Expression, v1: Var, v2: Var): Expression = {
-    e match {
-      case Var(id) => if e == v2 then v1 else e
-      case App(e1, e2) => App(subVarInExp(e1, v1, v2), subVarInExp(e2, v1, v2))
-      case Plus(e1, e2) => Plus(subVarInExp(e1, v1, v2), subVarInExp(e2, v1, v2))
-      case IfThenElse(condExpr, ifExpr, elseExpr) => 
-        IfThenElse(subVarInExp(condExpr, v1, v2), subVarInExp(ifExpr, v1, v2), subVarInExp(elseExpr, v1, v2))
-      case Inst(t, rec) => 
-        Inst(t, subVarInExp(rec, v1, v2).asInstanceOf[Record])
-      case InstADT(t, cname, rec) => 
-        InstADT(t, cname, subVarInExp(rec, v1, v2).asInstanceOf[Record])
-      case Lam(v, t, body) => 
-        if (v2 == v) 
-        then Lam(v1, t, subVarInExp(body, v1, v2))
-        else Lam(v, t, subVarInExp(body, v1, v2))
-      case Match(e, c, r) => 
-        Match(subVarInExp(e, v1, v2), c, subVarInExp(r, v1, v2).asInstanceOf[Record])
-      case Proj(e, name) => Proj(subVarInExp(e, v1, v2), name)
-      case Record(fields) => 
-        Record(fields.map((s, r) => (s, subVarInExp(r, v1, v2))))
-      case _ => e
+    val body2 = b2 match {
+      case Lam(v2, t, Record(body)) => 
+        subVarInExp(Record(body), v2, v).asInstanceOf[Record].fields
+      case _ => throw LinkageException("Body of cases definition is invalid.") // This should never happen.
     }
+    if (body1.forall((s, e) => !body2.contains(s)) && 
+      body2.forall((s, e) => !body1.contains(s))) 
+    then Lam(v, b1.asInstanceOf[Lam].t, Record(body1 ++ body2))
+    else throw LinkageException("Concatenating cases with duplicate handler names.")
   }
 }

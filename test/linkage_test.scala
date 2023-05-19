@@ -5,6 +5,7 @@ import PersimmonTyping._
 import TestParser._
 import PrettyPrint._
 import PersimmonWF._
+import PersimmonUtil.*
 import scala.language.postfixOps
 import java.io.PrintWriter
 import java.io.File

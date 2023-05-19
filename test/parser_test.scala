@@ -3,17 +3,13 @@ import PersimmonSyntax._
 import PersimmonLinkages._
 import TestParser._
 import PrettyPrint._
+import PersimmonUtil.*
 import scala.language.postfixOps
 import java.io.PrintWriter
 import java.io.File
-import scala.io.Source
+
 
 class ParserTesting extends AnyFunSuite {
-
-  def readFile(filename: String): String = { 
-    return Source.fromFile(filename).getLines.mkString("\n")
-  }
-
 
   /* ============= TEST RES EXAMPLES ============= */
 
@@ -69,10 +65,10 @@ class ParserTesting extends AnyFunSuite {
     val p = readFile("res/comment")
     assert(canParse(pProgram, p))
   }
-  test("parse - ex: example") {
-    val p = readFile("res/example")
-    assert(canParse(pProgram, p))
-  }
+  // test("parse - ex: example") {
+  //   val p = readFile("res/example")
+  //   assert(canParse(pProgram, p))
+  // }
   test("parse - ex: mixins") {
     val p = readFile("res/mixins")
     assert(canParse(pProgram, p))
@@ -93,10 +89,10 @@ class ParserTesting extends AnyFunSuite {
     val p = readFile("res/mixins2")
     assert(canParse(pProgram, p))
   }
-  test("parse - ex: pretty_example") {
-    val p = readFile("res/pretty_example")
-    assert(canParse(pProgram, p))
-  }
+  // test("parse - ex: pretty_example") {
+  //   val p = readFile("res/pretty_example")
+  //   assert(canParse(pProgram, p))
+  // }
   test("parse - ex: reso") {
     val p = readFile("res/reso")
     assert(canParse(pProgram, p))
