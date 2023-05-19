@@ -103,7 +103,6 @@ class ParserTesting extends AnyFunSuite {
   }
   test("parse - ex: stlc") {
     val p = readFile("res/stlc")
-    print(parse0(pProgram, p))
     assert(canParse(pProgram, p))
   }
   test("parse - ex: test1") {
