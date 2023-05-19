@@ -51,10 +51,11 @@ object PersimmonTyping {
     case InstADT(t, cname, rec) =>
       computeTypLinkage(t.path.get).adts.get(t.name).flatMap { adtDefn =>
         adtDefn.adtBody.get(cname).flatMap { recType =>
-          val fields = rec.fields
-          if fields.keySet == rec.fields.keySet &&
+          val fields = recType.fields
+          if debug("fields match", fields.keySet == rec.fields.keySet) &&
           fields.forall { (name, ft) =>
-            getType(K, Gamma, rec.fields.get(name).get) == Some(ft)
+            val fe = rec.fields.get(name).get
+            debug(s"${printExp(e)}:${printType(ft)}", hasType(K, Gamma, fe, ft))
           } then Some(t) else None
         }
       }
