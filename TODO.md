@@ -21,6 +21,7 @@
 - [ ] (Ana) fix context in tests that use WFDef
 - [ ] (Ana) wildcard unfolding for pattern matching
 - [ ] (Ana) fix test examples that have strings
+- [ ] (Ana) deal with the fact that cases can have additional input types
 
 
 - [ ] (Jonas) Implement mixin encoding
