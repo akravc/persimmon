@@ -62,28 +62,38 @@ object PersimmonTyping {
     case Match(e, c, r) =>
       getType(K, Gamma, e) match {
         case Some(t: PathType) =>
-          val matchTypeLkg = computeTypLinkage(c.path.get)
+          val matchTypeLkg = computeTypLinkage(t.path.get)
           val adtDefinition = matchTypeLkg.adts.get(t.name)
           val argsType = getType(K, Gamma, r)
           val cType = getType(K, Gamma, c)
 
+          if (adtDefinition == None) {
+            println("adt definition missing")
+            println("t: "+t)
+            println("name: "+t.name)
+            println("adts: "+matchTypeLkg.adts)
+            println("c.path.get: "+c.path.get)
+            println("matchTypeLkg: "+matchTypeLkg)
+          }
+
           if (adtDefinition == None || argsType == None || cType == None) 
-          then None
+          then debugType("none", None)
           else {
             val cOutputType = cType.get.asInstanceOf[FunType].output.asInstanceOf[RecordType].fields
             val cInputType = cType.get.asInstanceOf[FunType].input
             val T = cOutputType.head._2.asInstanceOf[FunType].output
 
-            if ((cInputType == argsType.get) && adtDefinition.get.adtBody.forall {
+            if (debug("input type match", (cInputType == argsType.get)) &&
+              debug("body match", adtDefinition.get.adtBody.forall {
               (constructorName, arguments) =>
                 val handlerType = cOutputType.get(constructorName)
                 if (handlerType == None) then false else {
                   arguments == handlerType.get.asInstanceOf[FunType].input && 
                   handlerType.get.asInstanceOf[FunType].output == T
                 }
-            }) then Some(T) else None
+            })) then Some(T) else None
         }
-        case _ => None
+        case t => debugType("not a path type: ${printType(t)}", None)
       }
     case IfThenElse(condExpr, ifExpr, elseExpr) =>
       if getType(K, Gamma, condExpr) == BType then {
