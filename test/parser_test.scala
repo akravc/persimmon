@@ -11,7 +11,7 @@ import scala.io.Source
 class ParserTesting extends AnyFunSuite {
 
   def readFile(filename: String): String = { 
-    return Source.fromFile(filename).getLines.mkString
+    return Source.fromFile(filename).getLines.mkString("\n")
   }
 
 
