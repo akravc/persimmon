@@ -18,217 +18,217 @@ class WFTesting extends AnyFunSuite {
         val p = readFile("res/peano")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: ab") {
         val p = readFile("res/ab")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: abcode") {
         val p = readFile("res/abcode")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: abcodeover") {
         val p = readFile("res/abcodeover")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: abcodeovern") {
         val p = readFile("res/abcodeovern")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: abcodepaper") {
         val p = readFile("res/abcodepaper")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: abcodepaper2") {
         val p = readFile("res/abcodepaper2")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: abcodepaper2sugar") {
         val p = readFile("res/abcodepaper2sugar")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: abcodepaper2sugar2") {
         val p = readFile("res/abcodepaper2sugar2")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: abcodepaper2sugar2b") {
         val p = readFile("res/abcodepaper2sugar2b")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: default") {
         val p = readFile("res/default")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: even_odd") {
         val p = readFile("res/even_odd")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: comment") {
         val p = readFile("res/comment")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     // test("wf - ex: example") {
     //   val p = readFile("res/example")
     //   PersimmonLinkages.p = p
         // val lkg = computeDefLinkage(prog)
-        // assertResult(wfDef(List(Prog), lkg)){ true }
+        // assertResult(true)(wfDef(List(Prog), lkg))
     // }
     test("wf - ex: mixins") {
         val p = readFile("res/mixins")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: mixins0") {
         val p = readFile("res/mixins0")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: mixins00") {
         val p = readFile("res/mixins00")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: mixins1") {
         val p = readFile("res/mixins1")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: mixins2") {
         val p = readFile("res/mixins2")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     // test("wf - ex: pretty_example") {
     //   val p = readFile("res/pretty_example")
     //   PersimmonLinkages.p = p
     //   val lkg = computeDefLinkage(prog)
-    //   assertResult(wfDef(List(Prog), lkg)){ true }
+    //   assertResult(true)(wfDef(List(Prog), lkg))
     // }
     test("wf - ex: reso") {
         val p = readFile("res/reso")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: stlc0") {
         val p = readFile("res/stlc0")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: stlc1") {
         val p = readFile("res/stlc1")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: stlc") {
         val p = readFile("res/stlc")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: test1") {
         val p = readFile("res/test1")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: test1b") {
         val p = readFile("res/test1b")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: test2") {
         val p = readFile("res/test2")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: test3") {
         val p = readFile("res/test3")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: test4") {
         val p = readFile("res/test4")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: test5") {
         val p = readFile("res/test5")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: test6") {
         val p = readFile("res/test6")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: triple") {
         val p = readFile("res/triple")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: wrapper") {
         val p = readFile("res/wrapper")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: wrapper2") {
         val p = readFile("res/wrapper2")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: wrapper3") {
         val p = readFile("res/wrapper3")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
     test("wf - ex: wrapper4") {
         val p = readFile("res/wrapper4")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
-        assertResult(wfDef(List(Prog), lkg)){ true }
+        assertResult(true)(wfDef(List(Prog), lkg))
     }
 
     /*========================== SMALL EXAMPLES ==========================*/
