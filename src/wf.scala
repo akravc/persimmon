@@ -18,7 +18,7 @@ object PersimmonWF {
     // WF runs on an incomplete, just parsed prog linkage.
     // all lkg.self paths are self-paths
     assert(lkg.self.isInstanceOf[Sp])
-    var selfpath = lkg.self.asInstanceOf[Sp].sp
+    val selfpath = lkg.self.asInstanceOf[Sp].sp
     
     if ancestors(selfpath).contains(selfpath) then false
     else {
@@ -49,13 +49,13 @@ object PersimmonWF {
   // this recursively gets all paths from the program 
   // by traversing the typing linkage for prog
   def allPathsContext(): List[SelfPath] = {
-    var lkg = computeTypLinkage(Sp(Prog))
+    val lkg = computeTypLinkage(Sp(Prog))
     collectAllPathsWithin(lkg)
   }
 
   def collectAllPathsWithin(lkg: TypingLinkage): List[SelfPath] = {
     assert(lkg.self.isInstanceOf[Sp])
-    var selfpath = lkg.self.asInstanceOf[Sp].sp
+    val selfpath = lkg.self.asInstanceOf[Sp].sp
 
     var lstResult = selfpath :: List()
     for ((famName, nestLkg) <- lkg.nested) {
@@ -66,7 +66,7 @@ object PersimmonWF {
 
   // ancestors function
   def ancestors(p: SelfPath): List[SelfPath] = {
-    var currLkg = computeTypLinkage(Sp(p))
+    val currLkg = computeTypLinkage(Sp(p))
     currLkg.getSuperPath() match {
       case Some(p) => relativizePath(p) :: ancestors(relativizePath(p))
       case None => return List()
@@ -165,7 +165,7 @@ object PersimmonWF {
 
     val nestedFamsChecked = lkg.nested.forall { (name, A) => {
       assert(A.self.isInstanceOf[Sp])
-      var selfpath = A.self.asInstanceOf[Sp].sp
+      val selfpath = A.self.asInstanceOf[Sp].sp
       val K_prime = List(selfpath) ++ K
       val L_S_prime_prime = computeTypLinkage(Sp(selfpath))
       exhaustivityCheck(K_prime, L_S_prime_prime)

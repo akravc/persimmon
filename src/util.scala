@@ -219,8 +219,8 @@ def readFile(filename: String): String = {
   }
 
   def freshVar(bound: List[String]): Var = {
-    var alphabet = ('a' to 'z') ++ ('A' to 'Z')
-    var x = "" + alphabet(scala.util.Random.nextInt(52))
+    val alphabet = ('a' to 'z') ++ ('A' to 'Z')
+    val x = "" + alphabet(scala.util.Random.nextInt(52))
     if (bound.contains(x)) then freshVar(bound)
     else Var(x)
   }
@@ -256,7 +256,7 @@ def readFile(filename: String): String = {
 /*================ RESOLVE FUN CALLS PARSED AS VARIABLES ================*/
 
   def resolveFunCalls(lkg: DefinitionLinkage): DefinitionLinkage = {
-    var selfpath = lkg.self
+    val selfpath = lkg.self
     DefinitionLinkage(
       lkg.self, lkg.sup, 
       lkg.types,
@@ -297,7 +297,7 @@ def readFile(filename: String): String = {
   /*================ FILL IMPLIED SELF-PREFIXES IN TYPES ================*/
 
   def fillNonePaths(lkg: DefinitionLinkage): DefinitionLinkage = {
-    var selfpath = lkg.self
+    val selfpath = lkg.self
     DefinitionLinkage(
       lkg.self, lkg.sup, 
       lkg.types.map((s, tdef) => 

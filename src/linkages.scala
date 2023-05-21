@@ -130,7 +130,7 @@ object PersimmonLinkages {
   // Rule CAT-TOP
   def concatenateLinkages(lkgSuper: Linkage, lkgExt: Linkage): Linkage = {
     // update paths in inherited code so that they refer to the extension
-    var lkgP = pathSub(lkgSuper, lkgExt.getSelfPath(), lkgSuper.getSelfPath())
+    val lkgP = pathSub(lkgSuper, lkgExt.getSelfPath(), lkgSuper.getSelfPath())
 
     (lkgP, lkgExt) match {
       // concat typing linkages
