@@ -13,7 +13,7 @@ import java.io.File
 class LinkageTesting extends AnyFunSuite {
 
     test("linkage - extension alternating self-paths") {
-        var fam = 
+        val fam = 
             """
             | Family A1 {
             |   Family B1 {
@@ -32,11 +32,11 @@ class LinkageTesting extends AnyFunSuite {
             """.stripMargin
         assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
-        var p = Sp(Prog)
-        var a1 = Sp(SelfFamily(p, "A1"))
-        var b1 = Sp(SelfFamily(a1, "B1"))
-        var b2 = Sp(SelfFamily(a1, "B2"))
-        var b3 = Sp(SelfFamily(a1, "B3"))
+        val p = Sp(Prog)
+        val a1 = Sp(SelfFamily(p, "A1"))
+        val b1 = Sp(SelfFamily(a1, "B1"))
+        val b2 = Sp(SelfFamily(a1, "B2"))
+        val b3 = Sp(SelfFamily(a1, "B3"))
         //printLkg(computeDefLinkage(b1), "")
         //printLkg(computeDefLinkage(b2), "")
         //printLkg(computeDefLinkage(b3), "")
@@ -59,32 +59,32 @@ class LinkageTesting extends AnyFunSuite {
     /* ============= TEST FRESH VARS ============= */
 
     test("linkage - bound vars 1") {
-        var exp = Lam(Var("x"), BType, 
+        val exp = Lam(Var("x"), BType, 
                     Lam(Var("y"), FunType(BType, NType), 
                         App(Var("y"), Var("x"))))
         assertResult(boundVarsInExp(exp)){List("x", "y")}
     }
 
     test("linkage - bound vars 2") {
-        var exp = Lam(Var("x"), BType, 
+        val exp = Lam(Var("x"), BType, 
                     Lam(Var("z"), FunType(BType, NType), 
                         App(Var("y"), Var("x"))))
         assertResult(boundVarsInExp(exp)){List("x", "z")}
     }
 
     test("linkage - fresh vars 1") {
-        var exp = Lam(Var("x"), BType, 
+        val exp = Lam(Var("x"), BType, 
                     Lam(Var("y"), FunType(BType, NType), 
                         App(Var("y"), Var("x"))))
-        var bound = boundVarsInExp(exp)
-        var fresh = freshVar(bound)
+        val bound = boundVarsInExp(exp)
+        val fresh = freshVar(bound)
         assert(!bound.contains(fresh.id))
     }
 
     /* ============= TEST LINKAGE COMPUTATION: PROG ============= */
 
     test("linkage - prog lkg 1") {
-        var fam = 
+        val fam = 
             """
             | Family A {
             |   Family K extends A {
@@ -93,9 +93,9 @@ class LinkageTesting extends AnyFunSuite {
             """.stripMargin
         assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
-        var p1 = Sp(Prog)
-        var p2 = Sp(SelfFamily(p1, "A"))
-        var p3 = Sp(SelfFamily(p2, "K"))
+        val p1 = Sp(Prog)
+        val p2 = Sp(SelfFamily(p1, "A"))
+        val p3 = Sp(SelfFamily(p2, "K"))
         assertResult(
             computeDefLinkage(p1)
         ){
@@ -111,7 +111,7 @@ class LinkageTesting extends AnyFunSuite {
     }
 
     test("linkage - prog lkg 2") {
-        var fam = 
+        val fam = 
             """
             | Family A1 {
             |   Family B1 {
@@ -129,13 +129,13 @@ class LinkageTesting extends AnyFunSuite {
             """.stripMargin
         assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
-        var p = Sp(Prog)
-        var a1 = Sp(SelfFamily(p, "A1"))
-        var b1 = Sp(SelfFamily(a1, "B1"))
-        var b2 = Sp(SelfFamily(a1, "B2"))
-        var a2 = Sp(SelfFamily(p, "A2"))
-        var a2b1 = Sp(SelfFamily(a2, "B1"))
-        var a2b2 = Sp(SelfFamily(a2, "B2"))
+        val p = Sp(Prog)
+        val a1 = Sp(SelfFamily(p, "A1"))
+        val b1 = Sp(SelfFamily(a1, "B1"))
+        val b2 = Sp(SelfFamily(a1, "B2"))
+        val a2 = Sp(SelfFamily(p, "A2"))
+        val a2b1 = Sp(SelfFamily(a2, "B1"))
+        val a2b2 = Sp(SelfFamily(a2, "B2"))
         assertResult(
             computeDefLinkage(p)
         ){
@@ -154,7 +154,7 @@ class LinkageTesting extends AnyFunSuite {
     /* ============= TEST LINKAGE COMPUTATION: NESTED ============= */
 
     test("linkage - Reviewer compute example") {
-        var fam = 
+        val fam = 
             """
             | Family A {
             |   Family K extends A {
@@ -162,8 +162,8 @@ class LinkageTesting extends AnyFunSuite {
             |}
             """.stripMargin
         assert(canParse(TestParser.pProgram, fam))
-        var p1 = SelfFamily(Sp(Prog), "A")
-        var p2 = SelfFamily(Sp(p1), "K")
+        val p1 = SelfFamily(Sp(Prog), "A")
+        val p2 = SelfFamily(Sp(p1), "K")
         PersimmonLinkages.p = fam
         assertResult(
         computeDefLinkage(Sp(p2))
@@ -178,7 +178,7 @@ class LinkageTesting extends AnyFunSuite {
     }
 
     test("linkage - Reviewer compute example2") {
-        var fam = 
+        val fam = 
             """
             | Family A {
             |   Family K extends A {
@@ -186,10 +186,10 @@ class LinkageTesting extends AnyFunSuite {
             |}
             """.stripMargin
         assert(canParse(TestParser.pProgram, fam))
-        var p1 = SelfFamily(Sp(Prog), "A")
-        var p2 = SelfFamily(Sp(p1), "K")
-        var p3 = SelfFamily(Sp(p2), "K")
-        var p4 = SelfFamily(Sp(p3), "K")
+        val p1 = SelfFamily(Sp(Prog), "A")
+        val p2 = SelfFamily(Sp(p1), "K")
+        val p3 = SelfFamily(Sp(p2), "K")
+        val p4 = SelfFamily(Sp(p3), "K")
         PersimmonLinkages.p = fam
         // assertResult(
         // printLkg(computeDefLinkage(List(p1, p2, p3, p4), Sp(p4)), "")
@@ -209,7 +209,7 @@ class LinkageTesting extends AnyFunSuite {
     /* ============= TEST FURTHER BINDING ============= */
 
     test("linkage - TODO: futher binding test") {
-        var fam = 
+        val fam = 
             """
             | Family A1 {
             |   Family B1 {
@@ -227,13 +227,13 @@ class LinkageTesting extends AnyFunSuite {
             """.stripMargin
         assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
-        var p = Sp(Prog)
-        var a1 = Sp(SelfFamily(p, "A1"))
-        var b1 = Sp(SelfFamily(a1, "B1"))
-        var b2 = Sp(SelfFamily(a1, "B2"))
-        var a2 = Sp(SelfFamily(p, "A2"))
-        var a2b1 = Sp(SelfFamily(a2, "B1"))
-        var a2b2 = Sp(SelfFamily(a2, "B2"))
+        val p = Sp(Prog)
+        val a1 = Sp(SelfFamily(p, "A1"))
+        val b1 = Sp(SelfFamily(a1, "B1"))
+        val b2 = Sp(SelfFamily(a1, "B2"))
+        val a2 = Sp(SelfFamily(p, "A2"))
+        val a2b1 = Sp(SelfFamily(a2, "B1"))
+        val a2b2 = Sp(SelfFamily(a2, "B2"))
         assertResult(
             computeDefLinkage(p)
         ){
