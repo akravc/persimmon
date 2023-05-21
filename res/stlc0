@@ -1,0 +1,29 @@
+Family Peano {
+    type Nat = O {} | S {n: Nat}
+
+    def isZero: Nat -> B =
+        case O() = true
+        case S(n: Nat) = false
+
+    def eqNat(n2: Nat): Nat -> B =
+        case O() = isZero(n2)
+        case S(n: Nat) = eqNatRec(n, n2)
+
+    def eqNatRec(n1: Nat): Nat -> B = 
+        case O() = false
+        case S(n: Nat) = eqNat(n1, n)
+}
+
+Family STLCBase {
+  type Ty = TUnit{} | TNat{} | TArr{t1: Ty, t2: Ty}
+  type Val = U{} | Var{x: Peano.Nat} | Lam{x: Peano.Nat, e: Exp}
+  type Exp = EVal{v: Val} | EApp{e1: Exp, e2: Exp}
+
+  type OptionVal = None{} | Some{v: Val}
+  def bind(f: Val -> OptionVal): OptionVal -> OptionVal =
+    case None() = OptionVal(None{})
+    case Some(v: Val) = f(v)
+
+  def apply(e2: Exp): Val -> OptionVal =
+    case _ = OptionVal(None{})
+}
