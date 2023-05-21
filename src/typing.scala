@@ -96,7 +96,7 @@ object PersimmonTyping {
         case t => debugType("not a path type: ${printType(t)}", None)
       }
     case IfThenElse(condExpr, ifExpr, elseExpr) =>
-      if getType(K, Gamma, condExpr) == BType then {
+      if hasType(K, Gamma, condExpr, BType) then {
         getType(K, Gamma, ifExpr).flatMap { ifType =>
           getType(K, Gamma, elseExpr).flatMap { elseType =>
             if ifType == elseType then Some(ifType) else None

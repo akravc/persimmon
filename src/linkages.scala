@@ -8,9 +8,16 @@ object PersimmonLinkages {
 
   /* ======================== Global vars ======================== */
 
-  // TODO: program, cache
-  var p: String = ""
+  private var program: String = ""
+  private var programTypLinkage: TypingLinkage = null
+  private var programDefLinkage: DefinitionLinkage = null
 
+  def p = program
+  def p_=(aProgram: String) = {
+    program = aProgram
+    programTypLinkage = null
+    programDefLinkage = null
+  }
   /* ======================== Helpers ======================== */
 
   // class for exceptions
@@ -24,10 +31,12 @@ object PersimmonLinkages {
   
   // L-Prog-Typ
   def computeLProgTyp(): TypingLinkage = {
+    if (programTypLinkage != null) return programTypLinkage
     // if parsing successful
     if (canParse(pProgram, p)) {
       // return what was parsed
-      parseProgramTypLink(p)
+      programTypLinkage = parseProgramTypLink(p)
+      programTypLinkage
     } else {
       throw new Exception("L-Prog-Def: Cannot parse the program.")
     }
@@ -35,10 +44,12 @@ object PersimmonLinkages {
 
   // L-Prog-Def
   def computeLProgDef(): DefinitionLinkage = {
+    if (programDefLinkage != null) return programDefLinkage
     // if parsing successful
     if (canParse(pProgram, p)) {
       // return what was parsed
-      parseProgramDefLink(p)
+      programDefLinkage = parseProgramDefLink(p)
+      programDefLinkage
     } else {
       throw new Exception("L-Prog-Def: Cannot parse the program.")
     }
