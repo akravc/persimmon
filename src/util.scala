@@ -87,11 +87,11 @@ def unfoldWildcardsInCasesDefn(lkg: DefinitionLinkage, cd: CasesDefn): CasesDefn
         val newcases = cases.map{ (s, cdef) => (s, subPathInCasesDefn(cdef, p1, p2))}
         val newnested = nested.map( (s, link) => (s, pathSub(link, p1, p2).asInstanceOf[DefinitionLinkage]))
         DefinitionLinkage(newself, newsup, newtypes, newdefaults, newadts, newfuns, newcases, newnested)
-      case TypingLinkage(self, sup, types, adts, funs, cases, nested) => 
+      case TypingLinkage(self, sup, types, defs, adts, funs, cases, nested) => 
         val newfuns = funs.map{ (s, fsig) => (s, subPathInFunSig(fsig, p1, p2))}
         val newcases = cases.map{ (s, csig) => (s, subPathInCasesSig(csig, p1, p2))}
         val newnested = nested.map( (s, link) => (s, pathSub(link, p1, p2).asInstanceOf[TypingLinkage]))
-        TypingLinkage(newself, newsup, newtypes, newadts, newfuns, newcases, newnested)
+        TypingLinkage(newself, newsup, newtypes, defs,newadts, newfuns, newcases, newnested)
     }
   }
 
@@ -132,9 +132,17 @@ def unfoldWildcardsInCasesDefn(lkg: DefinitionLinkage, cd: CasesDefn): CasesDefn
       case App(e1, e2) => App(subPathInExp(e1, p1, p2), subPathInExp(e2, p1, p2))
       case Plus(e1, e2) => Plus(subPathInExp(e1, p1, p2), subPathInExp(e2, p1, p2))
       case FamCases(path, name) => 
-        if (path == Some(p2)) then FamCases(Some(p1), name) else e
+        path match {
+          case Some(p) => FamCases(Some(subPathInPath(p, p1, p2)), name)
+          case None => e // should not happen
+        }
+        // if (path == Some(p2)) then FamCases(Some(p1), name) else e
       case FamFun(path, name) => 
-        if (path == Some(p2)) then FamFun(Some(p1), name) else e
+        path match {
+          case Some(p) => FamFun(Some(subPathInPath(path.get, p1, p2)), name)
+          case None => e // should not happen
+        }
+        // if (path == Some(p2)) then FamFun(Some(p1), name) else e
       case IfThenElse(condExpr, ifExpr, elseExpr) => 
         IfThenElse(subPathInExp(condExpr, p1, p2), subPathInExp(ifExpr, p1, p2), subPathInExp(elseExpr, p1, p2))
       case Inst(t, rec) => 
@@ -219,8 +227,8 @@ def readFile(filename: String): String = {
   }
 
   def freshVar(bound: List[String]): Var = {
-    var alphabet = ('a' to 'z') ++ ('A' to 'Z')
-    var x = "" + alphabet(scala.util.Random.nextInt(52))
+    val alphabet = ('a' to 'z') ++ ('A' to 'Z')
+    val x = "" + alphabet(scala.util.Random.nextInt(52))
     if (bound.contains(x)) then freshVar(bound)
     else Var(x)
   }
@@ -256,7 +264,7 @@ def readFile(filename: String): String = {
 /*================ RESOLVE FUN CALLS PARSED AS VARIABLES ================*/
 
   def resolveFunCalls(lkg: DefinitionLinkage): DefinitionLinkage = {
-    var selfpath = lkg.self
+    val selfpath = lkg.self
     DefinitionLinkage(
       lkg.self, lkg.sup, 
       lkg.types,
@@ -297,7 +305,7 @@ def readFile(filename: String): String = {
   /*================ FILL IMPLIED SELF-PREFIXES IN TYPES ================*/
 
   def fillNonePaths(lkg: DefinitionLinkage): DefinitionLinkage = {
-    var selfpath = lkg.self
+    val selfpath = lkg.self
     DefinitionLinkage(
       lkg.self, lkg.sup, 
       lkg.types.map((s, tdef) => 

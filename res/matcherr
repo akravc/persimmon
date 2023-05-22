@@ -1,0 +1,14 @@
+Family A1 {
+  type T = C1 {} | C2 {}
+  val f: T -> N = lam(t: T). match t with <c> {}
+  cases c <T>: {} -> {C1: {} -> N, C2: {} -> N} =
+    lam(ignore: {}). { C1 = lam(ignore:{}). 1, C2 = lam(ignore:{}).2 }
+}
+Family A2 extends A1 {
+  type T += C3 {}
+  // no match for C3
+  val g: T -> N = lam(t: T).(f t)
+}
+Family Main {
+  val main: {} -> N = lam(ignore: {}). A2.g(A2.T(C3{}))
+}

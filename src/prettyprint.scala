@@ -111,6 +111,13 @@ object PrettyPrint {
         print(offset + defmap.mkString)
         print("\n\n")
       }
+    } else {
+      val defmap = lkg.asInstanceOf[TypingLinkage].defaults
+      if (defmap.nonEmpty) {
+        print(offset + "DEFAULTS:\n")
+        print(offset + defmap.mkString)
+        print("\n\n")
+      }
     }
 
     if (lkg.getAdts().nonEmpty) {
@@ -122,13 +129,13 @@ object PrettyPrint {
       print("\n\n")
     }
 
-    var funmap: Iterable[String] = null
+    val funmap: Iterable[String] =
     if (lkg.isInstanceOf[DefinitionLinkage]) {
-      funmap = lkg.asInstanceOf[DefinitionLinkage].funs.map{ 
+      lkg.asInstanceOf[DefinitionLinkage].funs.map{
         case (_, FunDefn(s, ft, body)) =>
           "val " + s + ": " + printType(ft) + " = " + printExp(body) + "\n" + offset}
     } else {
-      funmap = lkg.asInstanceOf[TypingLinkage].funs.map{ 
+      lkg.asInstanceOf[TypingLinkage].funs.map{ 
         case (_, FunSig(s, ft)) =>
           offset + "val " + s + ": " + printType(ft) + "\n" + offset}
     }
@@ -139,13 +146,13 @@ object PrettyPrint {
     }
 
 
-    var casemap: Iterable[String] = null
+    val casemap: Iterable[String] =
     if (lkg.isInstanceOf[DefinitionLinkage]) {
-      casemap = lkg.asInstanceOf[DefinitionLinkage].cases.map{ 
+      lkg.asInstanceOf[DefinitionLinkage].cases.map{
         case (_, CasesDefn(s, mt, ft, _, m, body)) =>
           "cases " + s + " <" + printType(mt) + "> " + ": " + printType(ft) + printMarker(m) + printExp(body) + "\n" + offset}
     } else {
-      casemap = lkg.asInstanceOf[TypingLinkage].cases.map{ 
+      lkg.asInstanceOf[TypingLinkage].cases.map{ 
         case (_, CasesSig(s, mt, m, ft)) =>
           "cases " + s + "<" + printType(mt) + ">" + ": " + printType(ft) + printMarker(m) + "\n" + offset}
     }

@@ -390,11 +390,11 @@ object TestParser extends PersimmonParser {
   def parseSuccess[T](p: PackratParser[T], inp: String): T = parse0(p, inp).get
 
   def parseProgramDefLink(inp: String): DefinitionLinkage = {
-    var raw = parse0(pProgram, inp).get
+    val raw = parse0(pProgram, inp).get
     // infer missing type prefixes
-    var filled = fillNonePaths(raw)
+    val filled = fillNonePaths(raw)
     // correct function calls parsed as variable names
-    var resolved = resolveFunCalls(filled)
+    val resolved = resolveFunCalls(filled)
     // unfold wildcards in cases
     unfoldWildcards(resolved)
   }
@@ -403,6 +403,9 @@ object TestParser extends PersimmonParser {
     TypingLinkage(self = lkg.self, 
                   sup = lkg.sup,
                   types = lkg.types,
+                  defaults = lkg.defaults.map {
+                    (s, ddef) => (s, ddef.defaultBody.fields.keySet.toList)
+                  },
                   adts = lkg.adts,
                   funs = lkg.funs.map{
                     (s, fdef) => (s, FunSig(fdef.name, fdef.t))},
@@ -414,7 +417,7 @@ object TestParser extends PersimmonParser {
   }
 
   def parseProgramTypLink(inp: String): TypingLinkage = {
-    var deflink = parseProgramDefLink(inp)
+    val deflink = parseProgramDefLink(inp)
     convertDefToTyp(deflink)
   }
 }

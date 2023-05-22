@@ -61,7 +61,7 @@ object PersimmonSyntax {
   sealed trait Type
   case object NType extends Type // N
   case object BType extends Type // B
-  case class PathType(var path: Option[Path], name: String) extends Type // a.R
+  case class PathType(path: Option[Path], name: String) extends Type // a.R
   case class FunType(input: Type, output: Type) extends Type // T -> T'
   case class RecordType(fields: Map[String, Type]) extends Type // {(f: T)*}
 
@@ -86,8 +86,8 @@ object PersimmonSyntax {
   case class BExp(b: Boolean) extends Expression // b
   case class Var(id: String) extends Expression // x
   case class Lam(v: Var, t: Type, body: Expression) extends Expression // lam (x: T). body
-  case class FamFun(var path: Option[Path], name: String) extends Expression // a.m
-  case class FamCases(var path: Option[Path], name: String) extends Expression // a.r
+  case class FamFun(path: Option[Path], name: String) extends Expression // a.m
+  case class FamCases(path: Option[Path], name: String) extends Expression // a.r
   case class App(e1: Expression, e2: Expression) extends Expression // e g
   case class Plus(e1: Expression, e2: Expression) extends Expression // e + g
   case class Record(fields: Map[String, Expression]) extends Expression // {(f = e)*}
@@ -158,6 +158,7 @@ object PersimmonSyntax {
     self: Path, // self
     sup: Option[AbsoluteFamily], // super
     types: Map[String, TypeDefn],
+    defaults: Map[String, List[String]],
     adts: Map[String, AdtDefn],
     // function signature only
     funs: Map[String, FunSig],

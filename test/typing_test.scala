@@ -84,7 +84,7 @@ class TypecheckerTesting extends AnyFunSuite {
 
     // self(A).T is well formed
     test("typing - wfType: family type") {
-        var fam = 
+        val fam = 
             """
             | Family A {
             |   type T = C1 {} 
@@ -98,7 +98,7 @@ class TypecheckerTesting extends AnyFunSuite {
 
     // A.T is well formed
     test("typing - wfType: concrete family type") {
-        var fam = 
+        val fam = 
             """
             | Family A {
             |   type T = C1 {} 
@@ -113,7 +113,7 @@ class TypecheckerTesting extends AnyFunSuite {
 
     // self(A).K is not well formed
     test("typing - wfType: family type absent") {
-        var fam = 
+        val fam = 
             """
             | Family A {
             |   type T = C1 {} 
@@ -175,7 +175,7 @@ class TypecheckerTesting extends AnyFunSuite {
 
     test("typing - subtype: PathType good") {
         val self_a = SelfFamily(Sp(Prog), "A")
-        var fam = 
+        val fam = 
             """
             | Family A {
             |   type T = {f: B}
@@ -188,7 +188,7 @@ class TypecheckerTesting extends AnyFunSuite {
 
     test("typing - subtype: PathType mismatch in linkage") {
         val self_a = SelfFamily(Sp(Prog), "A")
-        var fam = 
+        val fam = 
             """
             | Family A {
             |   type T = {f: B}
@@ -201,7 +201,7 @@ class TypecheckerTesting extends AnyFunSuite {
 
     test("typing - subtype: PathType bad") {
         val self_a = SelfFamily(Sp(Prog), "A")
-        var fam = 
+        val fam = 
             """
             | Family A {
             |   type T = {f: B}
@@ -295,7 +295,7 @@ class TypecheckerTesting extends AnyFunSuite {
     // self(A).m : (B -> N) = lam (x: B). 5
     test("typing - getType: fam fun") {
         val self_a = SelfFamily(Sp(Prog), "A")
-        var fam = 
+        val fam = 
             """
             | Family A {
             |   val m: (B -> N) = lam (x: B). 5
@@ -311,7 +311,7 @@ class TypecheckerTesting extends AnyFunSuite {
     // self(A).m does not exist, we have self(A).g instead
     test("typing - getType: fam fun not in linkage") {
         val self_a = SelfFamily(Sp(Prog), "A")
-        var fam = 
+        val fam = 
             """
             | Family A {
             |   val g: (B -> N) = lam (x: B). 5

@@ -17,7 +17,7 @@ Family A2 extends A1 {
     type X = {x: B}
     type Exp += EPlus {e1: Exp, e2: Exp}
     def ev(n1: N, n2: N): Exp -> N +=
-      case EPlus(e1: Exp, e2: Exp) = (ev(n1, n2)(e1) + ev(n1, n2)(e2))
+      case EPlus(e1: Exp, e2: Exp) = (ev(n1, n2)(e1)) + (ev(n1, n2)(e2))
   }
 }
 Family ABMain {
