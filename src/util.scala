@@ -13,7 +13,7 @@ object PersimmonUtil {
 
 def unfoldWildcards(lkg: DefinitionLinkage): DefinitionLinkage = {
   DefinitionLinkage(lkg.self, lkg.sup, lkg.types, lkg.defaults, lkg.adts, 
-    lkg.funs, lkg.cases.map{(s, cd) => (s, unfoldWildcardsInCasesDefn(lkg, cd))}, lkg.nested)
+    lkg.funs, lkg.cases.map{(s, cd) => (s, unfoldWildcardsInCasesDefn(lkg, cd))}, lkg.nested.map{(s, nd) => (s, unfoldWildcards(nd))})
 }
 
 def unfoldWildcardsInCasesDefn(lkg: DefinitionLinkage, cd: CasesDefn): CasesDefn = {
@@ -37,8 +37,9 @@ def unfoldWildcardsInCasesDefn(lkg: DefinitionLinkage, cd: CasesDefn): CasesDefn
         RecordType(nonWildcardHandlerTypes ++ wildcardCoveredHandlerTypes)
 
       // constructing the unfolded cases body
+      val casesBody = cd.casesBody.asInstanceOf[Lam]
       val recordOfHandlers = 
-        cd.casesBody.asInstanceOf[Lam].body.asInstanceOf[Record]
+        casesBody.body.asInstanceOf[Record]
       val wildcardHandler = 
         recordOfHandlers.fields.get("_").get.asInstanceOf[Lam]
       val nonWildcardHandlers = 
@@ -46,7 +47,8 @@ def unfoldWildcardsInCasesDefn(lkg: DefinitionLinkage, cd: CasesDefn): CasesDefn
       val wildcardCoveredHandlers = 
         adtCtorsCoveredByWildcard.map((s, rt) => (s, Lam(Var("_"), rt, wildcardHandler.body)))
       val casesUnfoldedBody = 
-        Record(nonWildcardHandlers ++ wildcardCoveredHandlers)
+        Lam(casesBody.v, casesBody.t,
+          Record(nonWildcardHandlers ++ wildcardCoveredHandlers))
 
       // constructing the casesDefn
       CasesDefn(cd.name, cd.matchType, 
@@ -217,8 +219,8 @@ def readFile(filename: String): String = {
   }
 
   def freshVar(bound: List[String]): Var = {
-    var alphabet = ('a' to 'z') ++ ('A' to 'Z')
-    var x = "" + alphabet(scala.util.Random.nextInt(52))
+    val alphabet = ('a' to 'z') ++ ('A' to 'Z')
+    val x = "" + alphabet(scala.util.Random.nextInt(52))
     if (bound.contains(x)) then freshVar(bound)
     else Var(x)
   }
@@ -254,7 +256,7 @@ def readFile(filename: String): String = {
 /*================ RESOLVE FUN CALLS PARSED AS VARIABLES ================*/
 
   def resolveFunCalls(lkg: DefinitionLinkage): DefinitionLinkage = {
-    var selfpath = lkg.self
+    val selfpath = lkg.self
     DefinitionLinkage(
       lkg.self, lkg.sup, 
       lkg.types,
@@ -295,7 +297,7 @@ def readFile(filename: String): String = {
   /*================ FILL IMPLIED SELF-PREFIXES IN TYPES ================*/
 
   def fillNonePaths(lkg: DefinitionLinkage): DefinitionLinkage = {
-    var selfpath = lkg.self
+    val selfpath = lkg.self
     DefinitionLinkage(
       lkg.self, lkg.sup, 
       lkg.types.map((s, tdef) => 

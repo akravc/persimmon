@@ -480,7 +480,7 @@ class ParserTesting extends AnyFunSuite {
   // replaced strings with ints because we don't have strings right now
   // included built in optionval type
   test("parse - Parse STLCBase and extension (fig 3) in the paper") {
-    var fam = 
+    val fam = 
     """
       | Family STLCBase {
       |   type Ty = TUnit {} | TNat {} | TArr {t1: Ty, t2: Ty}
@@ -518,7 +518,7 @@ class ParserTesting extends AnyFunSuite {
   /* ============= TEST DEF LINK TO TYP LINK CONVERSION ============= */
 
   test("parse - linkage def to typ ") {
-    var p = "Family A { " +
+    val p = "Family A { " +
         "type T = {f: B = true, n: N = 3} " +
         "type R = {s: self(A).T = {}}" +
         "type List = Nil {} | Cons {x: N, tail: self(A).List}" +

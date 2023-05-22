@@ -76,13 +76,13 @@ Family Help {
 
 Family BaseComp {
   val cps_val: self(BaseComp).ILK.Val -> self(BaseComp).STLC.Val -> self(BaseComp).ILK.Exp =
-    lam(k: self(BaseComp).ILK.Val). lam(v: self(BaseComp).STLC.Val). self(BaseComp).ILK.Exp(EHalt{v = BaseComp.ILK.Val(U{})}) //TODO
+    lam(k: self(BaseComp).ILK.Val). lam(v: self(BaseComp).STLC.Val). self(BaseComp).ILK.Exp(EHalt{v = self(BaseComp).ILK.Val(U{})}) //TODO
   val cps_exp: self(BaseComp).ILK.Val -> self(BaseComp).STLC.Exp -> self(BaseComp).ILK.Exp =
-    lam(k: self(BaseComp).ILK.Val). lam(e: self(BaseComp).STLC.Exp). self(BaseComp).ILK.Exp(EHalt{v = BaseComp.ILK.Val(U{})}) // TODO
+    lam(k: self(BaseComp).ILK.Val). lam(e: self(BaseComp).STLC.Exp). self(BaseComp).ILK.Exp(EHalt{v = self(BaseComp).ILK.Val(U{})}) // TODO
   val cc_val: self(BaseComp).ILK.Val -> {t1: self(BaseComp).ILC.ListFun, t2: self(BaseComp).ILC.Val} =
     lam(v: self(BaseComp).ILK.Val). {t1 = self(BaseComp).ILC.ListFun(NilFun{}), t2 = self(BaseComp).ILC.Val(U{})} // TODO
   val cc_exp: self(BaseComp).ILK.Exp -> {t1: self(BaseComp).ILC.ListFun, t2: self(BaseComp).ILC.Exp} =
-    lam(e: self(BaseComp).ILK.Exp). {t1 = self(BaseComp).ILC.ListFun(NilFun{}), t2 = self(BaseComp).ILC.Exp(EHalt{v = BaseComp.ILC.Val(U{})})} // TODO
+    lam(e: self(BaseComp).ILK.Exp). {t1 = self(BaseComp).ILC.ListFun(NilFun{}), t2 = self(BaseComp).ILC.Exp(EHalt{v = self(BaseComp).ILC.Val(U{})})} // TODO
 
   Family STLC extends STLCBase {}
 
