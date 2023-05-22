@@ -295,15 +295,16 @@ object PersimmonLinkages {
         else {
           val inheritedDef = cases1.get(name).get
           if (inheritedDef.matchType != def2.matchType || 
-            inheritedDef.t.input != def2.t.input) then 
+            inheritedDef.t.input != def2.t.input) 
+          then 
               throw LinkageException("Concatenating cases with incompatible types.")
-            else {
-              val combinedInpType = inheritedDef.t.input.asInstanceOf[RecordType]
-              val combinedOutputType = concatRecordTypes(inheritedDef.t.output.asInstanceOf[RecordType], def2.t.output.asInstanceOf[RecordType])
-              val combinedBody = concatCasesBodies(inheritedDef.casesBody, def2.casesBody)
+          else {
+            val combinedInpType = inheritedDef.t.input.asInstanceOf[RecordType]
+            val combinedOutputType = concatRecordTypes(inheritedDef.t.output.asInstanceOf[RecordType], def2.t.output.asInstanceOf[RecordType])
+            val combinedBody = concatCasesBodies(inheritedDef.casesBody, def2.casesBody)
 
-              (name, CasesDefn(name, def2.matchType, FunType(combinedInpType, combinedOutputType), Eq, combinedBody))
-            }
+            (name, CasesDefn(name, def2.matchType, FunType(combinedInpType, combinedOutputType), Eq, combinedBody))
+          }
         }
     }
     inheritedUnchanged ++ extended ++ newlyDefined
