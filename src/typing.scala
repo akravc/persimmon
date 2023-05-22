@@ -14,10 +14,12 @@ object PersimmonTyping {
       else None
     case FamFun(path, name) =>
       if path == None then None else {
+        if !wfPath(K, path.get) then None else
         computeTypLinkage(path.get).funs.get(name).map { sig => sig.t }
       }
     case FamCases(path, name) =>
       if path == None then None else {
+        if !wfPath(K, path.get) then None else
         computeTypLinkage(path.get).cases.get(name).map { sig => sig.t }
       }
     case App(e1, e2) => getType(K, Gamma, e1) match {
@@ -39,37 +41,32 @@ object PersimmonTyping {
       else Some(RecordType(types.mapValues { t => t.get }.toMap))
     case Proj(e, name) => getType(K, Gamma, e).flatMap {
       case RecordType(fields) => fields.get(name)
-      // case PathType(path, name) =>
-      //   if path == None then None 
-      //   else {
-      //     val typedef = computeTypLinkage(path.get).types.get(name)
-      //     typedef match {
-      //       case None => None
-      //       case Some(tdef) => tdef.typeBody.fields.get(name)
-      //     }
-      //   }
       case _ => None
     }
     case Inst(t, rec) =>
-      val lkg = computeTypLinkage(t.path.get)
-      lkg.types.get(t.name).flatMap { typeDefn =>
-        val fields = typeDefn.typeBody.fields
-        val defaults = lkg.defaults
-        if fields.forall(
-          (name, ft) => (defaults.get(t.name) match {
-            case Some(deflist) => deflist.contains(name)
-            case None => false
-          }) || hasType(K, Gamma, rec.fields.get(name).get, ft)
-        ) then Some(t) else None
+      if !wfPath(K, t.path.get) then None else {
+        val lkg = computeTypLinkage(t.path.get)
+        lkg.types.get(t.name).flatMap { typeDefn =>
+          val fields = typeDefn.typeBody.fields
+          val defaults = lkg.defaults
+          if fields.forall(
+            (name, ft) => (defaults.get(t.name) match {
+              case Some(deflist) => deflist.contains(name)
+              case None => false
+            }) || hasType(K, Gamma, rec.fields.get(name).get, ft)
+          ) then Some(t) else None
+        }
       }
     case InstADT(t, cname, rec) =>
-      computeTypLinkage(t.path.get).adts.get(t.name).flatMap { adtDefn =>
-        adtDefn.adtBody.get(cname).flatMap { recType =>
-          val fields = recType.fields
-          if fields.keySet == rec.fields.keySet &&
-          fields.forall { (name, ft) =>
-            hasType(K, Gamma, rec.fields.get(name).get, ft)
-          } then Some(t) else None
+      if !wfPath(K, t.path.get) then None else {
+        computeTypLinkage(t.path.get).adts.get(t.name).flatMap { adtDefn =>
+          adtDefn.adtBody.get(cname).flatMap { recType =>
+            val fields = recType.fields
+            if fields.keySet == rec.fields.keySet &&
+            fields.forall { (name, ft) =>
+              hasType(K, Gamma, rec.fields.get(name).get, ft)
+            } then Some(t) else None
+          }
         }
       }
     case Match(e, c, r) =>
@@ -118,8 +115,10 @@ object PersimmonTyping {
     if t1 == t2 then true
     else t1 match {
       case PathType(path, name) =>
-        val typeDefn = computeTypLinkage(path.get).types.get(name).get
-        isSubtype(K, typeDefn.typeBody, t2)
+        if !wfPath(K, path.get) then false else {
+          val typeDefn = computeTypLinkage(path.get).types.get(name).get
+          isSubtype(K, typeDefn.typeBody, t2)
+        }
       case FunType(input1, output1) =>
         t2 match {
           case FunType(input2, output2) =>

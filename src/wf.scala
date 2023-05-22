@@ -73,6 +73,14 @@ object PersimmonWF {
     } 
   }
 
+  def wfPath(K: PathCtx, p: Path): Boolean = {
+    p match
+      case Sp(sp) => K.contains(sp)
+      case AbsoluteFamily(pref, fam) => 
+        val lkg = computeTypLinkage(pref)
+        wfPath(K, pref) && lkg.nested.contains(fam)
+  }
+
   // well-formedness of type definitions
   def wfTypDef(K: PathCtx, td: TypeDefn): Boolean = {
     wfType(K, td.typeBody);
@@ -105,6 +113,9 @@ object PersimmonWF {
     val matchTypeExists = L_S.adts.contains(cd.matchType.name)
     val typeWF = wfType(K, cd.t)
     val bodyWT = hasType(K, Map(), cd.casesBody, cd.t)
+    val validPath = cd.matchType.path match
+      case None => false
+      case Some(p) => wfPath(K, p)
 
     val adtDefinition = L_S.adts(cd.matchType.name).adtBody
     val allHandlerTypesValid = (cd.t.output match {
@@ -181,8 +192,10 @@ object PersimmonWF {
     case BType => true
     case FunType(input, output) => wfType(K, input) && wfType(K, output)
     case PathType(path, name) =>
-      val linkage = computeTypLinkage(path.get)
-      linkage.types.contains(name) || linkage.adts.contains(name)
+      if !wfPath(K, path.get) then false else {
+        val linkage = computeTypLinkage(path.get)
+        linkage.types.contains(name) || linkage.adts.contains(name)
+      }
     case RecordType(fields) =>
       fields.forall { (name, t) => wfType(K, t) }
   }
