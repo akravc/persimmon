@@ -14,12 +14,12 @@
 - [x] (Ana) fix context in tests that use WFDef
 - [x] (Ana) wildcard unfolding for pattern matching
 - [x] (Ana) Case studies, based on old res files
-  - [ ] STLC example, with some internal TODOs fixed
+- [x] (Ana) add matcherr example to this impl
+- [x] (Ana) add wf paths relation
+- [ ] STLC example: fix internal TODOs
 - [ ] (Ana) add typing of programs function
 - [ ] (Ana) parse A and .A differently for paths (fully absolute vs full self-prefix)
-- [ ] (Ana) add matcherr example to this impl
 - [ ] (Ana) add wf checking of paths in typing etc
-- [x] (Ana) add wf paths relation
 - [ ] (Ana) fix test examples that have strings
 
 

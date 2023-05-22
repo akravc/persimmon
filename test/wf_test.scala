@@ -98,6 +98,12 @@ class WFTesting extends AnyFunSuite {
         // val lkg = computeDefLinkage(prog)
         // assertResult(true)(wfDef(List(Prog), lkg))
     // }
+    test("wf - ex: matcherr") {
+        val p = readFile("res/matcherr")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(false)(wfDef(List(Prog), lkg))
+    }
     test("wf - ex: mixins") {
         val p = readFile("res/mixins")
         PersimmonLinkages.p = p
