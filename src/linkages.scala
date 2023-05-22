@@ -197,9 +197,10 @@ object PersimmonLinkages {
     } ++ adts2.map { (name, adt2) =>
       adts1.get(name) match {
         case Some(adt1) =>
-          if adt2.marker == Eq then
-            throw LinkageException("Concattenating linkages with duplicate ADT definitions.")
-          else if adt2.adtBody.keySet.exists { name =>
+          // if adt2.marker == Eq then
+          //   throw LinkageException("Concattenating linkages with duplicate ADT definitions.")
+          // else 
+          if adt2.adtBody.keySet.exists { name =>
             adt1.adtBody.contains(name)
           } then throw LinkageException("Concattenating types with duplicate constructors.") 
           else (name, AdtDefn(name, Eq, adt1.adtBody ++ adt2.adtBody))
