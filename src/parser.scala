@@ -403,6 +403,9 @@ object TestParser extends PersimmonParser {
     TypingLinkage(self = lkg.self, 
                   sup = lkg.sup,
                   types = lkg.types,
+                  defaults = lkg.defaults.map {
+                    (s, ddef) => (s, ddef.defaultBody.fields.keySet.toList)
+                  },
                   adts = lkg.adts,
                   funs = lkg.funs.map{
                     (s, fdef) => (s, FunSig(fdef.name, fdef.t))},

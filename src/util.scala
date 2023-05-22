@@ -87,11 +87,11 @@ def unfoldWildcardsInCasesDefn(lkg: DefinitionLinkage, cd: CasesDefn): CasesDefn
         val newcases = cases.map{ (s, cdef) => (s, subPathInCasesDefn(cdef, p1, p2))}
         val newnested = nested.map( (s, link) => (s, pathSub(link, p1, p2).asInstanceOf[DefinitionLinkage]))
         DefinitionLinkage(newself, newsup, newtypes, newdefaults, newadts, newfuns, newcases, newnested)
-      case TypingLinkage(self, sup, types, adts, funs, cases, nested) => 
+      case TypingLinkage(self, sup, types, defs, adts, funs, cases, nested) => 
         val newfuns = funs.map{ (s, fsig) => (s, subPathInFunSig(fsig, p1, p2))}
         val newcases = cases.map{ (s, csig) => (s, subPathInCasesSig(csig, p1, p2))}
         val newnested = nested.map( (s, link) => (s, pathSub(link, p1, p2).asInstanceOf[TypingLinkage]))
-        TypingLinkage(newself, newsup, newtypes, newadts, newfuns, newcases, newnested)
+        TypingLinkage(newself, newsup, newtypes, defs,newadts, newfuns, newcases, newnested)
     }
   }
 

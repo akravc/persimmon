@@ -86,7 +86,7 @@ object PersimmonLinkages {
             case LinkageType.DefLink => 
               DefinitionLinkage(null, None, Map(), Map(), Map(), Map(), Map(), Map())
             case LinkageType.TypLink => 
-              TypingLinkage(null, None, Map(), Map(), Map(), Map(), Map())
+              TypingLinkage(null, None, Map(), Map(), Map(), Map(), Map(), Map())
           }
         }
         concatenateLinkages(superLkg, lkgA)
@@ -134,11 +134,12 @@ object PersimmonLinkages {
 
     (lkgP, lkgExt) match {
       // concat typing linkages
-      case (TypingLinkage(sp1, sup1, types1, adts1, funs1, cases1, nested1), TypingLinkage(sp2, sup2, types2, adts2, funs2, cases2, nested2)) =>
+      case (TypingLinkage(sp1, sup1, types1, defs1, adts1, funs1, cases1, nested1), TypingLinkage(sp2, sup2, types2, defs2, adts2, funs2, cases2, nested2)) =>
         TypingLinkage(
           self = sp2,
           sup = sup2,
           types = concatTypes(types1, types2),
+          defaults = concatDefaultFields(defs1, defs2),
           adts = concatADTS(adts1, adts2),
           funs = concatFunSigs(funs1, funs2),
           cases = concatCasesSigs(cases1, cases2),
@@ -207,6 +208,14 @@ object PersimmonLinkages {
         case None => (name, adt2)
       }
     }
+  }
+
+  def concatDefaultFields(defs1: Map[String, List[String]], defs2: Map[String, List[String]]): Map[String, List[String]] = {
+    val unique = defs1.filter((s, lst) => !defs2.contains(s)) ++ defs2.filter((s, lst) => !defs1.contains(s))
+    val overlap = defs2.filter((s, lst) => defs1.contains(s)).map(
+      (s, lst) => (s, defs1.get(s).get ++ lst)
+    )
+    unique ++ overlap
   }
 
   // Rule CAT-DEFAULTS

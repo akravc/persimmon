@@ -158,6 +158,7 @@ object PersimmonSyntax {
     self: Path, // self
     sup: Option[AbsoluteFamily], // super
     types: Map[String, TypeDefn],
+    defaults: Map[String, List[String]],
     adts: Map[String, AdtDefn],
     // function signature only
     funs: Map[String, FunSig],

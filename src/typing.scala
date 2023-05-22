@@ -39,13 +39,27 @@ object PersimmonTyping {
       else Some(RecordType(types.mapValues { t => t.get }.toMap))
     case Proj(e, name) => getType(K, Gamma, e).flatMap {
       case RecordType(fields) => fields.get(name)
+      // case PathType(path, name) =>
+      //   if path == None then None 
+      //   else {
+      //     val typedef = computeTypLinkage(path.get).types.get(name)
+      //     typedef match {
+      //       case None => None
+      //       case Some(tdef) => tdef.typeBody.fields.get(name)
+      //     }
+      //   }
       case _ => None
     }
     case Inst(t, rec) =>
-      computeTypLinkage(t.path.get).types.get(t.name).flatMap { typeDefn =>
+      val lkg = computeTypLinkage(t.path.get)
+      lkg.types.get(t.name).flatMap { typeDefn =>
         val fields = typeDefn.typeBody.fields
-        if fields.keySet == rec.fields.keySet && fields.forall(
-          (name, ft) => hasType(K, Gamma, rec.fields.get(name).get, ft)
+        val defaults = lkg.defaults
+        if fields.forall(
+          (name, ft) => (defaults.get(t.name) match {
+            case Some(deflist) => deflist.contains(name)
+            case None => false
+          }) || hasType(K, Gamma, rec.fields.get(name).get, ft)
         ) then Some(t) else None
       }
     case InstADT(t, cname, rec) =>

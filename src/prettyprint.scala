@@ -111,6 +111,13 @@ object PrettyPrint {
         print(offset + defmap.mkString)
         print("\n\n")
       }
+    } else {
+      val defmap = lkg.asInstanceOf[TypingLinkage].defaults
+      if (defmap.nonEmpty) {
+        print(offset + "DEFAULTS:\n")
+        print(offset + defmap.mkString)
+        print("\n\n")
+      }
     }
 
     if (lkg.getAdts().nonEmpty) {
