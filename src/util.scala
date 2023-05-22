@@ -132,9 +132,17 @@ def unfoldWildcardsInCasesDefn(lkg: DefinitionLinkage, cd: CasesDefn): CasesDefn
       case App(e1, e2) => App(subPathInExp(e1, p1, p2), subPathInExp(e2, p1, p2))
       case Plus(e1, e2) => Plus(subPathInExp(e1, p1, p2), subPathInExp(e2, p1, p2))
       case FamCases(path, name) => 
-        if (path == Some(p2)) then FamCases(Some(p1), name) else e
+        path match {
+          case Some(p) => FamCases(Some(subPathInPath(p, p1, p2)), name)
+          case None => e // should not happen
+        }
+        // if (path == Some(p2)) then FamCases(Some(p1), name) else e
       case FamFun(path, name) => 
-        if (path == Some(p2)) then FamFun(Some(p1), name) else e
+        path match {
+          case Some(p) => FamFun(Some(subPathInPath(path.get, p1, p2)), name)
+          case None => e // should not happen
+        }
+        // if (path == Some(p2)) then FamFun(Some(p1), name) else e
       case IfThenElse(condExpr, ifExpr, elseExpr) => 
         IfThenElse(subPathInExp(condExpr, p1, p2), subPathInExp(ifExpr, p1, p2), subPathInExp(elseExpr, p1, p2))
       case Inst(t, rec) => 

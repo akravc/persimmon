@@ -19,7 +19,7 @@ Family A2 extends A1 {
     type Exp += EPlus {e1: Exp, e2: Exp}
     cases evc <Exp> : {} -> {EPlus: {e1: Exp, e2: Exp} -> N} +=
       lam (unit: {}). {EPlus = lam (x: {e1: Exp, e2: Exp}).
-        (ev(x.e1) + ev(x.e2))
+        (ev(x.e1)) + (ev(x.e2))
     }
   }
 }
