@@ -251,20 +251,20 @@ object PersimmonLinkages {
     val extended = difference.map{
       (name, sig2) => 
         // TODO: overriding case
-        if (sig2.marker == Eq) then (name, sig2)
+        // if (sig2.marker == Eq) then (name, sig2)
         // extension case
-        else {
+        // else {
           val inheritedSig = cases1.get(name).get
           if (inheritedSig.matchType != sig2.matchType || 
             inheritedSig.t.input != sig2.t.input) then 
               throw LinkageException("Concatenating cases with incompatible types.")
-            else {
+          else {
               val combinedInpType = inheritedSig.t.input.asInstanceOf[RecordType]
               val combinedOutputType = concatRecordTypes(inheritedSig.t.output.asInstanceOf[RecordType], sig2.t.output.asInstanceOf[RecordType])
 
               (name, CasesSig(name, sig2.matchType, Eq, FunType(combinedInpType, combinedOutputType)))
             }
-        }
+       // }
     }
 
     inheritedUnchanged ++ extended ++ newlyDefined
