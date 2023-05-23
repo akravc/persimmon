@@ -69,6 +69,10 @@ class ParserTesting extends AnyFunSuite {
   //   val p = readFile("res/example")
   //   assert(canParse(pProgram, p))
   // }
+  test("parse - ex: matcherr") {
+    val p = readFile("res/matcherr")
+    assert(canParse(pProgram, p))
+  }
   test("parse - ex: mixins") {
     val p = readFile("res/mixins")
     assert(canParse(pProgram, p))
@@ -527,9 +531,10 @@ class ParserTesting extends AnyFunSuite {
         "}"
 
     assertResult(parseProgramTypLink(p), ""){
-      TypingLinkage(Sp(Prog),None,Map(),Map(),Map(),Map(),
+      TypingLinkage(Sp(Prog),None,Map(),Map(), Map(),Map(),Map(),
         Map("A" -> TypingLinkage(Sp(SelfFamily(Sp(Prog),"A")),None,
-        Map("T" -> TypeDefn("T",Eq,RecordType(Map("f" -> BType, "n" -> NType))), "R" -> TypeDefn("R",Eq,RecordType(Map("s" -> PathType(Some(Sp(SelfFamily(Sp(Prog),"A"))),"T"))))),Map("List" -> AdtDefn("List",Eq,Map("Nil" -> RecordType(Map()), "Cons" -> RecordType(Map("x" -> NType, "tail" -> PathType(Some(Sp(SelfFamily(Sp(Prog),"A"))),"List"))))), "Weekend" -> AdtDefn("Weekend",Eq,Map("Sat" -> RecordType(Map()), "Sun" -> RecordType(Map())))),Map("identity" -> FunSig("identity",FunType(BType,BType))),Map(),Map())))
+        Map("T" -> TypeDefn("T",Eq,RecordType(Map("f" -> BType, "n" -> NType))), "R" -> TypeDefn("R",Eq,RecordType(Map("s" -> PathType(Some(Sp(SelfFamily(Sp(Prog),"A"))),"T"))))), 
+        Map("T" -> List("f", "n"), "R" -> List("s")), Map("List" -> AdtDefn("List",Eq,Map("Nil" -> RecordType(Map()), "Cons" -> RecordType(Map("x" -> NType, "tail" -> PathType(Some(Sp(SelfFamily(Sp(Prog),"A"))),"List"))))), "Weekend" -> AdtDefn("Weekend",Eq,Map("Sat" -> RecordType(Map()), "Sun" -> RecordType(Map())))),Map("identity" -> FunSig("identity",FunType(BType,BType))),Map(),Map())))
     }
   }
 

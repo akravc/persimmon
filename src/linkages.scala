@@ -86,7 +86,7 @@ object PersimmonLinkages {
             case LinkageType.DefLink => 
               DefinitionLinkage(null, None, Map(), Map(), Map(), Map(), Map(), Map())
             case LinkageType.TypLink => 
-              TypingLinkage(null, None, Map(), Map(), Map(), Map(), Map())
+              TypingLinkage(null, None, Map(), Map(), Map(), Map(), Map(), Map())
           }
         }
         concatenateLinkages(superLkg, lkgA)
@@ -134,11 +134,12 @@ object PersimmonLinkages {
 
     (lkgP, lkgExt) match {
       // concat typing linkages
-      case (TypingLinkage(sp1, sup1, types1, adts1, funs1, cases1, nested1), TypingLinkage(sp2, sup2, types2, adts2, funs2, cases2, nested2)) =>
+      case (TypingLinkage(sp1, sup1, types1, defs1, adts1, funs1, cases1, nested1), TypingLinkage(sp2, sup2, types2, defs2, adts2, funs2, cases2, nested2)) =>
         TypingLinkage(
           self = sp2,
           sup = sup2,
           types = concatTypes(types1, types2),
+          defaults = concatDefaultFields(defs1, defs2),
           adts = concatADTS(adts1, adts2),
           funs = concatFunSigs(funs1, funs2),
           cases = concatCasesSigs(cases1, cases2),
@@ -197,15 +198,24 @@ object PersimmonLinkages {
     } ++ adts2.map { (name, adt2) =>
       adts1.get(name) match {
         case Some(adt1) =>
-          if adt2.marker == Eq then
-            throw LinkageException("Concattenating linkages with duplicate ADT definitions.")
-          else if adt2.adtBody.keySet.exists { name =>
+          // if adt2.marker == Eq then
+          //   throw LinkageException("Concattenating linkages with duplicate ADT definitions.")
+          // else 
+          if adt2.adtBody.keySet.exists { name =>
             adt1.adtBody.contains(name)
           } then throw LinkageException("Concattenating types with duplicate constructors.") 
           else (name, AdtDefn(name, Eq, adt1.adtBody ++ adt2.adtBody))
         case None => (name, adt2)
       }
     }
+  }
+
+  def concatDefaultFields(defs1: Map[String, List[String]], defs2: Map[String, List[String]]): Map[String, List[String]] = {
+    val unique = defs1.filter((s, lst) => !defs2.contains(s)) ++ defs2.filter((s, lst) => !defs1.contains(s))
+    val overlap = defs2.filter((s, lst) => defs1.contains(s)).map(
+      (s, lst) => (s, defs1.get(s).get ++ lst)
+    )
+    unique ++ overlap
   }
 
   // Rule CAT-DEFAULTS
@@ -250,20 +260,20 @@ object PersimmonLinkages {
     val extended = difference.map{
       (name, sig2) => 
         // TODO: overriding case
-        if (sig2.marker == Eq) then (name, sig2)
+        // if (sig2.marker == Eq) then (name, sig2)
         // extension case
-        else {
+        // else {
           val inheritedSig = cases1.get(name).get
           if (inheritedSig.matchType != sig2.matchType || 
             inheritedSig.t.input != sig2.t.input) then 
               throw LinkageException("Concatenating cases with incompatible types.")
-            else {
+          else {
               val combinedInpType = inheritedSig.t.input.asInstanceOf[RecordType]
               val combinedOutputType = concatRecordTypes(inheritedSig.t.output.asInstanceOf[RecordType], sig2.t.output.asInstanceOf[RecordType])
 
               (name, CasesSig(name, sig2.matchType, Eq, FunType(combinedInpType, combinedOutputType)))
             }
-        }
+       // }
     }
 
     inheritedUnchanged ++ extended ++ newlyDefined
@@ -306,15 +316,16 @@ object PersimmonLinkages {
         else {
           val inheritedDef = cases1.get(name).get
           if (inheritedDef.matchType != def2.matchType || 
-            inheritedDef.t.input != def2.t.input) then 
+            inheritedDef.t.input != def2.t.input) 
+          then 
               throw LinkageException("Concatenating cases with incompatible types.")
-            else {
-              val combinedInpType = inheritedDef.t.input.asInstanceOf[RecordType]
-              val combinedOutputType = concatRecordTypes(inheritedDef.t.output.asInstanceOf[RecordType], def2.t.output.asInstanceOf[RecordType])
-              val combinedBody = concatCasesBodies(inheritedDef.casesBody, def2.casesBody)
+          else {
+            val combinedInpType = inheritedDef.t.input.asInstanceOf[RecordType]
+            val combinedOutputType = concatRecordTypes(inheritedDef.t.output.asInstanceOf[RecordType], def2.t.output.asInstanceOf[RecordType])
+            val combinedBody = concatCasesBodies(inheritedDef.casesBody, def2.casesBody)
 
-              (name, CasesDefn(name, def2.matchType, FunType(combinedInpType, combinedOutputType), Eq, combinedBody))
-            }
+            (name, CasesDefn(name, def2.matchType, FunType(combinedInpType, combinedOutputType), Eq, combinedBody))
+          }
         }
     }
     inheritedUnchanged ++ extended ++ newlyDefined
