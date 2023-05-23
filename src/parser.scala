@@ -286,23 +286,22 @@ class PersimmonParser extends RegexParsers with PackratParsers {
       case c~p~e => extendedDefCase(c, p, e)
     }) | (kwCase ~> "_" ~> "=" ~> pExp >> {e => extendedDefCase("_", Nil, e)})
   
-  def pFamBody(curSelfPath: SelfPath): PackratParser[DefinitionLinkage] = {
+  def pFamBody(curSelfPath: SelfPath, supFam: Option[AbsoluteFamily]): PackratParser[DefinitionLinkage] = {
     for {
-      supFam <- (kwExtends ~> pAbsoluteFamPath).?
-      typs~adts~funs0~extended~cases0~mixins~nested <- between("{", "}",
+      typs~adts~funs0~extended~cases0~nestedLists <- between("{", "}",
         rep(pTypeDef) ~ rep(pAdtDef) ~ rep(pFunDef) ~ rep(pExtendedDef) ~ rep(pCasesDef) ~
-        rep(pMixDef(curSelfPath)) ~ rep(pFamDef(curSelfPath))
+        rep(pMixDef(curSelfPath) | pFamDef(curSelfPath))
       )
     } yield {
       val funs = funs0 ++ extended.filter{_._2._1.nonEmpty}.map{(k,v) => (k -> v._1.get)}
       val cases = cases0 ++ extended.map{(k,v) => (k+cases_suffix -> v._2)}
-      val new_nested = mixins ++ nested
+      val nested = nestedLists.flatten
 
       if hasDuplicateName(typs) then throw new Exception("Parsing duplicate type names.")
       else if hasDuplicateName(adts) then throw new Exception("Parsing duplicate ADT names.")
       else if hasDuplicateName(funs) then throw new Exception("Parsing duplicate function names.")
       else if hasDuplicateName(cases) then throw new Exception("Parsing duplicate cases names.")
-      else if hasDuplicateName(new_nested) then throw new Exception("Parsing duplicate family names.")
+      else if hasDuplicateName(nested) then throw new Exception("Parsing duplicate family names.")
       else {
         supFam match {
           case Some(b) =>
@@ -336,39 +335,115 @@ class PersimmonParser extends RegexParsers with PackratParsers {
           adts.toMap,
           funs.toMap,
           cases.toMap,
-          new_nested.toMap
+          nested.toMap
         )
       }
     }
   }
+  
+  // Wraps around the 'pFamBody' parser
+  def pMixBody(curSelfPath: SelfPath, supFam: Option[AbsoluteFamily]): PackratParser[DefinitionLinkage] = {
+    val baseSelfPath = SelfFamily(Sp(curSelfPath), "#Base")
+    val baseAbsolutePath = AbsoluteFamily(Sp(curSelfPath), "#Base")
+    val derivedSelfPath = SelfFamily(Sp(curSelfPath), "#Derived")
+    for {
+      linkage <- pFamBody(derivedSelfPath, Some(baseAbsolutePath))
+    } yield {
+      DefinitionLinkage(
+        Sp(curSelfPath),
+        None,
+        Map(), Map(), Map(), Map(), Map(),
+        Map(
+          "#Base" -> DefinitionLinkage(
+            Sp(baseSelfPath),
+            supFam,
+            Map(), Map(), Map(), Map(), Map(), Map(),
+          ),
+          "#Derived" -> linkage,
+        ),
+      )
+    }
+  }
 
   // A family can extend another family. If it does not, the parent is None.
-  def pFamDef(selfPrefix: SelfPath): PackratParser[(String, DefinitionLinkage)] = {
+  def pFamDef(selfPrefix: SelfPath): PackratParser[List[(String, DefinitionLinkage)]] = {
     for {
       fam <- kwFamily ~> pFamilyName
+      supFam <- (kwExtends ~> pAbsoluteFamPath).?
+      mixFams <- (kwWith ~> repsep(pAbsoluteFamPath, ",")).?
+      auxFams = mixFams match {
+        case Some(mixFams) => mixFams.zipWithIndex.map { (mixFam, index) =>
+          val auxSelfPath = SelfFamily(Sp(selfPrefix), fam + "#" + index.toString)
+          val baseSelfPath = SelfFamily(Sp(auxSelfPath), "#Base")
+          (
+            fam + "#" + index.toString,
+            DefinitionLinkage(
+              Sp(auxSelfPath),
+              Some(AbsoluteFamily(mixFam.pref, mixFam.fam + "#Mixin")),
+              Map(), Map(), Map(), Map(), Map(),
+              Map(
+                "#Base" -> DefinitionLinkage(
+                  Sp(baseSelfPath),
+                  if index == 0 then
+                    supFam
+                  else
+                    Some(
+                      AbsoluteFamily(
+                        AbsoluteFamily(Sp(selfPrefix), fam + "#" + (index-1).toString),
+                        "#Derived"
+                      )
+                    ),
+                  Map(), Map(), Map(), Map(), Map(), Map(),
+                ),
+              ),
+            ),
+          )
+        }
+        case None => List()
+      }
       curSelfPath = SelfFamily(Sp(selfPrefix), fam)
-      linkage <- pFamBody(curSelfPath)
+      linkage <- pFamBody(
+        curSelfPath,
+        if auxFams.isEmpty then supFam
+        else Some(
+          AbsoluteFamily(
+            AbsoluteFamily(Sp(selfPrefix), fam + "#" + (auxFams.length-1).toString),
+            "#Derived"
+          )
+        ),
+      )
     } yield {
-      fam -> linkage
+      auxFams ++ List(fam -> linkage)
     }
   }
   
-  def pMixDef(selfPrefix: SelfPath): PackratParser[(String, DefinitionLinkage)] = {
+  def pMixDef(selfPrefix: SelfPath): PackratParser[List[(String, DefinitionLinkage)]] = {
     for {
       mix <- kwMixin ~> pFamilyName
-      curSelfPath = SelfFamily(Sp(selfPrefix), mix)
-      baseSelfPath = SelfFamily(Sp(curSelfPath), "#Base")
-      linkage <- pFamBody(baseSelfPath)
+      supFam <- (kwExtends ~> pAbsoluteFamPath).?
+      curSelfPath = SelfFamily(Sp(selfPrefix), mix + "#Mixin")
+      linkage <- pMixBody(curSelfPath, supFam)
     } yield {
-      mix -> linkage
+      List(
+        mix + "#Mixin" -> linkage,
+        mix -> DefinitionLinkage(
+          Sp(SelfFamily(Sp(selfPrefix), mix)),
+          Some(AbsoluteFamily(
+            AbsoluteFamily(Sp(selfPrefix), mix + "#Mixin"),
+            "#Derived"
+          )),
+          Map(), Map(), Map(),
+          Map(), Map(), Map(),
+        )
+      )
     }
   }
 
   lazy val pProgram: PackratParser[DefinitionLinkage] =
-    (rep(pMixDef(Prog)) ~ rep(pFamDef(Prog))) ^^ { case mixins ~ fams =>
-      val new_fams = mixins ++ fams
-      if hasDuplicateName(new_fams) then throw new Exception("Parsing duplicate family names.")
-      DefinitionLinkage(Sp(Prog), None, Map(), Map(), Map(), Map(), Map(), new_fams.toMap)
+    (rep(pMixDef(Prog) | pFamDef(Prog))) ^^ { case famLists =>
+      val fams = famLists.flatten
+      if hasDuplicateName(fams) then throw new Exception("Parsing duplicate family names.")
+      DefinitionLinkage(Sp(Prog), None, Map(), Map(), Map(), Map(), Map(), fams.toMap)
     }
 
   // Simple preprocessing to remove eol comments
