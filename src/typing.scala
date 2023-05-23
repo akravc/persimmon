@@ -39,9 +39,8 @@ object PersimmonTyping {
       val types = fields.mapValues { field => getType(K, Gamma, field) }.toMap
       if types.exists((_, t) => t.isEmpty) then None
       else Some(RecordType(types.mapValues { t => t.get }.toMap))
-    case Proj(e, name) => getType(K, Gamma, e).flatMap {
-      case RecordType(fields) => fields.get(name)
-      case _ => None
+    case Proj(e, name) => getType(K, Gamma, e).flatMap { t =>
+      getFieldType(K, t, name)
     }
     case Inst(t, rec) =>
       if !wfPath(K, t.path.get) then None else {
@@ -110,7 +109,17 @@ object PersimmonTyping {
       isSubtype(K, et, t)
     }
   }
-  
+
+  def getFieldType(K: PathCtx, t: Type, fieldName: String): Option[Type] = t match {
+    case PathType(path, name) =>
+        if !wfPath(K, path.get) then None else {
+          val typeDefn = computeTypLinkage(path.get).types.get(name).get
+          getFieldType(K, typeDefn.typeBody, fieldName)
+        }
+    case RecordType(fields) => fields.get(fieldName)
+    case _ => None
+  }
+
   def isSubtype(K: PathCtx, t1: Type, t2: Type): Boolean = {
     if t1 == t2 then true
     else t1 match {
