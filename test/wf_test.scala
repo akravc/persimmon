@@ -14,6 +14,30 @@ class WFTesting extends AnyFunSuite {
 
     /*===================== LARGE & PAPER EXAMPLES =====================*/
 
+    test("wf - ex: regression1") {
+      val p = """
+Family A {
+  type T = O {}
+  val f: T -> N = lam(t: T).t.n // bogus
+}
+"""
+    PersimmonLinkages.p = p
+    val lkg = computeDefLinkage(prog)
+    assertResult(false)(wfDef(List(Prog), lkg))
+  }
+
+    test("wf - ex: regression2") {
+      val p = """
+Family A {
+  type T = O {}
+  val f: T -> {n: N} = lam(t: T).t // bogus
+}
+"""
+    PersimmonLinkages.p = p
+    val lkg = computeDefLinkage(prog)
+    assertResult(false)(wfDef(List(Prog), lkg))
+  }
+
     test("wf - ex: peano") {
         val p = readFile("res/peano")
         PersimmonLinkages.p = p

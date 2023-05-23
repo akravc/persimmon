@@ -113,8 +113,9 @@ object PersimmonTyping {
   def getFieldType(K: PathCtx, t: Type, fieldName: String): Option[Type] = t match {
     case PathType(path, name) =>
         if !wfPath(K, path.get) then None else {
-          val typeDefn = computeTypLinkage(path.get).types.get(name).get
-          getFieldType(K, typeDefn.typeBody, fieldName)
+          computeTypLinkage(path.get).types.get(name).flatMap { typeDefn =>
+            getFieldType(K, typeDefn.typeBody, fieldName)
+          }
         }
     case RecordType(fields) => fields.get(fieldName)
     case _ => None
@@ -125,8 +126,10 @@ object PersimmonTyping {
     else t1 match {
       case PathType(path, name) =>
         if !wfPath(K, path.get) then false else {
-          val typeDefn = computeTypLinkage(path.get).types.get(name).get
-          isSubtype(K, typeDefn.typeBody, t2)
+          computeTypLinkage(path.get).types.get(name) match {
+            case None => false
+            case Some(typeDefn) => isSubtype(K, typeDefn.typeBody, t2)
+          }
         }
       case FunType(input1, output1) =>
         t2 match {
