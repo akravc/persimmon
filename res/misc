@@ -13,10 +13,13 @@ Family STLCBase {
 Mixin IfExt extends STLCBase {
     type Ty += TBool {}
     type Val += VTrue {}
-    type Exp += ETrue {}
+    type Exp += ETrue {} | EIfElse {x: self(IfExt).Exp}
 
-    cases eval_cases <Exp> : {} -> {ETrue: {} -> Val} +=
-      lam (ignore: {}). {ETrue = lam (ignore: {}). Val(VTrue {})}
+    cases eval_cases <Exp> : {} -> {ETrue: {} -> Val, EIfElse: {x: self(IfExt).Exp} -> Val} +=
+      lam (ignore: {}). {
+        ETrue = lam (ignore: {}). Val(VTrue {}),
+        EIfElse = lam (ignore: {x: self(IfExt).Exp}). Val(VTrue {})
+      }
 }
 
 Mixin ArithExt extends STLCBase {

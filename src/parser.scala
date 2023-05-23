@@ -342,13 +342,19 @@ class PersimmonParser extends RegexParsers with PackratParsers {
   }
   
   // Wraps around the 'pFamBody' parser
-  def pMixBody(curSelfPath: SelfPath, supFam: Option[AbsoluteFamily]): PackratParser[DefinitionLinkage] = {
+  def pMixBody(
+    curSelfPath: SelfPath, originalSelfPath: SelfPath, supFam: Option[AbsoluteFamily]
+  ): PackratParser[DefinitionLinkage] = {
     val baseSelfPath = SelfFamily(Sp(curSelfPath), "#Base")
     val baseAbsolutePath = AbsoluteFamily(Sp(curSelfPath), "#Base")
     val derivedSelfPath = SelfFamily(Sp(curSelfPath), "#Derived")
     for {
       linkage <- pFamBody(derivedSelfPath, Some(baseAbsolutePath))
     } yield {
+      val newLinkage = pathSub(linkage, Sp(derivedSelfPath), Sp(originalSelfPath)) match {
+        case (_: TypingLinkage) => throw Exception("Should be impossible");
+        case (definitionLinkage: DefinitionLinkage) => definitionLinkage
+      }
       DefinitionLinkage(
         Sp(curSelfPath),
         None,
@@ -359,7 +365,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
             supFam,
             Map(), Map(), Map(), Map(), Map(), Map(),
           ),
-          "#Derived" -> linkage,
+          "#Derived" -> newLinkage,
         ),
       )
     }
@@ -421,8 +427,9 @@ class PersimmonParser extends RegexParsers with PackratParsers {
     for {
       mix <- kwMixin ~> pFamilyName
       supFam <- (kwExtends ~> pAbsoluteFamPath).?
+      originalSelfPath = SelfFamily(Sp(selfPrefix), mix)
       curSelfPath = SelfFamily(Sp(selfPrefix), mix + "#Mixin")
-      linkage <- pMixBody(curSelfPath, supFam)
+      linkage <- pMixBody(curSelfPath, originalSelfPath, supFam)
     } yield {
       List(
         mix + "#Mixin" -> linkage,

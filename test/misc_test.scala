@@ -17,11 +17,12 @@ class MiscTesting extends AnyFunSuite {
   }
 
   test("misc") {
-    val fam = readFile("res/misc")
+    val fam = TestParser.removeComments(readFile("res/misc"))
     // must save the program in this global variable
     PersimmonLinkages.p = fam
     assert(canParse(TestParser.pProgram, fam))
     val linkage = TestParser.parseProgramDefLink(fam)
+    println(linkage)
     assert(wfDef(List(Prog), linkage))
   }
 }
