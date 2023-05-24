@@ -335,12 +335,12 @@ object PersimmonLinkages {
     val v = freshVar(boundVarsInExp(b1) ++ boundVarsInExp(b2))
     val body1 = b1 match {
       case Lam(v1, t, Record(body)) => 
-        subVarInExp(Record(body), v1, v).asInstanceOf[Record].fields
+        subVarInExp(Record(body), v, v1).asInstanceOf[Record].fields
       case _ => throw LinkageException("Body of cases definition is invalid.") // This should never happen.
     }
     val body2 = b2 match {
       case Lam(v2, t, Record(body)) => 
-        subVarInExp(Record(body), v2, v).asInstanceOf[Record].fields
+        subVarInExp(Record(body), v, v2).asInstanceOf[Record].fields
       case _ => throw LinkageException("Body of cases definition is invalid.") // This should never happen.
     }
     if (body1.forall((s, e) => !body2.contains(s)) && 
