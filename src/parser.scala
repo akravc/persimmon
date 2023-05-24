@@ -196,8 +196,8 @@ class PersimmonParser extends RegexParsers with PackratParsers {
     "=" ^^ {_ => Eq} | "+=" ^^ {_ => PlusEq}
 
   // DEFINITIONS
-  lazy val pTypeDef: PackratParser[(String, (Marker, (RecordType, Record)))] =
-    kwType ~> pTypeName ~ pMarker ~ pDefaultRecType ^^ { case n~m~rt => n -> (m -> rt) }
+  lazy val pTypeDef: PackratParser[(String, TypeDefaultsDefn)] =
+    kwType ~> pTypeName ~ pMarker ~ pDefaultRecType ^^ { case n~m~rt => n -> TypeDefaultsDefn(n, m, rt._1, rt._2) }
   lazy val pAdtDef: PackratParser[(String, AdtDefn)] =
     pAdt ^^ { a => a.name -> a }
 
@@ -233,9 +233,8 @@ class PersimmonParser extends RegexParsers with PackratParsers {
   }
 
   val cases_suffix = "_cases"
-  type ExtendedDef = (Option[FunDefn], CasesDefn)
   case class ExtendedDefCase(constructor: String, params: List[(String, Type)], body: Expression)
-  def extendedDef(name: String, params: List[(String, Type)], matchType: PathType, returnType: Type, marker: Marker, bodies: List[ExtendedDefCase]): PackratParser[(String, ExtendedDef)] = {
+  def extendedDef(name: String, params: List[(String, Type)], matchType: PathType, returnType: Type, marker: Marker, bodies: List[ExtendedDefCase]): PackratParser[(String, ExtendedDefn)] = {
     if (hasDuplicateName(params)) failure(s"duplicate name in $params")
     else if (hasDuplicateName(bodies.map{(_.constructor -> 0)})) failure("duplicate constructor")
     else {
@@ -265,7 +264,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
             var2proj(matched_var, c.params.map(_._1).toSet)(
               c.body)))}.toMap))
       val cases = CasesDefn(name_cases, matchType, t, marker, b)
-      success(name -> (fun, cases))
+      success(name -> ExtendedDefn(name, fun, cases))
     }
   }
   def extendedDefCase(constructor: String, params: List[(String, Type)], body: Expression): PackratParser[ExtendedDefCase] = {
@@ -274,7 +273,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
     else success(ExtendedDefCase(constructor, params, body))
   }
 
-  lazy val pExtendedDef: PackratParser[(String, ExtendedDef)] =
+  lazy val pExtendedDef: PackratParser[(String, ExtendedDefn)] =
     kwDef ~> pFunctionName ~ (("(" ~> repsep(pRecField, ",") <~ ")") | success(Nil)) ~ (":" ~> optBetween("(", ")", (pFamType ~ ("->" ~> pType)))) ~ pMarker >> {
       case n~p~(f~t)~m => repsep(pExtendedDefCase, "") >> {bs =>
         extendedDef(n, p, f, t, m, bs)
@@ -288,14 +287,37 @@ class PersimmonParser extends RegexParsers with PackratParsers {
   
   def pFamBody(curSelfPath: SelfPath, supFam: Option[AbsoluteFamily]): PackratParser[DefinitionLinkage] = {
     for {
-      typs~adts~funs0~extended~cases0~nestedLists <- between("{", "}",
-        rep(pTypeDef) ~ rep(pAdtDef) ~ rep(pFunDef) ~ rep(pExtendedDef) ~ rep(pCasesDef) ~
-        rep(pMixDef(curSelfPath) | pFamDef(curSelfPath))
+      defns <- between("{", "}",
+        rep(pTypeDef | pAdtDef | pFunDef | pExtendedDef | pCasesDef | pMixDef(curSelfPath) | pFamDef(curSelfPath))
       )
     } yield {
-      val funs = funs0 ++ extended.filter{_._2._1.nonEmpty}.map{(k,v) => (k -> v._1.get)}
-      val cases = cases0 ++ extended.map{(k,v) => (k+cases_suffix -> v._2)}
-      val nested = nestedLists.flatten
+      val typs = defns.flatMap {(name, defn) => defn match {
+        case typ: TypeDefaultsDefn => Some((name, typ))
+        case _ => None
+      }}
+      val adts = defns.flatMap {(name, defn) => defn match {
+        case adt: AdtDefn => Some((name, adt))
+        case _ => None
+      }}
+      val funs0 = defns.flatMap {(name, defn) => defn match {
+        case fun0: FunDefn => Some((name, fun0))
+        case _ => None
+      }}
+      val extended = defns.flatMap {(name, defn) => defn match {
+        case extended: ExtendedDefn => Some((name, extended))
+        case _ => None
+      }}
+      val cases0 = defns.flatMap {(name, defn) => defn match {
+        case case0: CasesDefn => Some((name, case0))
+        case _ => None
+      }}
+      val nested = defns.flatMap {(name, defn) => defn match {
+        case fams: FamsDefn => fams.linkages
+        case _ => List()
+      }}
+      
+      val funs = funs0 ++ extended.filter{_._2.funDefn.nonEmpty}.map{(k,v) => (k -> v.funDefn.get)}
+      val cases = cases0 ++ extended.map{(k,v) => (k+cases_suffix -> v.casesDefn)}
 
       if hasDuplicateName(typs) then throw new Exception("Parsing duplicate type names.")
       else if hasDuplicateName(adts) then throw new Exception("Parsing duplicate ADT names.")
@@ -311,14 +333,14 @@ class PersimmonParser extends RegexParsers with PackratParsers {
             else
              */
             // family extends another
-            if typs.exists{case (s, (m, (rt, r))) => (m == PlusEq) && (rt.fields.keySet != r.fields.keySet)} then
+            if typs.exists{case (s, typ) => (typ.marker == PlusEq) && (typ.typeBody.fields.keySet != typ.defaultBody.fields.keySet)} then
               throw new Exception("In a type extension, not all fields have defaults.");
             else ()
           // family does not extend another
           case None => ()
         }
-        val typedefs = typs.map { case (s, (m, (rt, r))) => s -> TypeDefn(s, m, rt) }.toMap
-        val defaults = typs.collect{ case (s, (m, (rt, r))) => s -> DefaultDefn(s, m, r) }.toMap
+        val typedefs = typs.map { (name, typ) => name -> TypeDefn(typ.name, typ.marker, typ.typeBody) }.toMap
+        val defaults = typs.collect{ (name, typ) => name -> DefaultDefn(typ.name, typ.marker, typ.defaultBody) }.toMap
 
         val funHeaders = funs.map { 
           case (s, fundefn) => s -> fundefn.t
@@ -372,7 +394,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
   }
 
   // A family can extend another family. If it does not, the parent is None.
-  def pFamDef(selfPrefix: SelfPath): PackratParser[List[(String, DefinitionLinkage)]] = {
+  def pFamDef(selfPrefix: SelfPath): PackratParser[(String, FamsDefn)] = {
     for {
       fam <- kwFamily ~> pFamilyName
       supFam <- (kwExtends ~> pAbsoluteFamPath).?
@@ -419,11 +441,11 @@ class PersimmonParser extends RegexParsers with PackratParsers {
         ),
       )
     } yield {
-      auxFams ++ List(fam -> linkage)
+      fam -> FamsDefn(fam, auxFams ++ List(fam -> linkage))
     }
   }
   
-  def pMixDef(selfPrefix: SelfPath): PackratParser[List[(String, DefinitionLinkage)]] = {
+  def pMixDef(selfPrefix: SelfPath): PackratParser[(String, FamsDefn)] = {
     for {
       mix <- kwMixin ~> pFamilyName
       supFam <- (kwExtends ~> pAbsoluteFamPath).?
@@ -431,7 +453,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
       curSelfPath = SelfFamily(Sp(selfPrefix), mix + "#Mixin")
       linkage <- pMixBody(curSelfPath, originalSelfPath, supFam)
     } yield {
-      List(
+      mix -> FamsDefn(mix, List(
         mix + "#Mixin" -> linkage,
         mix -> DefinitionLinkage(
           Sp(SelfFamily(Sp(selfPrefix), mix)),
@@ -442,13 +464,13 @@ class PersimmonParser extends RegexParsers with PackratParsers {
           Map(), Map(), Map(),
           Map(), Map(), Map(),
         )
-      )
+      ))
     }
   }
 
   lazy val pProgram: PackratParser[DefinitionLinkage] =
-    (rep(pMixDef(Prog) | pFamDef(Prog))) ^^ { case famLists =>
-      val fams = famLists.flatten
+    (rep(pMixDef(Prog) | pFamDef(Prog))) ^^ { case famsDefns =>
+      val fams = famsDefns.flatMap {(name, famsDefn) => famsDefn.linkages}
       if hasDuplicateName(fams) then throw new Exception("Parsing duplicate family names.")
       DefinitionLinkage(Sp(Prog), None, Map(), Map(), Map(), Map(), Map(), fams.toMap)
     }

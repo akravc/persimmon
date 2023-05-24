@@ -340,13 +340,13 @@ class ParserTesting extends AnyFunSuite {
       pFamDef(Prog), "Family A { type T = {f: B = true, n: N = 3}}"
     ))
     assertResult(
-      List("A" -> DefinitionLinkage(
+      ("A", FamsDefn("A", List("A" -> DefinitionLinkage(
         Sp(SelfFamily(Sp(Prog), "A")),
         None, 
         Map("T" -> TypeDefn("T", Eq, RecordType(Map("f"->BType, "n"->NType)))),
         Map("T" -> DefaultDefn("T", Eq, Record(Map("f"->BExp(true), "n"->NExp(3))))),
         Map(), Map(), Map(), Map()
-      ))
+      ))))
     ){parseSuccess(pFamDef(Prog), "Family A { type T = {f: B = true, n: N = 3}}")}
   }
 
@@ -360,7 +360,7 @@ class ParserTesting extends AnyFunSuite {
         Map(), Map(), Map(), Map()
       )
     assert(canParse(pFamDef(Prog), fam))
-    assertResult(List(map)){parseSuccess(pFamDef(Prog), fam)}
+    assertResult(("A", FamsDefn("A", List(map)))){parseSuccess(pFamDef(Prog), fam)}
   }
 
   test("parse - famdef extends and plusEquals, missing defaults") {
@@ -379,7 +379,7 @@ class ParserTesting extends AnyFunSuite {
         Map(), Map(), Map(), Map()
       )
     assert(canParse(pFamDef(Prog), fam))
-    assertResult(List(map)){parseSuccess(pFamDef(Prog), fam)}
+    assertResult(("A", FamsDefn("A", List(map)))){parseSuccess(pFamDef(Prog), fam)}
   }
 
   test("parse - famdef multiple types") {

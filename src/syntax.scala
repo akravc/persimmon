@@ -121,6 +121,14 @@ object PersimmonSyntax {
   case class CasesDefn(name: String, matchType: PathType, t: FunType, ts: List[Type], marker: Marker, casesBody: Expression) extends Definition
   def CasesDefn(name: String, matchType: PathType, t: FunType, marker: Marker, casesBody: Expression): CasesDefn =
     CasesDefn(name, matchType, t, List(t), marker, casesBody)
+  
+  // Extra definitions used for parsing
+  
+  case class TypeDefaultsDefn(name: String, marker: Marker, typeBody: RecordType, defaultBody: Record) extends Definition
+  
+  case class ExtendedDefn(name: String, funDefn: Option[FunDefn], casesDefn: CasesDefn) extends Definition
+  
+  case class FamsDefn(ame: String, linkages: List[(String, DefinitionLinkage)]) extends Definition
 
   
   sealed trait Signature
