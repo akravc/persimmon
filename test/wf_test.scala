@@ -134,6 +134,30 @@ class WFTesting extends AnyFunSuite {
         val lkg = computeDefLinkage(prog)
         assertResult(true)(wfDef(List(Prog), lkg))
     }
+    test("wf - ex: mixins_sug") {
+        val p = readFile("res/mixins_sug")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(true)(wfDef(List(Prog), lkg))
+    }
+    test("wf - ex: mixins0_sug") {
+        val p = readFile("res/mixins0_sug")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(true)(wfDef(List(Prog), lkg))
+    }
+    test("wf - ex: mixins00_sug") {
+        val p = readFile("res/mixins00_sug")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(true)(wfDef(List(Prog), lkg))
+    }
+    test("wf - ex: mixins1_sug") {
+        val p = readFile("res/mixins1_sug")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(true)(wfDef(List(Prog), lkg))
+    }
     // test("wf - ex: pretty_example") {
     //   val p = readFile("res/pretty_example")
     //   PersimmonLinkages.p = p

@@ -1,0 +1,38 @@
+Family STLCBase {
+    type Ty = TBase {}
+    type Val = VBase {}
+    type Exp = EBase {}
+
+    val eval: Exp -> Val = lam (e: Exp). match e with <eval_cases> {}
+
+    cases eval_cases <Exp> : {} -> {EBase: {} -> Val} =
+      lam (ignore: {}). {EBase = lam (ignore: {}). Val(VBase {})}
+}
+
+Mixin IfExt extends STLCBase {
+      type Ty += TBool {}
+      type Val += VTrue {}
+      type Exp += ETrue {}
+
+      cases eval_cases <Exp> : {} -> {ETrue: {} -> Val} +=
+        lam (ignore: {}). {ETrue = lam (ignore: {}). Val(VTrue {})}
+}
+
+Mixin ArithExt extends STLCBase {
+      type Ty += TNat {}
+      type Val += VNat {n: N}
+      type Exp += ENat {n: N}
+
+      cases eval_cases <Exp> : {} -> {ENat: {n: N} -> Val} +=
+        lam (ignore: {}). {ENat = lam (x: {n: N}). Val(VNat {n = x.n})}
+}
+
+Family STLCIfArith extends STLCBase with IfExt, ArithExt {}
+
+Family MixinsMain {
+  val main1 : {} -> STLCIfArith.Val = lam(_ : {}).
+    STLCIfArith.eval(STLCIfArith.Exp(ENat { n = 10 }))
+
+  val main2 : {} -> STLCIfArith.Val = lam(_ : {}).
+    STLCIfArith.eval(STLCIfArith.Exp(ETrue {}))
+}

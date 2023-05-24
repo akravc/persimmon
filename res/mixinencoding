@@ -1,0 +1,89 @@
+Family Peano {
+    type Nat = O {} | S {n: Nat}
+
+    def isZero: Nat -> B =
+        case O() = true
+        case S(n: Nat) = false
+
+    def eqNat(n2: Nat): Nat -> B =
+        case O() = isZero(n2)
+        case S(n: Nat) = eqNatRec(n, n2)
+
+    def eqNatRec(n1: Nat): Nat -> B = 
+        case O() = false
+        case S(n: Nat) = eqNat(n1, n)
+
+    def plus(n1: Nat): Nat -> Nat = 
+        case O() = n1
+        case S(n: Nat) = Nat(S{n = plus(n1, n)})
+}
+
+Family STLCBase {
+    type Ty = TUnit{} | TNat{} | TArr{t1: Ty, t2: Ty}
+    type Val = U{} | Var{x: Peano.Nat} | Lam{x: Peano.Nat, e: Exp}
+    type Exp = EVal{v: Val} | EApp{e1: Exp, e2: Exp}
+
+    type OptionVal = None{} | Some{v: Val}
+    def bind(f: Val -> OptionVal): OptionVal -> OptionVal =
+        case None() = OptionVal(None{})
+        case Some(v: Val) = f(v)
+
+    def eval: Exp -> OptionVal =
+        case EVal(v: Val) = OptionVal(Some{v = v})
+        case EApp(e1: Exp, e2: Exp) = bind(lam(v: Val).apply(e2,v), eval(e1))
+
+    def apply(e2: Exp): Val -> OptionVal =
+        case Lam(x: Peano.Nat, e: Exp) = eval (subst(x, e2, e))
+        case _ = OptionVal(None{})
+
+    def subst(x: Peano.Nat, e0: Exp): Exp -> Exp =
+        case EVal(v: Val) = substVal(x, e0, v)
+        case EApp(e1: Exp, e2: Exp) = Exp(EApp{e1 = subst(x, e0, e1), e2 = subst(x, e0, e2)})
+
+    def substVal(y: Peano.Nat, e0: Exp): Val -> Exp =
+        case U() = Exp(EVal{v = Val(U{})})
+        case Var(x: Peano.Nat) = if Peano.eqNat(x, y) then e0 else Exp(EVal{v = Val(Var{x = x})})
+        case Lam(x: Peano.Nat, e: Exp) = Exp(EVal{v = if Peano.eqNat(x, y) then Val(Lam{x = x, e = e}) else Val(Lam{x = x, e = subst(y, e0, e)})})
+
+    def branch(e1: Exp, e2: Exp): Val -> OptionVal =
+        case _ = OptionVal(None{})
+}
+
+Mixin IfExt extends STLCBase {
+    type Ty += TBool{}
+    type Val += True{} | False{}
+    type Exp += EIf{e: Exp, e1: Exp, e2: Exp}
+
+    def eval: Exp -> OptionVal +=
+        case EIf(e: Exp, e1: Exp, e2: Exp) =
+        bind(branch(e1, e2), eval(e))
+
+    def branch(e1: Exp, e2: Exp): Val -> OptionVal +=
+        case True() = eval e1
+        case False() = eval e2
+        case _ = OptionVal(None{})
+
+    def apply(e2: Exp): Val -> OptionVal +=
+        case _ = OptionVal(None{})
+
+    def subst(x: Peano.Nat, e0: Exp): Exp -> Exp +=
+        case EIf(e: Exp, e1: Exp, e2: Exp) = Exp(EIf{e = subst(x, e0, e), e1 = subst(x, e0, e1), e2 = subst(x, e0, e1)})
+
+    def substVal(y: Peano.Nat, e0: Exp): Val -> Exp +=
+        case True() = Exp(EVal{v = Val(True{})})
+        case False() = Exp(EVal{v = Val(False{})})
+}
+
+Mixin ArithExt extends STLCBase {
+    type Val += NatVal{n: Peano.Nat}
+    type Exp += EPlus{e1: Exp, e2: Exp}
+
+    def eval: Exp -> OptionVal +=
+        case EPlus(e1: Exp, e2: Exp) = eval(e1) + eval(e2) //TODO
+
+    def subst(x: Peano.Nat, e0: Exp): Exp -> Exp +=
+        case EPlus(e1: Exp, e2: Exp) = 
+            Exp(EPlus{e1 = subst(x, e0, e1), e2 = subst(x, e0, e2)})
+}
+
+Family STLCIfArith extends STLCBase with IfExt, ArithExt {}

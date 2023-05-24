@@ -93,6 +93,22 @@ class ParserTesting extends AnyFunSuite {
     val p = readFile("res/mixins2")
     assert(canParse(pProgram, p))
   }
+  test("parse - ex: mixins_sug") {
+    val p = readFile("res/mixins_sug")
+    assert(canParse(pProgram, p))
+  }
+  test("parse - ex: mixins0_sug") {
+    val p = readFile("res/mixins0_sug")
+    assert(canParse(pProgram, p))
+  }
+  test("parse - ex: mixins00_sug") {
+    val p = readFile("res/mixins00_sug")
+    assert(canParse(pProgram, p))
+  }
+  test("parse - ex: mixins1_sug") {
+    val p = readFile("res/mixins1_sug")
+    assert(canParse(pProgram, p))
+  }
   // test("parse - ex: pretty_example") {
   //   val p = readFile("res/pretty_example")
   //   assert(canParse(pProgram, p))

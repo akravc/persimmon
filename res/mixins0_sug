@@ -1,0 +1,7 @@
+Family STLCBase {
+}
+Mixin IfExt extends STLCBase {
+}
+Mixin ArithExt extends STLCBase {
+}
+Family STLCIfArith extends STLCBase with IfExt, ArithExt {}
