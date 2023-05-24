@@ -161,13 +161,13 @@ object PersimmonWF {
       // it has a corresponding handler in the output type
       // with the proper input type
       val allConstructorsHandled = adtDefinition.forall {
-        (constructorName, arguments) => 
+        (constructorName, arguments) => {
           val constructorHandled = handlers.contains(constructorName)
           if (!constructorHandled) then false else {
             val argsMatch = (handlers.get(constructorName).get.asInstanceOf[FunType].input == arguments)
 
             argsMatch
-          }
+          }}
       }
 
       adtExists && allConstructorsHandled

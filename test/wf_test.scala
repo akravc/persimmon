@@ -32,6 +32,12 @@ class WFTesting extends AnyFunSuite {
         val lkg = computeDefLinkage(prog)
         assertResult(true)(wfDef(List(Prog), lkg))
     }
+    test("wf - ex: abcode_vars") {
+        val p = readFile("res/abcode_vars")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(true)(wfDef(List(Prog), lkg))
+    }
     test("wf - ex: abcodeover") {
         val p = readFile("res/abcodeover")
         PersimmonLinkages.p = p

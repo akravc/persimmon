@@ -1,0 +1,29 @@
+Family A1 {
+  Family B1 {
+    type Exp = EBase {}
+    val eval: Exp -> N = lam (e: Exp). match e with <eval_cases> {}
+    cases eval_cases <Exp> : {} -> {EBase: {} -> N} =
+      lam (a: {}). {EBase = lam (_: {}). 0}
+  }
+  Family B2 extends self(A1).B1 {
+    type Exp += ENat {n: N}
+    cases eval_cases <Exp> : {} -> {ENat: {n: N} -> N} +=
+        lam (b: {}). {ENat = lam (x: {n: N}). x.n}
+  }
+}
+Family A2 extends A1 {
+  Family B1 {
+    type Exp += EBase2 {}
+    cases eval_cases <Exp> : {} -> {EBase2: {} -> N} +=
+      lam (c: {}). {EBase2 = lam (ignore: {}). 1}
+  }
+  Family B2 extends self(A2).B1 {
+    type Exp += ENat2 {n: N}
+    cases eval_cases <Exp> : {} -> {ENat2: {n: N} -> N} +=
+        lam (d: {}). {ENat2 = lam (x: {n: N}). (x.n + 2)}
+  }
+}
+Family ABMain {
+  val main1: {} -> N = lam (ignore: {}). A2.B2.eval (A2.B2.Exp(ENat2 {n = 3}))
+  val main2: {} -> N = lam (ignore: {}). A2.B2.eval (A2.B2.Exp(ENat2 {n = 3}))
+}

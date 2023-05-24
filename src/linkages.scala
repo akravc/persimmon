@@ -311,9 +311,9 @@ object PersimmonLinkages {
     val extended = difference.map{
       (name, def2) =>
         // TODO: overriding case
-        if (def2.marker == Eq) then (name, def2)
+        //if (def2.marker == Eq) then (name, def2)
         // extension case
-        else {
+        //else {
           val inheritedDef = cases1.get(name).get
           if (inheritedDef.matchType != def2.matchType || 
             inheritedDef.t.input != def2.t.input) 
@@ -326,7 +326,7 @@ object PersimmonLinkages {
 
             (name, CasesDefn(name, def2.matchType, FunType(combinedInpType, combinedOutputType), Eq, combinedBody))
           }
-        }
+        //}
     }
     inheritedUnchanged ++ extended ++ newlyDefined
   }

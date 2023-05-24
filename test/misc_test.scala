@@ -22,7 +22,7 @@ class MiscTesting extends AnyFunSuite {
     PersimmonLinkages.p = fam
     assert(canParse(TestParser.pProgram, fam))
     val linkage = TestParser.parseProgramDefLink(fam)
-    println(linkage)
+    //println(linkage)
     assert(wfDef(List(Prog), linkage))
   }
 }
