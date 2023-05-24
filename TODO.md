@@ -16,12 +16,12 @@
 - [x] (Ana) Case studies, based on old res files
 - [x] (Ana) add matcherr example to this impl
 - [x] (Ana) add wf paths relation
+- [x] (Ana) sugar existing mixin test examples
 - [ ] STLC example: fix internal TODOs
 - [ ] (Ana) add typing of programs function
 - [ ] (Ana) parse A and .A differently for paths (fully absolute vs full self-prefix)
 - [ ] (Ana) add wf checking of paths in typing etc
 - [ ] (Ana) fix test examples that have strings
-- [x] (Ana) sugar existing mixin test examples
 - [ ] (Ana) put in parsing for top-level main
 - [ ] (Ana) no overriding for types, allow overriding of single cases & child takes precedence
 
