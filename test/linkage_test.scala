@@ -62,14 +62,14 @@ class LinkageTesting extends AnyFunSuite {
         val exp = Lam(Var("x"), BType, 
                     Lam(Var("y"), FunType(BType, NType), 
                         App(Var("y"), Var("x"))))
-        assertResult(boundVarsInExp(exp)){List("x", "y")}
+        assertResult(boundVarsInExp(exp)){Set("x", "y")}
     }
 
     test("linkage - bound vars 2") {
         val exp = Lam(Var("x"), BType, 
                     Lam(Var("z"), FunType(BType, NType), 
                         App(Var("y"), Var("x"))))
-        assertResult(boundVarsInExp(exp)){List("x", "z")}
+        assertResult(boundVarsInExp(exp)){Set("x", "z")}
     }
 
     test("linkage - fresh vars 1") {

@@ -209,7 +209,7 @@ def readFile(filename: String): String = {
 /* ====================== FRESH VARIABLES ====================== */
 
   // returns all variables bound in this expression
-  def boundVarsInExp(e: Expression): List[String] = {
+  def boundVarsInExp(e: Expression): Set[String] = {
     e match {
       case App(e1, e2) => boundVarsInExp(e1) ++ boundVarsInExp(e2)
       case Plus(e1, e2) => boundVarsInExp(e1) ++ boundVarsInExp(e2)
@@ -217,27 +217,45 @@ def readFile(filename: String): String = {
         boundVarsInExp(condExpr) ++ boundVarsInExp(ifExpr) ++ boundVarsInExp(elseExpr)
       case Inst(t, rec) => boundVarsInExp(rec)
       case InstADT(t, cname, rec) => boundVarsInExp(rec)
-      case Lam(v, t, body) => List(v.id) ++ boundVarsInExp(body)
+      case Lam(v, t, body) => Set(v.id) ++ boundVarsInExp(body)
       case Match(e, c, r) => boundVarsInExp(e) ++ boundVarsInExp(r)
       case Proj(e, name) => boundVarsInExp(e)
       case Record(fields) => 
-        fields.map((s, e) => (s, boundVarsInExp(e))).values.foldLeft(List())( (a: List[String], b: List[String]) => a ++ b)
-      case _ => List()
+        fields.map((s, e) => (s, boundVarsInExp(e))).values.foldLeft(Set())( (a: Set[String], b: Set[String]) => a ++ b)
+      case _ => Set()
+    }
+  }
+  
+  def freeVarsInExp(e: Expression): Set[String] = {
+    e match {
+      case App(e1, e2) => freeVarsInExp(e1) ++ freeVarsInExp(e2)
+      case Plus(e1, e2) => freeVarsInExp(e1) ++ freeVarsInExp(e2)
+      case IfThenElse(condExpr, ifExpr, elseExpr) => 
+        freeVarsInExp(condExpr) ++ freeVarsInExp(ifExpr) ++ freeVarsInExp(elseExpr)
+      case Inst(t, rec) => freeVarsInExp(rec)
+      case InstADT(t, cname, rec) => freeVarsInExp(rec)
+      case Lam(v, t, body) => freeVarsInExp(body) - v.id
+      case Match(e, c, r) => freeVarsInExp(e) ++ freeVarsInExp(r)
+      case Proj(e, name) => freeVarsInExp(e)
+      case Record(fields) => 
+        fields.map((s, e) => (s, freeVarsInExp(e))).values.foldLeft(Set())( (a: Set[String], b: Set[String]) => a ++ b)
+      case _ => Set()
     }
   }
 
-  def freshVar(bound: List[String]): Var = {
-    val alphabet = ('a' to 'z') ++ ('A' to 'Z')
-    val x = "" + alphabet(scala.util.Random.nextInt(52))
-    if (bound.contains(x)) then freshVar(bound)
-    else Var(x)
+  // TODO: Is there a way to avoid mutation?
+  def freshVar(vars: Set[String]): Var = {
+    var id = "x"
+    while (vars.contains(id)) {id += "'"}
+    Var(id)
   }
 
   /* ====================== VARIABLE SUBSTITUTION ====================== */
 
-  // Substitute variable v2 with variable v1 in expression e
+  // Substitute variable v2 with expression v1 in expression e
   // e [v1 / v2]
-  def subVarInExp(e: Expression, v1: Var, v2: Var): Expression = {
+  // TODO: This needs to be tested. Also, should rename 'v1' ideally.
+  def subVarInExp(e: Expression, v1: Expression, v2: Var): Expression = {
     e match {
       case Var(id) => if e == v2 then v1 else e
       case App(e1, e2) => App(subVarInExp(e1, v1, v2), subVarInExp(e2, v1, v2))
@@ -248,10 +266,16 @@ def readFile(filename: String): String = {
         Inst(t, subVarInExp(rec, v1, v2).asInstanceOf[Record])
       case InstADT(t, cname, rec) => 
         InstADT(t, cname, subVarInExp(rec, v1, v2).asInstanceOf[Record])
-      case Lam(v, t, body) => 
-        if (v2 == v) 
-        then Lam(v1, t, subVarInExp(body, v1, v2))
-        else Lam(v, t, subVarInExp(body, v1, v2))
+      case Lam(v, t, body) =>
+        if (v == v2) then e
+        else {
+          val freeVars = freeVarsInExp(v1)
+          if freeVars.contains(v.id) then {
+            val newV = freshVar(freeVars ++ freeVarsInExp(body))
+            val newBody = subVarInExp(body, newV, v)
+            Lam(newV, t, subVarInExp(newBody, v1, v2))
+          } else Lam(v, t, subVarInExp(body, v1, v2))
+        }
       case Match(e, c, r) => 
         Match(subVarInExp(e, v1, v2), c, subVarInExp(r, v1, v2).asInstanceOf[Record])
       case Proj(e, name) => Proj(subVarInExp(e, v1, v2), name)
