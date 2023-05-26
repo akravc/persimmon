@@ -355,7 +355,7 @@ class WFTesting extends AnyFunSuite {
         PersimmonLinkages.p = fam
         val lkg = computeDefLinkage(prog)
         val a = Sp(SelfFamily(prog, "A"))
-        assertResult(wfDef(List(prog.sp, a.sp), lkg)){ false }
+        assertResult(false)(wfDef(List(prog.sp, a.sp), lkg))
     }
 
     test("wf - function") {
@@ -370,7 +370,7 @@ class WFTesting extends AnyFunSuite {
         val lkg = computeDefLinkage(Sp(Prog))
         val prog = Sp(Prog)
         val a = Sp(SelfFamily(prog, "A"))
-        assertResult(wfDef(List(prog.sp, a.sp), lkg)){ true }
+        assertResult(true)(wfDef(List(prog.sp, a.sp), lkg))
     }
 
     test("wf - function call") {
@@ -386,7 +386,7 @@ class WFTesting extends AnyFunSuite {
         val lkg = computeDefLinkage(Sp(Prog))
         val prog = Sp(Prog)
         val a = Sp(SelfFamily(prog, "A"))
-        assertResult(wfDef(List(prog.sp, a.sp), lkg)){ true }
+        assertResult(true)(wfDef(List(prog.sp, a.sp), lkg))
     }
 
     test("wf - cases") {
@@ -402,7 +402,7 @@ class WFTesting extends AnyFunSuite {
         PersimmonLinkages.p = fam
         val lkg = computeDefLinkage(prog)
         val a = Sp(SelfFamily(prog, "A"))
-        assertResult(wfDef(List(prog.sp, a.sp), lkg)){ true }
+        assertResult(true)(wfDef(List(prog.sp, a.sp), lkg))
     }
 
     test("wf - cases ext") {
@@ -425,7 +425,7 @@ class WFTesting extends AnyFunSuite {
         val a = Sp(SelfFamily(prog, "A"))
         val a2 = Sp(SelfFamily(prog, "A2"))
         val lkg = computeDefLinkage(a2)
-        assertResult(wfDef(List(prog.sp, a.sp), lkg)){ true }
+        assertResult(true)(wfDef(List(prog.sp, a.sp), lkg))
     }
 
     test("wf - cases missing def") {
@@ -440,7 +440,7 @@ class WFTesting extends AnyFunSuite {
         PersimmonLinkages.p = fam
         val lkg = computeDefLinkage(prog)
         val a = Sp(SelfFamily(prog, "A"))
-        assertResult(wfDef(List(prog.sp, a.sp), lkg)){ false }
+        assertResult(false)(wfDef(List(prog.sp, a.sp), lkg))
     }
 
     test("wf - cases + match in fun") {
@@ -458,7 +458,7 @@ class WFTesting extends AnyFunSuite {
         PersimmonLinkages.p = fam
         val lkg = computeDefLinkage(prog)
         val a = Sp(SelfFamily(prog, "A"))
-        assertResult(wfDef(List(prog.sp, a.sp), lkg)){ true }
+        assertResult(true)(wfDef(List(prog.sp, a.sp), lkg))
     }
 
     test("wf - cases sugar") {
@@ -475,7 +475,7 @@ class WFTesting extends AnyFunSuite {
         PersimmonLinkages.p = fam
         val lkg = computeDefLinkage(prog)
         val a = Sp(SelfFamily(prog, "A"))
-        assertResult(wfDef(List(prog.sp, a.sp), lkg)){ true }
+        assertResult(true)(wfDef(List(prog.sp, a.sp), lkg))
     }
 
     test("wf - extend type") {
@@ -494,7 +494,7 @@ class WFTesting extends AnyFunSuite {
         val a = Sp(SelfFamily(prog, "A"))
         val c = Sp(SelfFamily(prog, "C"))
         val lkg = computeDefLinkage(c)
-        assertResult(wfDef(List(prog.sp, a.sp), lkg)){ true }
+        assertResult(true)(wfDef(List(prog.sp, a.sp), lkg))
     }
 
 

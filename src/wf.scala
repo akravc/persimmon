@@ -5,7 +5,19 @@ import PrettyPrint.*
 
 
 object PersimmonWF {
-
+  //case class WFException(s: String) extends Exception(s)
+  def hasTypeExcept(K: PathCtx, Gamma: TypingCtx, e: Expression, t: Type): Boolean = {
+    val typeChecks = hasType(K, Gamma, e, t)
+    if (!typeChecks) {
+      val msg = getType(K, Gamma, e) match {
+        case Right(actualType) => s"Type mismatch ${printType(actualType)} vs ${printType(t)}"
+        case Left(msg) => msg
+      }
+      //throw new WFException(msg)
+      println("error: "+msg)
+    }
+    typeChecks
+  }
   // Well-formedness of definitions
   // the top level rule recursively checks 
   // the definition linkage for path prog
@@ -90,7 +102,7 @@ object PersimmonWF {
   def wfTypDefExt(K: PathCtx, td: TypeDefn, dd: DefaultDefn): Boolean = {
     wfType(K, td.typeBody) && dd.defaultBody.fields.forall { (name, e) =>
       td.typeBody.fields.contains(name) &&
-      hasType(K, Map(), e, td.typeBody.fields(name))
+      hasTypeExcept(K, Map(), e, td.typeBody.fields(name))
     }
   }
 
@@ -102,7 +114,7 @@ object PersimmonWF {
   // well-formedness of functions
   def wfFunDef(K: PathCtx, fd: FunDefn): Boolean = {
     val typeWF = wfType(K, fd.t)
-    val bodyWF = hasType(K, Map(), fd.funBody, fd.t)
+    val bodyWF = hasTypeExcept(K, Map(), fd.funBody, fd.t)
 
     typeWF && bodyWF
   }
@@ -112,7 +124,7 @@ object PersimmonWF {
     val L_S = computeTypLinkage(cd.matchType.path.get);
     val matchTypeExists = L_S.adts.contains(cd.matchType.name)
     val typeWF = wfType(K, cd.t)
-    val bodyWT = hasType(K, Map(), cd.casesBody, cd.t)
+    val bodyWT = hasTypeExcept(K, Map(), cd.casesBody, cd.t)
     val validPath = cd.matchType.path match
       case None => false
       case Some(p) => wfPath(K, p)
