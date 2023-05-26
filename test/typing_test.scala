@@ -222,74 +222,74 @@ class TypecheckerTesting extends AnyFunSuite {
     val emptyG: Map[String, Type] = Map()
 
     test("typing - getType: nat") {
-        assertResult(Some(NType)){getType(emptyK, emptyG, NExp(5))}
+        assertResult(Right(NType)){getType(emptyK, emptyG, NExp(5))}
     }
 
     test("typing - getType: bool") {
-        assertResult(Some(BType)){getType(emptyK, emptyG, BExp(true))}
-        assertResult(Some(BType)){getType(emptyK, emptyG, BExp(false))}
+        assertResult(Right(BType)){getType(emptyK, emptyG, BExp(true))}
+        assertResult(Right(BType)){getType(emptyK, emptyG, BExp(false))}
     }
 
     test("typing - getType: var") {
-        assertResult(Some(NType)){getType(emptyK, Map("x"->NType), (Var("x")))}
+        assertResult(Right(NType)){getType(emptyK, Map("x"->NType), (Var("x")))}
     }
 
     test("typing - getType: var none") {
-        assertResult(None){getType(emptyK, emptyG, Var("x"))}
+        assertResult(Left("Variable x is unbound")){getType(emptyK, emptyG, Var("x"))}
     }
 
     test("typing - getType: lam") {
-        assertResult(Some(FunType(BType, NType))){
+        assertResult(Right(FunType(BType, NType))){
         getType(emptyK, emptyG, Lam(Var("x"), BType, NExp(5)))
         }
     }
 
     test("typing - getType: lam identity") {
-        assertResult(Some(FunType(BType, BType))){
+        assertResult(Right(FunType(BType, BType))){
         getType(emptyK, emptyG, Lam(Var("x"), BType, Var("x")))
         }
     }
 
     test("typing - getType: app") {
-        assertResult(Some(NType)){
+        assertResult(Right(NType)){
         getType(emptyK, emptyG, App(Lam(Var("x"), BType, NExp(5)), BExp(true)))
         }
     }
 
     test("typing - getType: app improper") {
-        assertResult(None){ getType(emptyK, emptyG, App(Var("x"), BExp(true)))}
+        assertResult(Left("Variable x is unbound")){ getType(emptyK, emptyG, App(Var("x"), BExp(true)))}
     }
 
     test("typing - getType: rec") {
-        assertResult(Some(RecordType(Map("f"->BType, "p"->NType)))){
+        assertResult(Right(RecordType(Map("f"->BType, "p"->NType)))){
         getType(emptyK, emptyG, Record(Map("f"->BExp(true), "p"->NExp(4))))
         }
     }
 
     test("typing - getType: rec improper") {
-        assertResult(None){ 
+        assertResult(Left("Type N is not a function type in expression (4 true)")){ 
             getType(emptyK, emptyG, Record(Map("f"->BExp(true), "p"->App(NExp(4), BExp(true)))))
         }
     }
 
     test("typing - getType: rec empty") {
-        assertResult(Some(RecordType(Map()))){getType(emptyK, emptyG, Record(Map()))}
+        assertResult(Right(RecordType(Map()))){getType(emptyK, emptyG, Record(Map()))}
     }
 
     test("typing - getType: proj") {
-        assertResult(Some(NType)){
+        assertResult(Right(NType)){
         getType(emptyK, emptyG, Proj(Record(Map("f"->BExp(true), "p"->NExp(4))), "p"))
         }
     }
 
     test("typing - getType: proj field absent") {
-        assertResult(None){
+        assertResult(Left("Missing field g")){
         getType(emptyK, emptyG, Proj(Record(Map("f"->BExp(true), "p"->NExp(4))), "g"))}
     }
 
     test("typing - getType: proj from not record") {
-        assertResult(None){
-        getType(emptyK, emptyG, Proj(Var("x"), "x"))}
+        assertResult(Left("Cannot project from type N")){
+        getType(emptyK, emptyG, Proj(NExp(1), "x"))}
     }
 
     // self(A).m : (B -> N) = lam (x: B). 5
@@ -303,7 +303,7 @@ class TypecheckerTesting extends AnyFunSuite {
             """.stripMargin
         assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
-        assertResult(Some(FunType(BType, NType))){
+        assertResult(Right(FunType(BType, NType))){
         getType(List(Prog, self_a), emptyG, FamFun(Some(Sp(self_a)), "m"))
         }
     }
@@ -319,7 +319,7 @@ class TypecheckerTesting extends AnyFunSuite {
             """.stripMargin
         assert(canParse(TestParser.pProgram, fam))
         PersimmonLinkages.p = fam
-        assertResult(None){
+        assertResult(Left("Linkage missing m in expression self(<>.A).m")){
             getType(List(Prog, self_a), emptyG, FamFun(Some(Sp(self_a)), "m"))
         }
     }

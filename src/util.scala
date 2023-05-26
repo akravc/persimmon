@@ -385,3 +385,52 @@ def readFile(filename: String): String = {
     }
   }
 }
+
+object MapOps {
+  def right[A,B](x: Either[A,B]): B = x match {
+    case Right(v) => v
+    case Left(v) => throw Exception(s"unexpected left $x")
+  }
+  def traverseWithKeyMap[K, V, E, W](m: Map[K, V])(f: (K, V) => Either[E, W]): Either[E, Map[K, W]] = {
+    val kvpList: List[(K, V)] = m.toList
+    kvpList.foldLeft(Right(List.empty[(K, W)]).withLeft[E]) {
+      case (a, (curKey, curVal)) => for {
+        accList <- a
+        curValApplied <- f(curKey, curVal)
+      } yield (curKey, curValApplied) :: accList
+    }.map(_.toMap)
+  }
+  def traverseMap[K, V, E, W](m: Map[K, V])(f: V => Either[E, W]): Either[E, Map[K, W]] = {
+    traverseWithKeyMap(m)((_: K, v: V) => f(v))
+  }
+  
+  def unionWithM[K, V, E](m1: Map[K, V], m2: Map[K, V])(f: (V, V) => Either[E, V])(implicit ordK: Ordering[K]): Either[E, Map[K, V]] = {
+    m2.toList.foldLeft(Right(m1).withLeft[E]) {
+      case (eAccMap, (curK, curV)) => for {
+        accMap <- eAccMap
+        result <- (accMap.get(curK) match {
+          case None => Right(curV)
+          case Some(existingV) => f(existingV, curV)
+        }).map(resultV => accMap + (curK -> resultV))
+      } yield result
+    }
+  }
+}
+
+object OptionOps {
+  def firstSome[T](opt1: Option[T], opt2: => Option[T]): Option[T] = opt1 match {
+    case None => opt2
+    case Some(_) => opt1
+  }
+  def lastSome[T](opt1: => Option[T], opt2: Option[T]): Option[T] = opt2 match {
+    case None => opt1
+    case Some(_) => opt2
+  }
+}
+
+object ListOps {
+  def eitherFromList[A, B](s: List[Either[A, B]]): Either[A, List[B]] =
+    s.foldRight(Right(Nil): Either[A, List[B]]) {
+      (e, acc) => for (xs <- acc; x <- e) yield x :: xs
+    }
+}
