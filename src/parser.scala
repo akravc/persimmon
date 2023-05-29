@@ -503,7 +503,11 @@ object TestParser extends PersimmonParser {
     // correct function calls parsed as variable names
     val resolved = resolveFunCalls(filled)
     // unfold wildcards in cases
-    unfoldWildcards(resolved)
+    val unfolded = unfoldWildcards(resolved)
+
+    // update the program with all pre-processing
+    PersimmonProgram.set(unfolded, PersimmonProgram.exp)
+    unfolded
   }
 
   def convertDefToTyp(lkg: DefinitionLinkage): TypingLinkage = {

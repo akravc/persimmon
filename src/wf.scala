@@ -5,6 +5,20 @@ import PrettyPrint.*
 
 
 object PersimmonWF {
+
+  def wfProg(lkg: DefinitionLinkage, e: Option[Expression]): Boolean = {
+    val K: PathCtx = List(Prog)
+    val G: TypingCtx = Map()
+    if (!wfDef(K, lkg)) then false 
+    else {
+      e match
+        case None => true
+        case Some(mainExp) => getType(K, G, mainExp) match
+            case Left(msg) => println("error: "+msg); false
+            case Right(value) => true
+    }
+  }
+
   //case class WFException(s: String) extends Exception(s)
   def hasTypeExcept(K: PathCtx, Gamma: TypingCtx, e: Expression, t: Type): Boolean = {
     val typeChecks = hasType(K, Gamma, e, t)

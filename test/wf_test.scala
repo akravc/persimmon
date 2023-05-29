@@ -12,6 +12,30 @@ import java.io.File
 class WFTesting extends AnyFunSuite {
     val prog = Sp(Prog)
 
+    /*===================== MAIN EXPRESSION TESTS =====================*/
+
+    test("wf - ex: abcode_main") {
+        val p = readFile("res/abcode_main")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(true)(wfProg(lkg, PersimmonProgram.exp))
+    }
+
+    test("wf - ex: default_main") {
+        val p = readFile("res/default_main")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(true)(wfProg(lkg, PersimmonProgram.exp))
+    }
+
+    test("wf - ex: even_odd_main") {
+        val p = readFile("res/even_odd_main")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(true)(wfProg(lkg, PersimmonProgram.exp))
+    }
+
+
     /*===================== LARGE & PAPER EXAMPLES =====================*/
 
     test("wf - ex: peano") {
