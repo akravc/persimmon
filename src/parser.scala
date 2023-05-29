@@ -469,10 +469,13 @@ class PersimmonParser extends RegexParsers with PackratParsers {
   }
 
   lazy val pProgram: PackratParser[DefinitionLinkage] =
-    (rep(pMixDef(Prog) | pFamDef(Prog))) ^^ { case famsDefns =>
+    (rep(pMixDef(Prog) | pFamDef(Prog)) ~ (pExp).?) ^^ { case (famsDefns~oe) =>
       val fams = famsDefns.flatMap {(name, famsDefn) => famsDefn.linkages}
       if hasDuplicateName(fams) then throw new Exception("Parsing duplicate family names.")
-      DefinitionLinkage(Sp(Prog), None, Map(), Map(), Map(), Map(), Map(), fams.toMap)
+      val deflink = DefinitionLinkage(Sp(Prog), None, Map(), Map(), Map(), Map(), Map(), fams.toMap)
+
+      PersimmonProgram.set(deflink, oe)
+      deflink
     }
 
   // Simple preprocessing to remove eol comments

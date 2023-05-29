@@ -1,4 +1,6 @@
 import scala.annotation.tailrec
+import PersimmonSyntax.DefinitionLinkage
+import PersimmonSyntax.Expression
 
 object PersimmonSyntax {
   /* ======================== FAMILIES & PATHS ======================== */
@@ -228,4 +230,21 @@ object PersimmonSyntax {
 
     type TypingCtx = Map[String, Type] // Gamma
     type PathCtx = List[SelfPath] // K
+}
+
+object PersimmonProgram {
+
+  // the linkage for path prog
+  private var linkage: DefinitionLinkage = null
+
+  // the main expression
+  private var mainExpression: Option[Expression] = None
+
+  def lkg = linkage
+  def exp = mainExpression
+
+  def set(l: DefinitionLinkage, oe: Option[Expression]) = {
+    linkage = l
+    mainExpression = oe
+  }
 }
