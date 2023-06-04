@@ -8,6 +8,7 @@ object PersimmonTyping {
   def getType(K: PathCtx, Gamma: TypingCtx, e: Expression): Either[String,Type] = e match {
     case NExp(n) => Right(NType)
     case BExp(b) => Right(BType)
+    case StrExp(s) => Right(StrType)
     case Var(id) => Gamma.get(id).fold(Left(s"Variable $id is unbound"))(Right.apply)
     case Lam(v, t, b) =>
       if wfType(K, t) then
@@ -44,7 +45,26 @@ object PersimmonTyping {
         case Right(t2) => Left(s"Expected type N, got ${printType(t2)} for expression ${printExp(e2)} in expression ${printExp(e)}")
         case Left(msg) => Left(msg)
       }
+      case Right(StrType) => getType(K, Gamma, e2) match {
+        case Right(StrType) => Right(StrType)
+        case Right(t2) => Left(s"Expected type Str, got ${printType(t2)} for expression ${printExp(e2)} in expression ${printExp(e)}")
+        case Left(msg) => Left(msg)
+      }
       case Right(t1) => Left(s"Expected type N, got ${printType(t1)} for expression ${printExp(e1)} in expression ${printExp(e)}")
+      case Left(msg) => Left(msg)
+    }
+    case Mul(e1, e2) => getType(K, Gamma, e1) match {
+      case Right(NType) => getType(K, Gamma, e2) match {
+        case Right(NType) => Right(NType)
+        case Right(t2) => Left(s"Expected type N, got ${printType(t2)} for expression ${printExp(e2)} in expression ${printExp(e)}")
+        case Left(msg) => Left(msg)
+      }
+      case Right(t1) => Left(s"Expected type N, got ${printType(t1)} for expression ${printExp(e1)} in expression ${printExp(e)}")
+      case Left(msg) => Left(msg)
+    }
+    case Neg(e) => getType(K, Gamma, e) match {
+      case Right(NType) => Right(NType)
+      case Right(t1) => Left(s"Expected type N, got ${printType(t1)} for expression ${printExp(e)}")
       case Left(msg) => Left(msg)
     }
     case Record(fields) => 

@@ -17,14 +17,16 @@
 - [x] (Ana) add matcherr example to this impl
 - [x] (Ana) add wf paths relation
 - [x] (Ana) sugar existing mixin test examples
-- [ ] STLC example: fix internal TODOs
-- [ ] (Ana) add typing of programs function
+- [x] (Ana) add typing of programs function
 - [ ] (Ana) parse A and .A differently for paths (fully absolute vs full self-prefix)
 - [ ] (Ana) add wf checking of paths in typing etc
 - [ ] (Ana) fix test examples that have strings
-- [ ] (Ana) put in parsing for top-level main
+- [x] (Ana) put in parsing for top-level main
 - [ ] (Ana) no overriding for types, allow overriding of single cases & child takes precedence
+- [x] add eval examples from paper
+- [x] add strings, concat, mul, neg to make eval examples work
 
-- [ ] (Jonas) Implement mixin encoding
-- [ ] (Jonas) Think about problematic examples
-- [ ] (Jonas) operational semantics
+
+- [x] (Jonas) Implement mixin encoding
+- [x] (Jonas) Think about problematic examples
+- [x] (Jonas) operational semantics

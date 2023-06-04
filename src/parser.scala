@@ -32,7 +32,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
   val kwExtends: Parser[String] = "extends\\b".r
   val kwN: Parser[String] = "N\\b".r
   val kwB: Parser[String] = "B\\b".r
-  val kwString: Parser[String] = "String\\b".r
+  val kwStr: Parser[String] = "Str\\b".r
   val kwSelf: Parser[String] = "self\\b".r
   val kwCases: Parser[String] = "cases\\b".r
   val kwIf: Parser[String] = "if\\b".r
@@ -42,7 +42,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
   val kwCase: Parser[String] = "case\\b".r
 
   val reserved: Parser[String] = kwMatch | kwWith | kwTrue | kwFalse 
-    | kwLam | kwType | kwVal | kwFamily | kwExtends | kwN | kwB | kwString 
+    | kwLam | kwType | kwVal | kwFamily | kwExtends | kwN | kwB | kwStr
     | kwSelf | kwCases | kwIf | kwThen | kwElse | kwDef | kwCase
 
   // NAMES
@@ -60,6 +60,9 @@ class PersimmonParser extends RegexParsers with PackratParsers {
     not(reserved) ~> """(([a-z0-9])+)|(([A-Z][a-zA-Z0-9_]*)+)|_""".r
   lazy val pConstructorName: Parser[String] = 
     not(reserved) ~> """[A-Z][a-zA-Z0-9_]*""".r
+  lazy val pString: Parser[String] = 
+    not(reserved) ~> """[^\"]*""".r
+
 
   // FAMILY PATHS
   lazy val pPath: PackratParser[Path] =
@@ -110,6 +113,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
 
   lazy val pNType: PackratParser[Type] = kwN ^^^ NType
   lazy val pBType: PackratParser[Type] = kwB ^^^ BType
+  lazy val pStrType: PackratParser[Type] = kwStr ^^^ StrType
 
   // separate parser for record field definition with defaults
   lazy val pDefaultRecField: PackratParser[(String, (Type, Option[Expression]))] =
@@ -127,7 +131,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
   }
 
   lazy val pType: PackratParser[Type] = pFunType | pRecType | pNType | pBType 
-    | pFamType | between("(", ")", pType)
+    | pStrType | pFamType | between("(", ")", pType)
 
   // ADTS
   lazy val pAdtConstructor: PackratParser[(String, RecordType)] = pConstructorName ~ pRecType ^^ { case k ~ v => k -> v }
@@ -142,6 +146,9 @@ class PersimmonParser extends RegexParsers with PackratParsers {
   // EXPRESSIONS
   lazy val pExpBool: PackratParser[BExp] = kwTrue ^^^ BExp(true) | kwFalse ^^^ BExp(false)
   lazy val pExpNat: PackratParser[NExp] = """(0|[1-9]\d*)""".r ^^ { n => NExp(n.toInt) }
+
+  lazy val pExpStr: PackratParser[StrExp] = 
+    between("\"", "\"", pString) ^^ {s => StrExp(s)}
 
   lazy val pExpIfThenElse: PackratParser[IfThenElse] =
     (kwIf ~> pExp) ~ (kwThen ~> pExp) ~ (kwElse ~> pExp) ^^ {
@@ -161,6 +168,9 @@ class PersimmonParser extends RegexParsers with PackratParsers {
 
   lazy val pExpApp: PackratParser[App] = pExp ~ pExp ^^ { case e~g => App(e, g) }
   lazy val pExpPlus: PackratParser[Plus] = pExp ~ "+" ~ pExp ^^ { case e~_~g => Plus(e, g) }
+  lazy val pExpMul: PackratParser[Mul] = pExp ~ "*" ~ pExp ^^ { case e~_~g => Mul(e, g) }
+  lazy val pExpNeg: PackratParser[Neg] = "-" ~> pExp ^^ { case e => Neg(e) }
+
   lazy val pExpProj: PackratParser[Proj] = pExp ~ "." ~ pFieldName ^^ {case e~_~n => Proj(e, n)}
   lazy val pFieldVal: PackratParser[(String, Expression)] = pFieldName ~ "=" ~ pExp ^^ {case k~_~v => k -> v}
   lazy val pExpRec: PackratParser[Record] = "{"~> repsep(pFieldVal, ",") <~"}" ^^ {
@@ -184,11 +194,14 @@ class PersimmonParser extends RegexParsers with PackratParsers {
     }
 
   lazy val pExp: PackratParser[Expression] = 
-    pExpProj | pExpMatch | pExpInstAdt | pExpInst | pExpApp | pExpPlus | pExpRec
+    pExpProj | pExpMatch | pExpInstAdt | pExpInst | pExpApp | pExpPlus
+    | pExpMul | pExpNeg
+    | pExpRec
     | pExpExtendedApp
     | pExpIfThenElse | pExpLam | pExpBool | pExpNat
     | pExpFamFun | pExpFamCases
     | pExpVar
+    | pExpStr
     | between("(", ")", pExp)
 
   // MARKERS
@@ -222,6 +235,8 @@ class PersimmonParser extends RegexParsers with PackratParsers {
       case Lam(v, t, body) => Lam(v, t, f(body))
       case App(e1, e2) => App(f(e1), f(e2))
       case Plus(e1, e2) => Plus(f(e1), f(e2))
+      case Mul(e1, e2) => Mul(f(e1), f(e2))
+      case Neg(e) => Neg(f(e))
       case Record(fields) => Record(fields.mapValues(f).toMap)
       case Proj(e, name) => Proj(f(e), name)
       case Inst(t, rec) => Inst(t, f(rec).asInstanceOf[Record])

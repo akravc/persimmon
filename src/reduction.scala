@@ -8,6 +8,7 @@ object PersimmonReduction {
   def reduce(K: PathCtx, e: Expression): Option[Expression] = e match {
     case NExp(n) => None
     case BExp(b) => None
+    case StrExp(s) => None
     case Var(id) => throw Exception("Expression evaluated to unbound variable")
     case Lam(v, t, body) => None
     case FamFun(path, name) => {
@@ -37,8 +38,32 @@ object PersimmonReduction {
             case NExp(n2) => Some(NExp(n1+n2))
             case _ => throw Exception("Right side of plus did not reduce to natural number")
           }
-          case _ => throw Exception("Left side of plus did not reduce to natural number")
+          case StrExp(s1) => e2 match {
+            case StrExp(s2) => Some(StrExp(s1+s2))
+            case _ => throw Exception("Right side of plus did not reduce to a string")
+          }
+          case _ => throw Exception("Left side of plus did not reduce to natural number or string")
         }
+      }
+    }
+    case Mul(e1, e2) => reduce(K, e1) match {
+      case Some(e1Prime) => Some(Mul(e1Prime, e2))
+      case None => reduce(K, e2) match {
+        case Some(e2Prime) => Some(Mul(e1, e2Prime))
+        case None => e1 match {
+          case NExp(n1) => e2 match {
+            case NExp(n2) => Some(NExp(n1*n2))
+            case _ => throw Exception("Right side of mul did not reduce to natural number")
+          }
+          case _ => throw Exception("Left side of mul did not reduce to natural number")
+        }
+      }
+    }
+    case Neg(e) => reduce(K, e) match {
+      case Some(ePrime) => Some(Neg(ePrime))
+      case None => e match {
+        case NExp(n) => Some(NExp(-n))
+        case _ => throw Exception("Expression in Neg did not reduce to natural number")
       }
     }
     case Record(fields) => {

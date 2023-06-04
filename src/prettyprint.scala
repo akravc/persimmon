@@ -22,6 +22,7 @@ object PrettyPrint {
     t match {
       case NType => "N"
       case BType => "B"
+      case StrType => "Str"
       case FunType(a, b) => "(" + printType(a) + " -> " + printType(b) + ")"
       case PathType(path, n) => path.map(printPath).getOrElse("None") + "." + n
       case RecordType(fields) =>
@@ -43,12 +44,15 @@ object PrettyPrint {
     e match {
       case NExp(n) => ""+ n
       case BExp(b) => ""+ b
+      case StrExp(s) => s
       case Var(id) => id
       case Lam(v, t, body) => "lam (" + printExp(v) + ": " + printType(t) + "). " + printExp(body)
       case FamFun(p, n) => p.map(printPath).getOrElse("None") + "." + n
       case FamCases(p, n) => "<" + p.map(printPath).getOrElse("None") + "." + n + ">"
       case App(e, g) => "(" + printExp(e) + " " + printExp(g) + ")"
       case Plus(e, g) => "(" + printExp(e) + "+" + printExp(g) + ")"
+      case Mul(e, g) => "(" + printExp(e) + "*" + printExp(g) + ")"
+      case Neg(e) => "(-" + printExp(e) + ")"
       case Record(fields) =>
         val printmap = fields.map{case (f, e) =>
           if ((f, e) == fields.last) then f + " = " + printExp(e)

@@ -63,6 +63,7 @@ object PersimmonSyntax {
   sealed trait Type
   case object NType extends Type // N
   case object BType extends Type // B
+  case object StrType extends Type // Str
   case class PathType(path: Option[Path], name: String) extends Type // a.R
   case class FunType(input: Type, output: Type) extends Type // T -> T'
   case class RecordType(fields: Map[String, Type]) extends Type // {(f: T)*}
@@ -86,12 +87,15 @@ object PersimmonSyntax {
   sealed trait Expression 
   case class NExp(n: Int) extends Expression // n
   case class BExp(b: Boolean) extends Expression // b
+  case class StrExp(s: String) extends Expression // s
   case class Var(id: String) extends Expression // x
   case class Lam(v: Var, t: Type, body: Expression) extends Expression // lam (x: T). body
   case class FamFun(path: Option[Path], name: String) extends Expression // a.m
   case class FamCases(path: Option[Path], name: String) extends Expression // a.r
   case class App(e1: Expression, e2: Expression) extends Expression // e g
   case class Plus(e1: Expression, e2: Expression) extends Expression // e + g
+  case class Mul(e1: Expression, e2: Expression) extends Expression // e * g
+  case class Neg(e: Expression) extends Expression // -e
   case class Record(fields: Map[String, Expression]) extends Expression // {(f = e)*}
   case class Proj(e: Expression, name: String) extends Expression // e.f
   case class Inst(t: PathType, rec: Record) extends Expression // a.R({(f = e)*})
@@ -219,6 +223,7 @@ object PersimmonSyntax {
   def isValue(e: Expression): Boolean = e match {
     case NExp(n) => true
     case BExp(b) => true
+    case StrExp(s) => true
     case Lam(v, t, body) => true
     case Inst(t, rec) => rec.fields.forall { case (_, exp) => isValue(exp) }
     case InstADT(t, cname, rec) => rec.fields.forall { case (_, exp) => isValue(exp) }

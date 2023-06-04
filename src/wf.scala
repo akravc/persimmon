@@ -216,6 +216,7 @@ object PersimmonWF {
   def wfType(K: PathCtx, t: Type): Boolean = t match {
     case NType => true
     case BType => true
+    case StrType => true
     case FunType(input, output) => wfType(K, input) && wfType(K, output)
     case PathType(path, name) =>
       if !wfPath(K, path.get) then false else {

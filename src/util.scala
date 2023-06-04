@@ -131,6 +131,8 @@ def unfoldWildcardsInCasesDefn(lkg: DefinitionLinkage, cd: CasesDefn): CasesDefn
     e match {
       case App(e1, e2) => App(subPathInExp(e1, p1, p2), subPathInExp(e2, p1, p2))
       case Plus(e1, e2) => Plus(subPathInExp(e1, p1, p2), subPathInExp(e2, p1, p2))
+      case Mul(e1, e2) => Mul(subPathInExp(e1, p1, p2), subPathInExp(e2, p1, p2))
+      case Neg(e) => Neg(subPathInExp(e, p1, p2))
       case FamCases(path, name) => 
         path match {
           case Some(p) => FamCases(Some(subPathInPath(p, p1, p2)), name)
@@ -213,6 +215,8 @@ def readFile(filename: String): String = {
     e match {
       case App(e1, e2) => boundVarsInExp(e1) ++ boundVarsInExp(e2)
       case Plus(e1, e2) => boundVarsInExp(e1) ++ boundVarsInExp(e2)
+      case Mul(e1, e2) => boundVarsInExp(e1) ++ boundVarsInExp(e2)
+      case Neg(e) => boundVarsInExp(e)
       case IfThenElse(condExpr, ifExpr, elseExpr) => 
         boundVarsInExp(condExpr) ++ boundVarsInExp(ifExpr) ++ boundVarsInExp(elseExpr)
       case Inst(t, rec) => boundVarsInExp(rec)
@@ -230,6 +234,8 @@ def readFile(filename: String): String = {
     e match {
       case App(e1, e2) => freeVarsInExp(e1) ++ freeVarsInExp(e2)
       case Plus(e1, e2) => freeVarsInExp(e1) ++ freeVarsInExp(e2)
+      case Mul(e1, e2) => freeVarsInExp(e1) ++ freeVarsInExp(e2)
+      case Neg(e) => freeVarsInExp(e)
       case IfThenElse(condExpr, ifExpr, elseExpr) => 
         freeVarsInExp(condExpr) ++ freeVarsInExp(ifExpr) ++ freeVarsInExp(elseExpr)
       case Inst(t, rec) => freeVarsInExp(rec)
@@ -260,6 +266,8 @@ def readFile(filename: String): String = {
       case Var(id) => if e == v2 then v1 else e
       case App(e1, e2) => App(subVarInExp(e1, v1, v2), subVarInExp(e2, v1, v2))
       case Plus(e1, e2) => Plus(subVarInExp(e1, v1, v2), subVarInExp(e2, v1, v2))
+      case Mul(e1, e2) => Mul(subVarInExp(e1, v1, v2), subVarInExp(e2, v1, v2))
+      case Neg(e) => Neg(subVarInExp(e, v1, v2))
       case IfThenElse(condExpr, ifExpr, elseExpr) => 
         IfThenElse(subVarInExp(condExpr, v1, v2), subVarInExp(ifExpr, v1, v2), subVarInExp(elseExpr, v1, v2))
       case Inst(t, rec) => 
@@ -311,6 +319,8 @@ def readFile(filename: String): String = {
       case App(e1, e2) => 
         App(resolveFunCallsInExp(e1, sp, bound), resolveFunCallsInExp(e2, sp, bound))
       case Plus(e1, e2) => Plus(resolveFunCallsInExp(e1, sp, bound), resolveFunCallsInExp(e2, sp, bound))
+      case Mul(e1, e2) => Mul(resolveFunCallsInExp(e1, sp, bound), resolveFunCallsInExp(e2, sp, bound))
+      case Neg(e) => Neg(resolveFunCallsInExp(e, sp, bound))
       case Record(fields) => 
         Record(fields.map( (s, ex) => (s, resolveFunCallsInExp(ex, sp, bound))))
       case Proj(e, name) => Proj(resolveFunCallsInExp(e, sp, bound), name)
@@ -373,6 +383,8 @@ def readFile(filename: String): String = {
         if (path == None) then FamCases(Some(p), name) else e
       case App(e1, e2) => App(fillNonePathsInExp(e1, p), fillNonePathsInExp(e2, p))
       case Plus(e1, e2) => Plus(fillNonePathsInExp(e1, p), fillNonePathsInExp(e2, p))
+      case Mul(e1, e2) => Mul(fillNonePathsInExp(e1, p), fillNonePathsInExp(e2, p))
+      case Neg(e) => Neg(fillNonePathsInExp(e, p))
       case Record(fields) => 
         Record(fields.map{(s, d) => (s, fillNonePathsInExp(d, p))})
       case Proj(r, name) => Proj(fillNonePathsInExp(r, p), name)

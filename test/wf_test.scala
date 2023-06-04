@@ -14,6 +14,19 @@ class WFTesting extends AnyFunSuite {
 
     /*===================== MAIN EXPRESSION TESTS =====================*/
 
+    test("wf - ex: eval_ood") {
+        val p = readFile("res/eval_ood")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(true)(wfProg(lkg, PersimmonProgram.exp))
+    }
+    test("wf - ex: eval_cp") {
+        val p = readFile("res/eval_cp")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(true)(wfProg(lkg, PersimmonProgram.exp))
+    }
+
     test("wf - ex: abcode_main") {
         val p = readFile("res/abcode_main")
         PersimmonLinkages.p = p
