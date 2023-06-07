@@ -9,30 +9,31 @@ Mixin BasePlus extends Base {
     type Exp += Plus {l: Exp,r: Exp}
 
     def eval: Exp -> N +=
-        case Plus(l: Exp,r: Exp) = eval(l) + eval(r)
+        case Plus(l: Exp,r: Exp) = (eval(l)) + (eval(r))
 }
 
 Mixin BaseNeg extends Base {
     type Exp += Neg {t: Exp}
 
     def eval: Exp -> N +=
-        case Neg(t: Exp) = - eval(t)
+        case Neg(t: Exp) = - (eval(t))
 }
 
 Family BasePlusNeg extends Base with BasePlus, BaseNeg {}
 
 Mixin ShowPlusNeg extends BasePlusNeg {
+    val toString: N -> Str = lam(n: N). "TODO"
     def show: Exp -> Str =
-        case Num(v: N) = ("" + v)
-        case Plus(l: Exp,r: Exp) = ((show(l) + "+") + show(r))
-        case Neg(t: Exp) = (("-(" + show(t)) + ")")
+        case Num(v: N) = ("" + (toString(v)))
+        case Plus(l: Exp,r: Exp) = (((show(l)) + "+") + (show(r)))
+        case Neg(t: Exp) = (("-(" + (show(t))) + ")")
 }
 
 Mixin DblePlusNeg extends BasePlusNeg {
     def dble: Exp -> Exp =
-        case Num(v: N) = Num({v = v * v})
-        case Plus(l: Exp, r: Exp) = Plus({l = dble(l), r = dble(r)})
-        case Neg(t: Exp) = Neg({t = dble(t)})
+        case Num(v: N) = self(DblePlusNeg).Exp(Num{v = v * v})
+        case Plus(l: Exp, r: Exp) = self(DblePlusNeg).Exp(Plus{l = dble(l), r = dble(r)})
+        case Neg(t: Exp) = self(DblePlusNeg).Exp(Neg{t = dble(t)})
 }
 
 Family ShowDblePlusNeg extends BasePlusNeg with ShowPlusNeg, DblePlusNeg {}

@@ -38,7 +38,7 @@ object PersimmonLinkages {
       programTypLinkage = parseProgramTypLink(p)
       programTypLinkage
     } else {
-      throw new Exception("L-Prog-Def: Cannot parse the program.")
+      throw new Exception("L-Prog-Def: Cannot parse the program: "+parse0(pProgram, p))
     }
   }
 
@@ -51,7 +51,7 @@ object PersimmonLinkages {
       programDefLinkage = parseProgramDefLink(p)
       programDefLinkage
     } else {
-      throw new Exception("L-Prog-Def: Cannot parse the program.")
+      throw new Exception("L-Prog-Def: Cannot parse the program: "+parse0(pProgram, p))
     }
   }
 

@@ -1,26 +1,27 @@
 Family Base {
-    type Exp = Lit {n: Int} | Add {e1: Exp, e2: Exp}
+    type Exp = Lit {n: N} | Add {e1: Exp, e2: Exp}
 
-    def evalNum: Exp -> Int =
-        case Lit (n: Int) = n
-        case Add (e1: Exp, e2: Exp) = evalNum(e1) + evalNum(e2)
+    def evalNum: Exp -> N =
+        case Lit (n: N) = n
+        case Add (e1: Exp, e2: Exp) = (evalNum(e1)) + (evalNum(e2))
 }
 
 Mixin Print extends Base {
+    val toString: N -> Str = lam(n: N). "TODO"
     def printNum: Exp -> Str = 
-        case Lit (n: Int) = "" + n 
+        case Lit (n: N) = "" + (toString(n)) 
         case Add (e1: Exp, e2: Exp) = 
-            "(" + printNum(e1) + "+" + printNum(e2) + ")"
+            "(" + (printNum(e1)) + "+" + (printNum(e2)) + ")"
 }
 Family BasePrint extends Base with Print {}
 
 Family BasePrintMul extends BasePrint {
     type Exp += Mul {e1: Exp, e2: Exp}
 
-    def evalNum: Exp -> Int += 
-        case Mul(e1: Exp, e2: Exp) = evalNum(e1) * evalNum(e2)
+    def evalNum: Exp -> N += 
+        case Mul(e1: Exp, e2: Exp) = (evalNum(e1)) * (evalNum(e2))
         
     def printNum: Exp -> Str += 
         case Mul(e1: Exp, e2: Exp) = 
-            "(" + printNum(e1) + "*" + printNum(e2) + ")"
+            "(" + (printNum(e1)) + "*" + (printNum(e2)) + ")"
 }
