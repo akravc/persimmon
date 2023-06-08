@@ -81,7 +81,27 @@ object PersimmonReduction {
       case Some(ePrime) => Some(Proj(ePrime, name))
       case None => e match {
         case Record(fields) => Some(fields(name))
-        case Inst(t, rec) => Some(rec.fields(name))
+        case Inst(t, rec) => 
+          if (rec.fields.contains(name)) {
+            Some(rec.fields(name))
+          } else {
+            // retrieve default
+            val path = t.path.get
+            if (!wfPath(K, path)) then None
+            else {
+              val lkg = computeDefLinkage(path)
+              if (lkg.defaults.contains(t.name)) {
+                val defrec = lkg.defaults(t.name).defaultBody.fields
+                if (defrec.contains(name)) {
+                  Some(defrec(name))
+                } else {
+                  throw Exception("No default for field " + name)
+                }
+              } else {
+                throw Exception("No defaults for type " + t.name)
+              }
+            }
+          }
         case _ => throw Exception("Record did not fully reduce")
       }
     }

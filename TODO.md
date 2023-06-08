@@ -25,6 +25,9 @@
 - [ ] (Ana) no overriding for types, allow overriding of single cases & child takes precedence
 - [x] add eval examples from paper
 - [x] add strings, concat, mul, neg to make eval examples work
+- [x] fix parens in eval examples
+- [ ] implement concat of "" + n
+- [ ] test out op sem
 
 
 - [x] (Jonas) Implement mixin encoding
