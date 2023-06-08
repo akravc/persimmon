@@ -31,9 +31,9 @@ Mixin ShowPlusNeg extends BasePlusNeg {
 
 Mixin DblePlusNeg extends BasePlusNeg {
     def dble: Exp -> Exp =
-        case Num(v: N) = self(DblePlusNeg).Exp(Num{v = v * v})
-        case Plus(l: Exp, r: Exp) = self(DblePlusNeg).Exp(Plus{l = dble(l), r = dble(r)})
-        case Neg(t: Exp) = self(DblePlusNeg).Exp(Neg{t = dble(t)})
+        case Num(v: N) = Exp(Num{v = v * v})
+        case Plus(l: Exp, r: Exp) = Exp(Plus{l = dble(l), r = dble(r)})
+        case Neg(t: Exp) = Exp(Neg{t = dble(t)})
 }
 
 Family ShowDblePlusNeg extends BasePlusNeg with ShowPlusNeg, DblePlusNeg {}
