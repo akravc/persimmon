@@ -194,8 +194,9 @@ class PersimmonParser extends RegexParsers with PackratParsers {
     }
 
   lazy val pExp: PackratParser[Expression] = 
-    pExpProj | pExpMatch | pExpInstAdt | pExpInst | pExpApp | pExpPlus
+    pExpProj | pExpMatch | pExpInstAdt | pExpInst | pExpPlus
     | pExpMul | pExpNeg
+    | pExpApp
     | pExpRec
     | pExpExtendedApp
     | pExpIfThenElse | pExpLam | pExpBool | pExpNat
