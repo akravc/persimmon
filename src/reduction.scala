@@ -40,7 +40,8 @@ object PersimmonReduction {
           }
           case StrExp(s1) => e2 match {
             case StrExp(s2) => Some(StrExp(s1+s2))
-            case _ => throw Exception("Right side of plus did not reduce to a string")
+            case NExp(n2) => Some(StrExp(s1+n2.toString()))
+            case _ => throw Exception("Right side of plus did not reduce to a string or nat")
           }
           case _ => throw Exception("Left side of plus did not reduce to natural number or string")
         }

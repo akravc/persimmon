@@ -47,7 +47,8 @@ object PersimmonTyping {
       }
       case Right(StrType) => getType(K, Gamma, e2) match {
         case Right(StrType) => Right(StrType)
-        case Right(t2) => Left(s"Expected type Str, got ${printType(t2)} for expression ${printExp(e2)} in expression ${printExp(e)}")
+        case Right(NType) => Right(StrType)
+        case Right(t2) => Left(s"Expected type Str or N, got ${printType(t2)} for expression ${printExp(e2)} in expression ${printExp(e)}")
         case Left(msg) => Left(msg)
       }
       case Right(t1) => Left(s"Expected type N, got ${printType(t1)} for expression ${printExp(e1)} in expression ${printExp(e)}")

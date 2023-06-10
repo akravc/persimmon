@@ -26,7 +26,7 @@
 - [x] add eval examples from paper
 - [x] add strings, concat, mul, neg to make eval examples work
 - [x] fix parens in eval examples
-- [ ] implement concat of "" + n
+- [x] implement concat of "" + n
 - [ ] test out op sem
 
 

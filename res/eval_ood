@@ -22,9 +22,8 @@ Mixin BaseNeg extends Base {
 Family BasePlusNeg extends Base with BasePlus, BaseNeg {}
 
 Mixin ShowPlusNeg extends BasePlusNeg {
-    val toString: N -> Str = lam(n: N). "TODO"
     def show: Exp -> Str =
-        case Num(v: N) = "" + (toString v)
+        case Num(v: N) = "" + v
         case Plus(l: Exp,r: Exp) = (show l) + "+" + (show r)
         case Neg(t: Exp) = "-(" + (show t) + ")"
 }

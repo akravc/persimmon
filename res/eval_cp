@@ -7,9 +7,8 @@ Family Base {
 }
 
 Mixin Print extends Base {
-    val toString: N -> Str = lam(n: N). "TODO"
     def printNum: Exp -> Str = 
-        case Lit (n: N) = "" + (toString n)
+        case Lit (n: N) = "" + n
         case Add (e1: Exp, e2: Exp) = 
             "(" + (printNum e1) + "+" + (printNum e2) + ")"
 }
