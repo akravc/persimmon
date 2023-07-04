@@ -47,28 +47,34 @@ object PersimmonWF {
     val selfpath = lkg.self.asInstanceOf[Sp].sp
     
     if ancestors(selfpath).contains(selfpath) then false
+    // TODO: add nested paths check
     else {
       val K_prime = selfpath :: K
       val L_S = computeTypLinkage(Sp(selfpath))
 
-      val exhaustive = exhaustivityCheck(K_prime, L_S)  
+      val sup = L_S.getSuperPath()
 
-      val wfNested = lkg.nested.forall { (_, nested_lkg) => wfDef(K_prime, nested_lkg) }
+      if ((sup != None && wfPath(K, sup.get)) || (sup == None)) {
+      
+        val exhaustive = exhaustivityCheck(K_prime, L_S)  
 
-      val wfTypes = lkg.types.forall { (name, td) =>
-        !lkg.adts.contains(name) && 
-        ( if td.marker == Eq then wfTypDef(K_prime, td)
-          else lkg.defaults.contains(name) && wfTypDefExt(K_prime, td, lkg.defaults(name)))
-      }
+        val wfNested = lkg.nested.forall { (_, nested_lkg) => wfDef(K_prime, nested_lkg) }
 
-      val wfAdts = lkg.adts.forall { (name, adt) => !lkg.types.contains(name) && wfAdtDef(K_prime, adt) }
+        val wfTypes = lkg.types.forall { (name, td) =>
+          !lkg.adts.contains(name) && 
+          ( if td.marker == Eq then wfTypDef(K_prime, td)
+            else lkg.defaults.contains(name) && wfTypDefExt(K_prime, td, lkg.defaults(name)))
+        }
 
-      val wfFuns = lkg.funs.forall { (_, fd) => wfFunDef(K_prime, fd) } 
+        val wfAdts = lkg.adts.forall { (name, adt) => !lkg.types.contains(name) && wfAdtDef(K_prime, adt) }
 
-      val wfCases = lkg.cases.forall { (_, cd) => wfCasesDef(K_prime, cd) }
+        val wfFuns = lkg.funs.forall { (_, fd) => wfFunDef(K_prime, fd) } 
 
-      // definition is WF if all hold
-      exhaustive && wfNested && wfTypes && wfAdts && wfFuns && wfCases
+        val wfCases = lkg.cases.forall { (_, cd) => wfCasesDef(K_prime, cd) }
+
+        // definition is WF if all hold
+        exhaustive && wfNested && wfTypes && wfAdts && wfFuns && wfCases
+      } else false
     }
   }
 
@@ -97,6 +103,13 @@ object PersimmonWF {
       case Some(p) => relativizePath(p) :: ancestors(relativizePath(p))
       case None => return List()
     } 
+  }
+
+  // TODO: this needs more thought. do we need absolute or relative?
+  def nested(p: Path): List[Path] = {
+    val currLkg = computeTypLinkage(p)
+    currLkg.getAllNested()
+    List()
   }
 
   def wfPath(K: PathCtx, p: Path): Boolean = {

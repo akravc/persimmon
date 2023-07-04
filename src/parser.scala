@@ -409,11 +409,29 @@ class PersimmonParser extends RegexParsers with PackratParsers {
     }
   }
 
+  // // Extra notation .A for convenience of extends 
+  // lazy val pAbsoluteExtendsPath: PackratParser[AbsoluteFamily] =
+  //   //"." ~> pFamilyName ^^ { case f => AbsoluteFamily(null, f) }
+  //   pPath ~ ("." ~> pFamilyName) ^^ { case p~f => AbsoluteFamily(p, f) }
+  //   | pFamilyName ^^ { f => AbsoluteFamily(Sp(Prog), f) }
+
+  def fillNulls(selfPrefix: SelfPath, supFam: Option[AbsoluteFamily]): Option[AbsoluteFamily] = {
+    supFam match {
+      case None => None
+      case Some(value) => 
+        if (value.pref == null) then Some(AbsoluteFamily(Sp(selfPrefix), value.fam))
+        else Some(value)
+    }
+  }
+
+  lazy val pAbsoluteDotPath: PackratParser[AbsoluteFamily] =
+    "." ~> pFamilyName ^^ { case f => AbsoluteFamily(null, f) }
+
   // A family can extend another family. If it does not, the parent is None.
   def pFamDef(selfPrefix: SelfPath): PackratParser[(String, FamsDefn)] = {
     for {
       fam <- kwFamily ~> pFamilyName
-      supFam <- (kwExtends ~> pAbsoluteFamPath).?
+      supFam <- (kwExtends ~> (pAbsoluteDotPath | pAbsoluteFamPath)).?
       mixFams <- (kwWith ~> repsep(pAbsoluteFamPath, ",")).?
       auxFams = mixFams match {
         case Some(mixFams) => mixFams.zipWithIndex.map { (mixFam, index) =>
@@ -429,7 +447,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
                 "#Base" -> DefinitionLinkage(
                   Sp(baseSelfPath),
                   if index == 0 then
-                    supFam
+                    fillNulls(selfPrefix, supFam)
                   else
                     Some(
                       AbsoluteFamily(
@@ -448,7 +466,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
       curSelfPath = SelfFamily(Sp(selfPrefix), fam)
       linkage <- pFamBody(
         curSelfPath,
-        if auxFams.isEmpty then supFam
+        if auxFams.isEmpty then fillNulls(selfPrefix, supFam)
         else Some(
           AbsoluteFamily(
             AbsoluteFamily(Sp(selfPrefix), fam + "#" + (auxFams.length-1).toString),
@@ -464,10 +482,10 @@ class PersimmonParser extends RegexParsers with PackratParsers {
   def pMixDef(selfPrefix: SelfPath): PackratParser[(String, FamsDefn)] = {
     for {
       mix <- kwMixin ~> pFamilyName
-      supFam <- (kwExtends ~> pAbsoluteFamPath).?
+      supFam <- (kwExtends ~> (pAbsoluteDotPath | pAbsoluteFamPath)).?
       originalSelfPath = SelfFamily(Sp(selfPrefix), mix)
       curSelfPath = SelfFamily(Sp(selfPrefix), mix + "#Mixin")
-      linkage <- pMixBody(curSelfPath, originalSelfPath, supFam)
+      linkage <- pMixBody(curSelfPath, originalSelfPath, fillNulls(selfPrefix, supFam))
     } yield {
       mix -> FamsDefn(mix, List(
         mix + "#Mixin" -> linkage,

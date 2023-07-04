@@ -33,6 +33,14 @@ class ParserTesting extends AnyFunSuite {
     val p = readFile("res/abcode")
     assert(canParse(pProgram, p))
   }
+  test("parse - ex: abcode_dot") {
+    val p = readFile("res/abcode_dot")
+    assert(canParse(pProgram, p))
+  }
+  test("parse - ex: abcodepaper_dot") {
+    val p = readFile("res/abcodepaper_dot")
+    assert(canParse(pProgram, p))
+  }
   test("parse - ex: abcode_vars") {
     val p = readFile("res/abcode_vars")
     assert(canParse(pProgram, p))
@@ -131,6 +139,10 @@ class ParserTesting extends AnyFunSuite {
   }
   test("parse - ex: stlc") {
     val p = readFile("res/stlc")
+    assert(canParse(pProgram, p))
+  }
+  test("parse - ex: stlc_dot") {
+    val p = readFile("res/stlc_dot")
     assert(canParse(pProgram, p))
   }
   test("parse - ex: test1") {

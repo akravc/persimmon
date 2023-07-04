@@ -1,0 +1,203 @@
+Family Peano {
+    type Nat = O {} | S {n: Nat}
+
+    def isZero: Nat -> B =
+        case O() = true
+        case S(n: Nat) = false
+
+    def eqNat(n2: Nat): Nat -> B =
+        case O() = isZero(n2)
+        case S(n: Nat) = eqNatRec(n, n2)
+
+    def eqNatRec(n1: Nat): Nat -> B = 
+        case O() = false
+        case S(n: Nat) = eqNat(n1, n)
+}
+
+Family STLCBase {
+  type Ty = TUnit{} | TNat{} | TArr{t1: Ty, t2: Ty}
+  type Val = U{} | Var{x: Peano.Nat} | Lam{x: Peano.Nat, e: Exp}
+  type Exp = EVal{v: Val} | EApp{e1: Exp, e2: Exp}
+
+  type OptionVal = None{} | Some{v: Val}
+  def bind(f: Val -> OptionVal): OptionVal -> OptionVal =
+    case None() = OptionVal(None{})
+    case Some(v: Val) = f(v)
+
+  def eval: Exp -> OptionVal =
+    case EVal(v: Val) = OptionVal(Some{v = v})
+    case EApp(e1: Exp, e2: Exp) = bind(lam(v: Val).apply(e2,v), eval(e1))
+
+  def apply(e2: Exp): Val -> OptionVal =
+    case Lam(x: Peano.Nat, e: Exp) = eval (subst(x, e2, e))
+    case _ = OptionVal(None{})
+
+  def subst(x: Peano.Nat, e0: Exp): Exp -> Exp =
+    case EVal(v: Val) = substVal(x, e0, v)
+    case EApp(e1: Exp, e2: Exp) = Exp(EApp{e1 = subst(x, e0, e1), e2 = subst(x, e0, e2)})
+
+  def substVal(y: Peano.Nat, e0: Exp): Val -> Exp =
+    case U() = Exp(EVal{v = Val(U{})})
+    case Var(x: Peano.Nat) = if Peano.eqNat(x, y) then e0 else Exp(EVal{v = Val(Var{x = x})})
+    case Lam(x: Peano.Nat, e: Exp) = Exp(EVal{v = if Peano.eqNat(x, y) then Val(Lam{x = x, e = e}) else Val(Lam{x = x, e = subst(y, e0, e)})})
+
+  def branch(e1: Exp, e2: Exp): Val -> OptionVal =
+    case _ = OptionVal(None{})
+}
+
+Family STLCIf extends STLCBase {
+  type Ty += TBool{}
+  type Val += True{} | False{}
+  type Exp += EIf{e: Exp, e1: Exp, e2: Exp}
+
+  def eval: Exp -> OptionVal +=
+    case EIf(e: Exp, e1: Exp, e2: Exp) =
+      bind(branch(e1, e2), eval(e))
+
+  def branch(e1: Exp, e2: Exp): Val -> OptionVal +=
+    case True() = eval e1
+    case False() = eval e2
+    case _ = OptionVal(None{})
+
+  def apply(e2: Exp): Val -> OptionVal +=
+    case _ = OptionVal(None{})
+
+  def subst(x: Peano.Nat, e0: Exp): Exp -> Exp +=
+    case EIf(e: Exp, e1: Exp, e2: Exp) = Exp(EIf{e = subst(x, e0, e), e1 = subst(x, e0, e1), e2 = subst(x, e0, e1)})
+
+  def substVal(y: Peano.Nat, e0: Exp): Val -> Exp +=
+    case True() = Exp(EVal{v = Val(True{})})
+    case False() = Exp(EVal{v = Val(False{})})
+}
+
+Family Help {
+  type ListString = NilString{} | ConsString{head: Peano.Nat, tail: ListString}
+}
+
+Family BaseComp {
+  val cps_val: self(BaseComp).ILK.Val -> self(BaseComp).STLC.Val -> self(BaseComp).ILK.Exp =
+    lam(k: self(BaseComp).ILK.Val). lam(v: self(BaseComp).STLC.Val). self(BaseComp).ILK.Exp(EHalt{v = self(BaseComp).ILK.Val(U{})}) //TODO
+  val cps_exp: self(BaseComp).ILK.Val -> self(BaseComp).STLC.Exp -> self(BaseComp).ILK.Exp =
+    lam(k: self(BaseComp).ILK.Val). lam(e: self(BaseComp).STLC.Exp). self(BaseComp).ILK.Exp(EHalt{v = self(BaseComp).ILK.Val(U{})}) // TODO
+  val cc_val: self(BaseComp).ILK.Val -> {t1: self(BaseComp).ILC.ListFun, t2: self(BaseComp).ILC.Val} =
+    lam(v: self(BaseComp).ILK.Val). {t1 = self(BaseComp).ILC.ListFun(NilFun{}), t2 = self(BaseComp).ILC.Val(U{})} // TODO
+  val cc_exp: self(BaseComp).ILK.Exp -> {t1: self(BaseComp).ILC.ListFun, t2: self(BaseComp).ILC.Exp} =
+    lam(e: self(BaseComp).ILK.Exp). {t1 = self(BaseComp).ILC.ListFun(NilFun{}), t2 = self(BaseComp).ILC.Exp(EHalt{v = self(BaseComp).ILC.Val(U{})})} // TODO
+
+  Family STLC extends STLCBase {}
+
+  Family IL {
+    type Ty = TUnit{} | TCont{ts: ListTy}
+    type Val = U{} | Var{x: Peano.Nat}
+    type Exp = ELet{x: Peano.Nat, v: Val, e: Exp} | EApp{v: Val, vs: ListVal} | EHalt{v: Val}
+    type Fun = MkFun{n: Peano.Nat, xs: Help.ListString, e: Exp}
+
+    type ListTy = NilTy{} | ConsTy{head: Ty, tail: ListTy}
+    type ListVal = NilVal{} | ConsVal{head: Val, tail: ListVal}
+    type ListFun = NilFun{} | ConsFun{head: Fun, tail: ListFun}
+
+    type OptionVal = None{} | Some{v: Val}
+
+    val substs: Help.ListString -> ListVal -> Exp -> Exp =
+      lam(ys: Help.ListString). lam(vs: ListVal). lam(e: Exp). e // TODO
+
+    def map(f: Val -> Val): ListVal -> ListVal =
+      case NilVal() = ListVal(NilVal{})
+      case ConsVal(head: Val, tail: ListVal) = ListVal(ConsVal{head = f(head), tail = map(f, tail)})
+
+    def eval(fs: ListFun): Exp -> OptionVal =
+      case ELet(x: Peano.Nat, v: Val, e: Exp) = eval(fs, subst(x, v, e))
+      case EApp(v: Val, vs: ListVal) = apply(fs, vs, v)
+      case EHalt(v: Val) = OptionVal(Some{v = v})
+
+    def apply(fs: ListFun, vs: ListVal): Val -> OptionVal =
+      // TODO: should be possible to define this way
+      // case _ = OptionVal(None{})
+      case U() = OptionVal(None{})
+      case Var(x: Peano.Nat) = OptionVal(None{})
+
+    def subst(y: Peano.Nat, v0: Val): Exp -> Exp =
+      case ELet(x: Peano.Nat, v: Val, e: Exp) =
+        if Peano.eqNat(x, y) then Exp(ELet{x=x, v=substVal(y, v0, v), e=e}) else Exp(ELet{x=x, v=substVal(y, v0, v), e=subst(y, v0, e)})
+      case EApp(v: Val, vs: ListVal) = Exp(EApp{v = substVal(y, v0, v), vs = map(substVal(y, v0), vs)})
+      case EHalt(v: Val) = Exp(EHalt{v = substVal(y, v0, v)})
+
+    def substVal(y: Peano.Nat, v0: Val): Val -> Val =
+      case U() = Val(U{})
+      case Var(x: Peano.Nat) = if Peano.eqNat(x, y) then v0 else Val(Var{x = x})
+
+    // TODO: this should be defined only in ILC
+    def unpack(fs: ListFun, alpha: Peano.Nat, x: Peano.Nat, e: Exp): Val -> OptionVal =
+      // TODO: should be possible to define this way
+      // case _ = OptionVal(None{})
+      case U() = OptionVal(None{})
+      case Var(x: Peano.Nat) = OptionVal(None{})
+  }
+
+  Family ILK extends .IL {
+    type Val += Lam{xs: Help.ListString, e: Exp}
+
+    def apply(fs: ListFun, vs: ListVal): Val -> OptionVal +=
+      case Lam(xs: Help.ListString, e: Exp) = eval(fs, substs(xs, vs, e))
+
+    def substVal(y: Peano.Nat, v0: Val): Val -> Val +=
+      case Lam(xs: Help.ListString, e: Exp) = Val(Lam{xs = xs, e = e}) // TODO
+
+    // TODO: shouldn't be needed here!
+    def unpack(fs: ListFun, alpha: Peano.Nat, x: Peano.Nat, e: Exp): Val -> OptionVal +=
+      case _ = OptionVal(None{})
+  }
+
+  Family ILC extends .IL {
+    type Ty += TVar{alpha: Peano.Nat} | TExists{alpha: Peano.Nat, ty: Ty}
+    type Val += Pack{t: Ty, v: Val} | Name{n: Peano.Nat}
+    type Exp += EUnpack{alpha: Peano.Nat, x: Peano.Nat, v: Val, e: Exp}
+
+    val substTy: Peano.Nat -> Ty -> Exp -> Exp =
+      lam(y: Peano.Nat). lam(t: Ty). lam(e: Exp). e // TODO
+
+    def eval(fs: ListFun): Exp -> OptionVal +=
+      case EUnpack(alpha: Peano.Nat, x: Peano.Nat, v: Val, e: Exp) = unpack(fs, alpha, x, e)(v)
+
+    def unpack(fs: ListFun, alpha: Peano.Nat, x: Peano.Nat, e: Exp): Val -> OptionVal +=
+      case Pack(t: Ty, v: Val) = eval(fs, subst(x, v, substTy(alpha, t, e)))
+      case _ = OptionVal(None{})
+
+    def subst(y: Peano.Nat, v0: Val): Exp -> Exp +=
+      case EUnpack(alpha: Peano.Nat, x: Peano.Nat, v: Val, e: Exp) =
+        Exp(EUnpack{alpha = alpha, x = x, v = v, e = if Peano.eqNat(x, y) then e else subst(y, v0, e)})
+
+    def substVal(y: Peano.Nat, v0: Val): Val -> Val +=
+      case Pack(t: Ty, v: Val) = Val(Pack{t = t, v = substVal(y, v0, v)})
+      case Name(n: Peano.Nat) = Val(Name{n = n})
+
+    def apply(fs: ListFun, vs: ListVal): Val -> OptionVal +=
+      case Name(n: Peano.Nat) = OptionVal(None{}) // TODO
+      case Pack(t: Ty, v: Val) = OptionVal(None{})
+  }
+}
+
+Family IfExt extends BaseComp {
+  Family STLC extends STLCIf {}
+
+  Family IL {
+    type Ty += TInt{}
+    type Val += Int{i: N}
+    type Exp += EIf{v: Val, e1: Exp, e2: Exp}
+
+    def eval(fs: ListFun): Exp -> OptionVal +=
+       case _ = OptionVal(None{}) // ... TODO EIf case
+
+    def apply(fs: ListFun, vs: ListVal): Val -> OptionVal +=
+      case Int(i: N) = OptionVal(None{})
+
+    def subst(y: Peano.Nat, v0: Val): Exp -> Exp +=
+      case EIf(v: Val, e1: Exp, e2: Exp) = Exp(EIf{v = substVal(y, v0, v), e1 = subst(y, v0, e1), e2 = subst(y, v0, e2)})
+
+    def substVal(y: Peano.Nat, v0: Val): Val -> Val +=
+      case Int(i: N) = Val(Int{i = i})
+
+   def unpack(fs: ListFun, alpha: Peano.Nat, x: Peano.Nat, e: Exp): Val -> OptionVal +=
+      case _ = OptionVal(None{})
+  }
+}

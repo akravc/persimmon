@@ -398,6 +398,8 @@ def readFile(filename: String): String = {
   }
 }
 
+/*================ OTHER OPERATIONS ================*/
+
 object MapOps {
   def right[A,B](x: Either[A,B]): B = x match {
     case Right(v) => v

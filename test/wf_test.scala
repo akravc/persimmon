@@ -69,6 +69,18 @@ class WFTesting extends AnyFunSuite {
         val lkg = computeDefLinkage(prog)
         assertResult(true)(wfDef(List(Prog), lkg))
     }
+    test("wf - ex: abcode_dot") {
+        val p = readFile("res/abcode_dot")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(true)(wfDef(List(Prog), lkg))
+    }
+    test("wf - ex: abcodepaper_dot") {
+        val p = readFile("res/abcodepaper_dot")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(true)(wfDef(List(Prog), lkg))
+    }
     test("wf - ex: abcode_vars") {
         val p = readFile("res/abcode_vars")
         PersimmonLinkages.p = p
@@ -227,6 +239,12 @@ class WFTesting extends AnyFunSuite {
     }
     test("wf - ex: stlc") {
         val p = readFile("res/stlc")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(true)(wfDef(List(Prog), lkg))
+    }
+    test("wf - ex: stlc_dot") {
+        val p = readFile("res/stlc_dot")
         PersimmonLinkages.p = p
         val lkg = computeDefLinkage(prog)
         assertResult(true)(wfDef(List(Prog), lkg))
