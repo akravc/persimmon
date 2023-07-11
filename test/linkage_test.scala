@@ -208,7 +208,7 @@ class LinkageTesting extends AnyFunSuite {
     
     /* ============= TEST FURTHER BINDING ============= */
 
-    test("linkage - TODO: futher binding test") {
+    test("linkage - futher binding test") {
         val fam = 
             """
             | Family A1 {

@@ -85,10 +85,6 @@ class ParserTesting extends AnyFunSuite {
     val p = readFile("res/comment")
     assert(canParse(pProgram, p))
   }
-  // test("parse - ex: example") {
-  //   val p = readFile("res/example")
-  //   assert(canParse(pProgram, p))
-  // }
   test("parse - ex: matcherr") {
     val p = readFile("res/matcherr")
     assert(canParse(pProgram, p))
@@ -129,10 +125,6 @@ class ParserTesting extends AnyFunSuite {
     val p = readFile("res/mixins1_sug")
     assert(canParse(pProgram, p))
   }
-  // test("parse - ex: pretty_example") {
-  //   val p = readFile("res/pretty_example")
-  //   assert(canParse(pProgram, p))
-  // }
   test("parse - ex: reso") {
     val p = readFile("res/reso")
     assert(canParse(pProgram, p))
@@ -521,8 +513,6 @@ class ParserTesting extends AnyFunSuite {
     assert(canParse(pExp, "foo()(d)"))
   }
 
-  // replaced strings with ints because we don't have strings right now
-  // included built in optionval type
   test("parse - Parse STLCBase and extension (fig 3) in the paper") {
     val fam = 
     """
@@ -555,7 +545,6 @@ class ParserTesting extends AnyFunSuite {
       |     case _ = NoneVal({})
       | }
     """.stripMargin
-    //print(parse0(pProgram, fam))
     assert(canParse(pProgram, fam))
   }
 

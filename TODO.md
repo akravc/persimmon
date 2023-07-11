@@ -18,16 +18,15 @@
 - [x] (Ana) add wf paths relation
 - [x] (Ana) sugar existing mixin test examples
 - [x] (Ana) add typing of programs function
-- [ ] (Ana) parse A and .A differently for paths (fully absolute vs full self-prefix)
-- [ ] (Ana) add wf checking of paths in typing etc
-- [ ] (Ana) fix test examples that have strings
+- [x] (Ana) parse A and .A differently for paths (fully absolute vs full self-prefix)
+- [x] (Ana) add wf checking of paths in typing etc
 - [x] (Ana) put in parsing for top-level main
-- [ ] (Ana) no overriding for types, allow overriding of single cases & child takes precedence
+- [x] (Ana) no overriding for types, allow overriding of single cases & child takes precedence
 - [x] add eval examples from paper
 - [x] add strings, concat, mul, neg to make eval examples work
 - [x] fix parens in eval examples
 - [x] implement concat of "" + n
-- [ ] test out op sem
+- [x] test out op sem
 
 
 - [x] (Jonas) Implement mixin encoding

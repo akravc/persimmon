@@ -79,7 +79,7 @@ Mixin ArithExt extends STLCBase {
     type Exp += EPlus{e1: Exp, e2: Exp}
 
     def eval: Exp -> OptionVal +=
-        case EPlus(e1: Exp, e2: Exp) = eval(e1) + eval(e2) //TODO
+        case EPlus(e1: Exp, e2: Exp) = eval(e1) + eval(e2)
 
     def subst(x: Peano.Nat, e0: Exp): Exp -> Exp +=
         case EPlus(e1: Exp, e2: Exp) = 

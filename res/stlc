@@ -76,13 +76,13 @@ Family Help {
 
 Family BaseComp {
   val cps_val: self(BaseComp).ILK.Val -> self(BaseComp).STLC.Val -> self(BaseComp).ILK.Exp =
-    lam(k: self(BaseComp).ILK.Val). lam(v: self(BaseComp).STLC.Val). self(BaseComp).ILK.Exp(EHalt{v = self(BaseComp).ILK.Val(U{})}) //TODO
+    lam(k: self(BaseComp).ILK.Val). lam(v: self(BaseComp).STLC.Val). self(BaseComp).ILK.Exp(EHalt{v = self(BaseComp).ILK.Val(U{})})
   val cps_exp: self(BaseComp).ILK.Val -> self(BaseComp).STLC.Exp -> self(BaseComp).ILK.Exp =
-    lam(k: self(BaseComp).ILK.Val). lam(e: self(BaseComp).STLC.Exp). self(BaseComp).ILK.Exp(EHalt{v = self(BaseComp).ILK.Val(U{})}) // TODO
+    lam(k: self(BaseComp).ILK.Val). lam(e: self(BaseComp).STLC.Exp). self(BaseComp).ILK.Exp(EHalt{v = self(BaseComp).ILK.Val(U{})})
   val cc_val: self(BaseComp).ILK.Val -> {t1: self(BaseComp).ILC.ListFun, t2: self(BaseComp).ILC.Val} =
-    lam(v: self(BaseComp).ILK.Val). {t1 = self(BaseComp).ILC.ListFun(NilFun{}), t2 = self(BaseComp).ILC.Val(U{})} // TODO
+    lam(v: self(BaseComp).ILK.Val). {t1 = self(BaseComp).ILC.ListFun(NilFun{}), t2 = self(BaseComp).ILC.Val(U{})}
   val cc_exp: self(BaseComp).ILK.Exp -> {t1: self(BaseComp).ILC.ListFun, t2: self(BaseComp).ILC.Exp} =
-    lam(e: self(BaseComp).ILK.Exp). {t1 = self(BaseComp).ILC.ListFun(NilFun{}), t2 = self(BaseComp).ILC.Exp(EHalt{v = self(BaseComp).ILC.Val(U{})})} // TODO
+    lam(e: self(BaseComp).ILK.Exp). {t1 = self(BaseComp).ILC.ListFun(NilFun{}), t2 = self(BaseComp).ILC.Exp(EHalt{v = self(BaseComp).ILC.Val(U{})})}
 
   Family STLC extends STLCBase {}
 
@@ -99,7 +99,7 @@ Family BaseComp {
     type OptionVal = None{} | Some{v: Val}
 
     val substs: Help.ListString -> ListVal -> Exp -> Exp =
-      lam(ys: Help.ListString). lam(vs: ListVal). lam(e: Exp). e // TODO
+      lam(ys: Help.ListString). lam(vs: ListVal). lam(e: Exp). e
 
     def map(f: Val -> Val): ListVal -> ListVal =
       case NilVal() = ListVal(NilVal{})
@@ -111,10 +111,7 @@ Family BaseComp {
       case EHalt(v: Val) = OptionVal(Some{v = v})
 
     def apply(fs: ListFun, vs: ListVal): Val -> OptionVal =
-      // TODO: should be possible to define this way
-      // case _ = OptionVal(None{})
-      case U() = OptionVal(None{})
-      case Var(x: Peano.Nat) = OptionVal(None{})
+      case _ = OptionVal(None{})
 
     def subst(y: Peano.Nat, v0: Val): Exp -> Exp =
       case ELet(x: Peano.Nat, v: Val, e: Exp) =
@@ -126,12 +123,8 @@ Family BaseComp {
       case U() = Val(U{})
       case Var(x: Peano.Nat) = if Peano.eqNat(x, y) then v0 else Val(Var{x = x})
 
-    // TODO: this should be defined only in ILC
     def unpack(fs: ListFun, alpha: Peano.Nat, x: Peano.Nat, e: Exp): Val -> OptionVal =
-      // TODO: should be possible to define this way
-      // case _ = OptionVal(None{})
-      case U() = OptionVal(None{})
-      case Var(x: Peano.Nat) = OptionVal(None{})
+      case _ = OptionVal(None{})
   }
 
   Family ILK extends self(BaseComp).IL {
@@ -141,9 +134,8 @@ Family BaseComp {
       case Lam(xs: Help.ListString, e: Exp) = eval(fs, substs(xs, vs, e))
 
     def substVal(y: Peano.Nat, v0: Val): Val -> Val +=
-      case Lam(xs: Help.ListString, e: Exp) = Val(Lam{xs = xs, e = e}) // TODO
+      case Lam(xs: Help.ListString, e: Exp) = Val(Lam{xs = xs, e = e})
 
-    // TODO: shouldn't be needed here!
     def unpack(fs: ListFun, alpha: Peano.Nat, x: Peano.Nat, e: Exp): Val -> OptionVal +=
       case _ = OptionVal(None{})
   }
@@ -154,7 +146,7 @@ Family BaseComp {
     type Exp += EUnpack{alpha: Peano.Nat, x: Peano.Nat, v: Val, e: Exp}
 
     val substTy: Peano.Nat -> Ty -> Exp -> Exp =
-      lam(y: Peano.Nat). lam(t: Ty). lam(e: Exp). e // TODO
+      lam(y: Peano.Nat). lam(t: Ty). lam(e: Exp). e
 
     def eval(fs: ListFun): Exp -> OptionVal +=
       case EUnpack(alpha: Peano.Nat, x: Peano.Nat, v: Val, e: Exp) = unpack(fs, alpha, x, e)(v)
@@ -172,7 +164,7 @@ Family BaseComp {
       case Name(n: Peano.Nat) = Val(Name{n = n})
 
     def apply(fs: ListFun, vs: ListVal): Val -> OptionVal +=
-      case Name(n: Peano.Nat) = OptionVal(None{}) // TODO
+      case Name(n: Peano.Nat) = OptionVal(None{})
       case Pack(t: Ty, v: Val) = OptionVal(None{})
   }
 }
@@ -186,7 +178,7 @@ Family IfExt extends BaseComp {
     type Exp += EIf{v: Val, e1: Exp, e2: Exp}
 
     def eval(fs: ListFun): Exp -> OptionVal +=
-       case _ = OptionVal(None{}) // ... TODO EIf case
+       case _ = OptionVal(None{})
 
     def apply(fs: ListFun, vs: ListVal): Val -> OptionVal +=
       case Int(i: N) = OptionVal(None{})

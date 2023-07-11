@@ -1,0 +1,8 @@
+Family A1 extends A1.B1 {
+  Family B1 {
+    type Exp = EBase {}
+    val eval: Exp -> N = lam (e: Exp). match e with <eval_cases> {}
+    cases eval_cases <Exp> : {} -> {EBase: {} -> N} =
+      lam (ignore: {}). {EBase = lam (ignore: {}). 0}
+  }
+}

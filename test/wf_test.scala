@@ -51,6 +51,12 @@ class WFTesting extends AnyFunSuite {
 
     /*===================== LARGE & PAPER EXAMPLES =====================*/
 
+    test("wf - ex: nestedext") {
+        val p = readFile("res/nestedext")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(false)(wfDef(List(Prog), lkg))
+    }
     test("wf - ex: peano") {
         val p = readFile("res/peano")
         PersimmonLinkages.p = p
@@ -147,12 +153,6 @@ class WFTesting extends AnyFunSuite {
         val lkg = computeDefLinkage(prog)
         assertResult(true)(wfDef(List(Prog), lkg))
     }
-    // test("wf - ex: example") {
-    //   val p = readFile("res/example")
-    //   PersimmonLinkages.p = p
-        // val lkg = computeDefLinkage(prog)
-        // assertResult(true)(wfDef(List(Prog), lkg))
-    // }
     test("wf - ex: matcherr") {
         val p = readFile("res/matcherr")
         PersimmonLinkages.p = p
@@ -213,12 +213,6 @@ class WFTesting extends AnyFunSuite {
         val lkg = computeDefLinkage(prog)
         assertResult(true)(wfDef(List(Prog), lkg))
     }
-    // test("wf - ex: pretty_example") {
-    //   val p = readFile("res/pretty_example")
-    //   PersimmonLinkages.p = p
-    //   val lkg = computeDefLinkage(prog)
-    //   assertResult(true)(wfDef(List(Prog), lkg))
-    // }
     test("wf - ex: reso") {
         val p = readFile("res/reso")
         PersimmonLinkages.p = p
@@ -556,6 +550,12 @@ class WFTesting extends AnyFunSuite {
 
     /*========================== TEST HELPERS ==========================*/
 
+    test("wf - nested prefix") {
+        assertResult(true)(
+            nested(Sp(SelfFamily(Sp(Prog), "A1")), 
+            AbsoluteFamily(AbsoluteFamily(Sp(Prog), "A1"), "B1"))
+        )
+    }
 
     test("wf - collect all paths") {
         val fam = 

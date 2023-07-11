@@ -249,7 +249,6 @@ def readFile(filename: String): String = {
     }
   }
 
-  // TODO: Is there a way to avoid mutation?
   def freshVar(vars: Set[String]): Var = {
     var id = "x"
     while (vars.contains(id)) {id += "'"}
@@ -260,7 +259,6 @@ def readFile(filename: String): String = {
 
   // Substitute variable v2 with expression v1 in expression e
   // e [v1 / v2]
-  // TODO: This needs to be tested. Also, should rename 'v1' ideally.
   def subVarInExp(e: Expression, v1: Expression, v2: Var): Expression = {
     e match {
       case Var(id) => if e == v2 then v1 else e

@@ -18,8 +18,6 @@ object PersimmonSyntax {
   //////////////////////// Path helper functions ////////////////////////
 
   // returns the last family name in the path (suffix)
-  // TODO: rename to suffix
-  // TODO; prog path should not throw an exception, instead return None.
   def pathName(p: Path): String = p match {
     case Sp(Prog) => 
       throw new Exception("Cannot get suffix of prog path.")

@@ -7,7 +7,7 @@ Family X {
     type T = T1 {n: N}
     // type U = T1 {...} disallow ctors with same names
 
-    val f: B -> T = lam (x: B). T(T1 {n = 10}) // TODO: no typename for ctor, instead path.T1 {...}
+    val f: B -> T = lam (x: B). T(T1 {n = 10})
 
     cases someCases <T>: {} -> { T1: {n: N} -> T } = lam (_: {}).
       { T1 = lam (x: {n: N}). T(T1 {n = 5 + x.n * x.n})

@@ -1,3 +1,0 @@
-
-- Create function that takes expression and returns type
-  in typing.scala, placeholders in cases where linkage info is needed

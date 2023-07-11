@@ -109,7 +109,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
   })
   lazy val pFamType: PackratParser[PathType] =
     pPathExtra ^^ { case (p,t) => PathType(Some(p), t) }
-    | pTypeName ^^ { t => PathType(None, t) } // TODO: where do we fill these in later on? "None" needs to become selfpath
+    | pTypeName ^^ { t => PathType(None, t) }
 
   lazy val pNType: PackratParser[Type] = kwN ^^^ NType
   lazy val pBType: PackratParser[Type] = kwB ^^^ BType
@@ -343,11 +343,6 @@ class PersimmonParser extends RegexParsers with PackratParsers {
       else {
         supFam match {
           case Some(b) =>
-            /* TODO: Do this in the extend cycle check in later phase.
-            if (a == b) then
-              throw new Exception("Parsing a family that extends itself.")
-            else
-             */
             // family extends another
             if typs.exists{case (s, typ) => (typ.marker == PlusEq) && (typ.typeBody.fields.keySet != typ.defaultBody.fields.keySet)} then
               throw new Exception("In a type extension, not all fields have defaults.");
