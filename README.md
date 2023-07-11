@@ -11,7 +11,7 @@ We include the following files:
 - `src/prettyprint.scala`, with pretty-printing capabilities for linkages
 - `src/reduction.scala`, with our operational semantics
 - `src/wf.scala`, with our well-formedness checking
-- `test/testing.scala`, our testing suite
+- `test/*`, our testing suite
 - `res/*`, with some sample programs
 
 # Running
