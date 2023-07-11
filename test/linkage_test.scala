@@ -37,9 +37,6 @@ class LinkageTesting extends AnyFunSuite {
         val b1 = Sp(SelfFamily(a1, "B1"))
         val b2 = Sp(SelfFamily(a1, "B2"))
         val b3 = Sp(SelfFamily(a1, "B3"))
-        //printLkg(computeDefLinkage(b1), "")
-        //printLkg(computeDefLinkage(b2), "")
-        //printLkg(computeDefLinkage(b3), "")
 
     }
 
@@ -175,34 +172,6 @@ class LinkageTesting extends AnyFunSuite {
                 Sp(SelfFamily(Sp(SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K")), "K")), 
                 Some(AbsoluteFamily(Sp(Prog), "A")), Map(), Map(), Map(), Map(), Map(), Map())))
         }
-    }
-
-    test("linkage - Reviewer compute example2") {
-        val fam = 
-            """
-            | Family A {
-            |   Family K extends A {
-            |   }
-            |}
-            """.stripMargin
-        assert(canParse(TestParser.pProgram, fam))
-        val p1 = SelfFamily(Sp(Prog), "A")
-        val p2 = SelfFamily(Sp(p1), "K")
-        val p3 = SelfFamily(Sp(p2), "K")
-        val p4 = SelfFamily(Sp(p3), "K")
-        PersimmonLinkages.p = fam
-        // assertResult(
-        // printLkg(computeDefLinkage(List(p1, p2, p3, p4), Sp(p4)), "")
-        // ){
-        // DefinitionLinkage(
-        //     SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K"), 
-        //     Some(AbsoluteFamily(Sp(Prog), "A")), 
-        //     Map(), Map(), Map(), Map(), Map(), 
-        //     Map("K" -> DefinitionLinkage(
-        //         SelfFamily(Sp(SelfFamily(Sp(Prog), "A")), "K"), 
-        //         Some(AbsoluteFamily(Sp(Prog), "A")), 
-        //         Map(), Map(), Map(), Map(), Map(), Map())))
-        // }
     }
 
     

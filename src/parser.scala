@@ -55,7 +55,6 @@ class PersimmonParser extends RegexParsers with PackratParsers {
   lazy val pFunctionName: Parser[String] = 
     not(reserved) ~> """[a-z][a-zA-Z_0-9]*""".r
   // field names can also be constructor names or underscores because of cases
-  // is this a problem to allow this for all records?
   lazy val pFieldName: Parser[String] = 
     not(reserved) ~> """(([a-z0-9])+)|(([A-Z][a-zA-Z0-9_]*)+)|_""".r
   lazy val pConstructorName: Parser[String] = 
