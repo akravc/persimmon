@@ -334,6 +334,35 @@ def readFile(filename: String): String = {
     }
   }
 
+  /*================ FILL IMPLIED SELF-PREFIXES IN EXTENDS ================*/
+
+  def fillExtendsPaths(lkg: DefinitionLinkage, toplevl: List[String]): DefinitionLinkage = {
+    val selfpath = lkg.self
+    if (selfpath == Sp(Prog)) then {
+      val tpl = lkg.nested.keySet.toList
+      DefinitionLinkage(lkg.self, lkg.sup, lkg.types, lkg.defaults, lkg.adts, lkg.funs, lkg.cases, 
+        lkg.nested.map((s, l) => 
+          (s, fillExtendsPaths(l, tpl))))
+    } else {
+      val superpath = lkg.sup
+      val newsuper: Option[PersimmonSyntax.AbsoluteFamily] = superpath match {
+        case Some(absfam) => {
+          if (absfam.pref == Sp(Prog) && !toplevl.contains(absfam.fam))
+          then {
+            selfpath match {
+              case Sp(SelfFamily(pref, fam)) => Some(AbsoluteFamily(pref, absfam.fam))
+              case _ => Some(absfam)
+            }
+          } else { Some(absfam) }
+        }
+        case _ => None
+      }
+
+      DefinitionLinkage(lkg.self, newsuper, lkg.types, lkg.defaults, lkg.adts, lkg.funs, lkg.cases, lkg.nested.map((s, l) => 
+          (s, fillExtendsPaths(l, toplevl))))
+    }
+  }
+
   /*================ FILL IMPLIED SELF-PREFIXES IN TYPES ================*/
 
   def fillNonePaths(lkg: DefinitionLinkage): DefinitionLinkage = {

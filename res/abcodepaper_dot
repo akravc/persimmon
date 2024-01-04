@@ -6,7 +6,7 @@ Family A1 {
     cases eval_cases <Exp> : {} -> {EBase: {} -> N} =
       lam (unit: {}). {EBase = lam (unit: {}). 0}
   }
-  Family B2 extends .B1 {
+  Family B2 extends B1 {
     val f: N -> N = lam (n: N). n+1
   }
 }
@@ -14,7 +14,7 @@ Family A2 extends A1 {
   Family B1 {
     val f: N -> N = lam (n: N). n+2
   }
-  Family B2 extends .B1 {
+  Family B2 extends B1 {
     type X = {x: B}
     type Exp += ENat2 {n: N}
     cases eval_cases <Exp> : {} -> {ENat2: {n: N} -> N} +=

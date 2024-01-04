@@ -5,7 +5,7 @@ Family A1 {
     cases eval_cases <Exp> : {} -> {EBase: {} -> N} =
       lam (ignore: {}). {EBase = lam (ignore: {}). 0}
   }
-  Family B2 extends .B1 {
+  Family B2 extends B1 {
     type Exp += ENat {n: N}
     cases eval_cases <Exp> : {} -> {ENat: {n: N} -> N} +=
         lam (ignore: {}). {ENat = lam (x: {n: N}). x.n}
@@ -17,7 +17,7 @@ Family A2 extends A1 {
     cases eval_cases <Exp> : {} -> {EBase2: {} -> N} +=
       lam (ignore: {}). {EBase2 = lam (ignore: {}). 1}
   }
-  Family B2 extends .B1 {
+  Family B2 extends B1 {
     type Exp += ENat2 {n: N}
     cases eval_cases <Exp> : {} -> {ENat2: {n: N} -> N} +=
         lam (ignore: {}). {ENat2 = lam (x: {n: N}). (x.n + 2)}
