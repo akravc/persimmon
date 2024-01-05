@@ -482,7 +482,7 @@ class WFTesting extends AnyFunSuite {
             """
             | Family A {
             |   type T = C1 {} | C2 {}
-            |   val f: T -> N = lam (x: T). match x with <c> {}
+            |   val f: T -> N = lam (x: T). match x with c {}
             |}
             """.stripMargin
         assert(canParse(TestParser.pProgram, fam))
@@ -497,7 +497,7 @@ class WFTesting extends AnyFunSuite {
             """
             | Family A {
             |   type T = C1 {} | C2 {}
-            |   val f: T -> N = lam (x: T). match x with <c> {}
+            |   val f: T -> N = lam (x: T). match x with c {}
             |   cases c <T> : {} -> {C1: {} -> N, C2: {} -> N} =
             |       lam (x: {}). 
             |           {C1 = lam (_: {}). 1, C2 = lam (_:{}). 2 }

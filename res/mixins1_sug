@@ -3,7 +3,7 @@ Family STLCBase {
     type Val = VBase {}
     type Exp = EBase {}
 
-    val eval: Exp -> Val = lam (e: Exp). match e with <eval_cases> {}
+    val eval: Exp -> Val = lam (e: Exp). match e with eval_cases {}
 
     cases eval_cases <Exp> : {} -> {EBase: {} -> Val} =
       lam (ignore: {}). {EBase = lam (ignore: {}). Val(VBase {})}

@@ -2,7 +2,7 @@ Family A1 {
   Family B1 {
     type Exp = EBase {}
     val f: N -> N = lam (n: N). n
-    val eval: Exp -> N = lam (e: Exp). match e with <eval_cases> {}
+    val eval: Exp -> N = lam (e: Exp). match e with eval_cases {}
     cases eval_cases <Exp> : {} -> {EBase: {} -> N} =
       lam (unit: {}). {EBase = lam (unit: {}). 0}
   }

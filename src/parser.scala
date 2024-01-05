@@ -163,7 +163,7 @@ class PersimmonParser extends RegexParsers with PackratParsers {
     pPath ~ ("." ~> pFunctionName) ^^ { case p~n => FamFun(Some(p), n) }
 
   lazy val pExpFamCases: PackratParser[FamCases] =
-    between("<", ">", (pPath <~ ".").? ~ pFunctionName) ^^ { case p~n => FamCases(p, n) }
+    (pPath <~ ".").? ~ pFunctionName ^^ { case p~n => FamCases(p, n) }
 
   lazy val pExpApp: PackratParser[App] = pExp ~ pExp ^^ { case e~g => App(e, g) }
   lazy val pExpPlus: PackratParser[Plus] = pExp ~ "+" ~ pExp ^^ { case e~_~g => Plus(e, g) }
@@ -199,9 +199,10 @@ class PersimmonParser extends RegexParsers with PackratParsers {
     | pExpRec
     | pExpExtendedApp
     | pExpIfThenElse | pExpLam | pExpBool | pExpNat
-    | pExpFamFun | pExpFamCases
+    | pExpFamFun 
     | pExpVar
     | pExpStr
+    | pExpFamCases
     | between("(", ")", pExp)
 
   // MARKERS

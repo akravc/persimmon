@@ -2,7 +2,7 @@ Family A1 {
   Family B1 {
     type Exp = ENat {n : N}
     val f: N -> N = lam (n: N). n
-    val ev: Exp -> N = lam (e: Exp). match e with <evc> {}
+    val ev: Exp -> N = lam (e: Exp). match e with evc {}
     cases evc <Exp> : {} -> {ENat: {n: N} -> N} =
       lam (unit: {}). {ENat = lam (x: {n: N}). x.n}
   }

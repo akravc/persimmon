@@ -1,6 +1,6 @@
 Family A0 {
   type Exp = ENat0 {n: N}
-  val eval: Exp -> Exp = lam (e: Exp). match e with <eval_cases> {}
+  val eval: Exp -> Exp = lam (e: Exp). match e with eval_cases {}
   cases eval_cases <Exp> : {} -> {ENat0: {n: N} -> Exp} =
     lam (ignore: {}). {ENat0 = lam (x: {n: N}). Exp(ENat0 {n = x.n})}
 }
