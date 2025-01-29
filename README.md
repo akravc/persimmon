@@ -1,6 +1,6 @@
 # Persimmon
 
-"Persimmon: Nested Family Polymorphism with Extensible Variant Types" has been published in SPLASH OOPSLA 2024. 
+"Persimmon: Nested Family Polymorphism with Extensible Variant Types" has been published in SPLASH OOPSLA 2024 ([DOI](https://doi.org/10.1145/3649836)). 
 The paper and our supplementary materials are available [here](https://dl.acm.org/doi/10.1145/3649836).
 
 Our implementation, along with a Dockerfile and setup instructions, is also [available on Zenodo](https://doi.org/10.5281/zenodo.10798266).
