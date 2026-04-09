@@ -12,6 +12,15 @@ import java.io.File
 class WFTesting extends AnyFunSuite {
     val prog = Sp(Prog)
 
+    /*===================== MODULAR TESTS =====================*/
+
+    test("wf - ex: abcode_multifile") {
+        val p = readFile("res/abcode_multifile")
+        PersimmonLinkages.p = p
+        val lkg = computeDefLinkage(prog)
+        assertResult(true)(wfDef(List(Prog), lkg))
+    }
+
     /*===================== MAIN EXPRESSION TESTS =====================*/
 
     test("wf - ex: eval_ood") {

@@ -11,6 +11,13 @@ import java.io.File
 
 class ParserTesting extends AnyFunSuite {
 
+  /* ============= MODULAR TESTS ============= */
+
+  test("parse - ex: abcode_multifile") {
+    val p = readFile("res/abcode_multifile")
+    assert(canParse(pProgram, p))
+  }
+
   /* ============= TEST RES EXAMPLES ============= */
 
   test("parse - ex: eval_ood") {

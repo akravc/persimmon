@@ -12,6 +12,148 @@ import java.io.File
 
 class LinkageTesting extends AnyFunSuite {
 
+    /* ============= MODULAR TESTS ============= */
+
+    test("linkage - modular context fragments: A1 vs A2") {
+        val fam = readFile("res/abcode_multifile")
+        assert(canParse(TestParser.pProgram, fam))
+        PersimmonLinkages.p = fam
+        enableCtxMDebug()
+        try {
+            val prog = Sp(Prog)
+            val a1 = Sp(SelfFamily(prog, "A1"))
+            val a1b2 = Sp(SelfFamily(a1, "B2"))
+            val a2 = Sp(SelfFamily(prog, "A2"))
+            val a2b2 = Sp(SelfFamily(a2, "B2"))
+
+            resetCtxMDebugLog()
+            computeDefLinkage(a1b2)
+            val a1AllFragmentsUsed = getCtxMDebugLog()
+                .filter(_._2 == LinkageType.DefLink)
+                .flatMap(_._3)
+                .distinct
+                .sorted
+            assertResult(List("A1"))(a1AllFragmentsUsed)
+
+            resetCtxMDebugLog()
+            computeDefLinkage(a2b2)
+            val a2AllFragmentsUsed = getCtxMDebugLog()
+                .filter(_._2 == LinkageType.DefLink)
+                .flatMap(_._3)
+                .distinct
+                .sorted
+            assertResult(List("A1", "A2"))(a2AllFragmentsUsed)
+        } finally {
+            disableCtxMDebug()
+        }
+    }
+
+    test("linkage - modular context fragments: misc mixins") {
+        val fam = readFile("res/misc")
+        assert(canParse(TestParser.pProgram, fam))
+        PersimmonLinkages.p = fam
+        enableCtxMDebug()
+        try {
+            val prog = Sp(Prog)
+            val stlcBase = Sp(SelfFamily(prog, "STLCBase"))
+            val ifExt = Sp(SelfFamily(prog, "IfExt"))
+            val arithExt = Sp(SelfFamily(prog, "ArithExt"))
+            val stlcIfArith = Sp(SelfFamily(prog, "STLCIfArith"))
+
+            def tracedFragments(path: Path): List[String] = {
+                resetCtxMDebugLog()
+                computeDefLinkage(path)
+                getCtxMDebugLog()
+                    .filter(_._2 == LinkageType.DefLink)
+                    .flatMap(_._3)
+                    .map(_.takeWhile(_ != '#'))
+                    .distinct
+                    .sorted
+            }
+
+            assertResult(List("STLCBase"))(tracedFragments(stlcBase))
+            assertResult(List("IfExt", "STLCBase"))(tracedFragments(ifExt))
+            assertResult(List("ArithExt", "STLCBase"))(tracedFragments(arithExt))
+            assertResult(List("ArithExt", "IfExt", "STLCBase", "STLCIfArith"))(tracedFragments(stlcIfArith))
+        } finally {
+            disableCtxMDebug()
+        }
+    }
+
+    test("linkage - modular context fragments: even_odd") {
+        val fam = readFile("res/even_odd")
+        assert(canParse(TestParser.pProgram, fam))
+        PersimmonLinkages.p = fam
+        enableCtxMDebug()
+        try {
+            val prog = Sp(Prog)
+            val peano = Sp(SelfFamily(prog, "Peano"))
+            val even = Sp(SelfFamily(prog, "Even"))
+            val odd = Sp(SelfFamily(prog, "Odd"))
+            val peanoMain = Sp(SelfFamily(prog, "PeanoMain"))
+
+            def tracedFragments(path: Path): List[String] = {
+                resetCtxMDebugLog()
+                computeDefLinkage(path)
+                getCtxMDebugLog()
+                    .filter(_._2 == LinkageType.DefLink)
+                    .flatMap(_._3)
+                    .distinct
+                    .sorted
+            }
+
+            assertResult(List("Peano"))(tracedFragments(peano))
+            assertResult(List("Even"))(tracedFragments(even))
+            assertResult(List("Odd"))(tracedFragments(odd))
+            assertResult(List("PeanoMain"))(tracedFragments(peanoMain))
+        } finally {
+            disableCtxMDebug()
+        }
+    }
+
+    test("linkage - modular context fragments: stlc") {
+        val fam = readFile("res/stlc")
+        assert(canParse(TestParser.pProgram, fam))
+        PersimmonLinkages.p = fam
+        enableCtxMDebug()
+        try {
+            val prog = Sp(Prog)
+            val peano = Sp(SelfFamily(prog, "Peano"))
+            val stlcBase = Sp(SelfFamily(prog, "STLCBase"))
+            val stlcIf = Sp(SelfFamily(prog, "STLCIf"))
+            val baseComp = Sp(SelfFamily(prog, "BaseComp"))
+            val baseCompIl = Sp(SelfFamily(baseComp, "IL"))
+            val baseCompIlk = Sp(SelfFamily(baseComp, "ILK"))
+            val baseCompIlc = Sp(SelfFamily(baseComp, "ILC"))
+            val ifExt = Sp(SelfFamily(prog, "IfExt"))
+            val ifExtIl = Sp(SelfFamily(ifExt, "IL"))
+
+            def tracedFragments(path: Path): List[String] = {
+                resetCtxMDebugLog()
+                computeDefLinkage(path)
+                getCtxMDebugLog()
+                    .filter(_._2 == LinkageType.DefLink)
+                    .flatMap(_._3)
+                    .distinct
+                    .sorted
+            }
+
+            assertResult(List("Peano"))(tracedFragments(peano))
+            assertResult(List("STLCBase"))(tracedFragments(stlcBase))
+            assertResult(List("STLCBase", "STLCIf"))(tracedFragments(stlcIf))
+            assertResult(List("BaseComp"))(tracedFragments(baseComp))
+            assertResult(List("BaseComp"))(tracedFragments(baseCompIl))
+            assertResult(List("BaseComp"))(tracedFragments(baseCompIlk))
+            assertResult(List("BaseComp"))(tracedFragments(baseCompIlc))
+            assertResult(List("BaseComp", "IfExt"))(tracedFragments(ifExt))
+            assertResult(List("BaseComp", "IfExt"))(tracedFragments(ifExtIl))
+        } finally {
+            disableCtxMDebug()
+        }
+    }
+
+    /* ============= ALTERNATING ============= */
+
     test("linkage - extension alternating self-paths") {
         val fam = 
             """

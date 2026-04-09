@@ -13,6 +13,8 @@ object PersimmonLinkages {
   private var programDefLinkage: DefinitionLinkage = null
   private var programTypFragments: List[TypingLinkage] = Nil
   private var programDefFragments: List[DefinitionLinkage] = Nil
+  private var ctxMDebugEnabled: Boolean = false
+  private var ctxMDebugLog: List[(Path, LinkageType, List[String])] = Nil
 
   def p = program
   def p_=(aProgram: String) = {
@@ -21,6 +23,24 @@ object PersimmonLinkages {
     programDefLinkage = null
     programTypFragments = Nil
     programDefFragments = Nil
+    ctxMDebugLog = Nil
+  }
+
+  // Debug helpers used by tests to inspect effective fragment context (ctxM).
+  def enableCtxMDebug(): Unit = {
+    ctxMDebugEnabled = true
+  }
+
+  def disableCtxMDebug(): Unit = {
+    ctxMDebugEnabled = false
+  }
+
+  def resetCtxMDebugLog(): Unit = {
+    ctxMDebugLog = Nil
+  }
+
+  def getCtxMDebugLog(): List[(Path, LinkageType, List[String])] = {
+    ctxMDebugLog.reverse
   }
   /* ======================== Helpers ======================== */
 
@@ -48,6 +68,12 @@ object PersimmonLinkages {
   private def addFragment(ctxM: List[Linkage], fragment: Linkage): List[Linkage] = {
     val id = fragmentId(fragment)
     if (ctxM.exists(l => fragmentId(l) == id)) ctxM else fragment :: ctxM
+  }
+
+  private def recordCtxM(path: Path, opt: LinkageType, ctxM: List[Linkage]): Unit = {
+    if (!ctxMDebugEnabled) return
+    val ids = ctxM.map(fragmentId)
+    ctxMDebugLog = (path, opt, ids) :: ctxMDebugLog
   }
 
   private def linkContext(ctxM: List[Linkage], opt: LinkageType): Linkage = {
@@ -137,6 +163,7 @@ object PersimmonLinkages {
   private def computeLNest(a: AbsoluteFamily, opt: LinkageType, delta: Set[AbsoluteFamily], ctxM: List[Linkage]): Linkage = {
     val currFragment = getFragment(a, opt)
     val ctxMWithCurrent = addFragment(ctxM, currFragment)
+    recordCtxM(a, opt, ctxMWithCurrent)
     val lkgWrap = computeLinkage(a.pref, opt, delta, ctxMWithCurrent)
     val lkg = lkgWrap.getNestedLinkage(a.fam)
     

@@ -3,6 +3,9 @@ import PersimmonTyping.*
 import PersimmonLinkages.*
 import PrettyPrint.*
 import scala.io.Source
+import java.nio.file.{Files, Paths}
+import scala.jdk.CollectionConverters.*
+import scala.util.Using
 
 // Utility functions needed throughout for pre-processing linkages, 
 // unfolding wildcard cases, etc.
@@ -204,8 +207,31 @@ def unfoldWildcardsInCasesDefn(lkg: DefinitionLinkage, cd: CasesDefn): CasesDefn
 
 /* ====================== READ FILE ====================== */
 
+def readSingleFile(pathString: String): String =
+  Using.resource(Source.fromFile(pathString))(_.getLines.mkString("\n"))
+
 def readFile(filename: String): String = { 
-  return Source.fromFile(filename).getLines.mkString("\n")
+  val path = Paths.get(filename)
+
+  if (!Files.exists(path)) {
+    throw new Exception("Path does not exist: " + filename)
+  }
+
+  if (Files.isDirectory(path)) {
+    val parts = Using.resource(Files.list(path)) { stream =>
+      stream
+        .iterator()
+        .asScala
+        .filter(Files.isRegularFile(_))
+        .toList
+        .sortBy(_.getFileName.toString)
+        .map(p => readSingleFile(p.toString))
+    }
+
+    parts.mkString("\n\n")
+  } else {
+    readSingleFile(filename)
+  }
 }
 
 /* ====================== FRESH VARIABLES ====================== */
