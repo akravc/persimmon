@@ -163,11 +163,6 @@ object PersimmonLinkages {
     computeLNest(a, opt, Set(), List())
 
   def getFragment(a: Path, opt: LinkageType): Linkage = {
-    // ensure both complete program linkages and fragment sets are available
-    // computeLProgDef()
-    // computeLProgTyp()
-    buildFragmentsIfNeeded()
-
     val normalized = concretizePath(a)
     val fragments = opt match {
       case LinkageType.DefLink => programDefFragments
@@ -198,9 +193,10 @@ object PersimmonLinkages {
   private def computeLinkage(a: Path, opt: LinkageType, delta: Set[AbsoluteFamily], ctxM: List[Linkage]): Linkage = {
     // if unparsed
     if ((programTypLinkage == null || programDefLinkage == null) && canParse(pProgram, p)) {
-      // return what was parsed
+      // parse and build fragments
       programTypLinkage = parseProgramTypLink(p)
       programDefLinkage = parseProgramDefLink(p)
+      buildFragmentsIfNeeded()
     }
     a match {
       // a.A ~> L (L-Sub applies)
