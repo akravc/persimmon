@@ -161,6 +161,10 @@ object PersimmonSyntax {
     def getTypes(): Map[String, TypeDefn]
 
     def getAdts(): Map[String, AdtDefn]
+
+    // retrieve all family paths reachable from this linkage
+    // (stored as absolute paths for stable comparisons)
+    def getPaths(): Set[Path]
   }
   
   // This version of the linkage 
@@ -188,6 +192,12 @@ object PersimmonSyntax {
     def getAllNested(): Map[String, Linkage] = nested
     def getTypes(): Map[String, TypeDefn] = types
     def getAdts(): Map[String, AdtDefn] = adts
+    lazy val paths: Set[Path] = {
+      val nestedPaths = nested.values.flatMap(_.getPaths()).toSet
+      val selfPaths = if (self == null) Set.empty[Path] else Set(concretizePath(self))
+      (selfPaths ++ nestedPaths).filter(_ != null)
+    }
+    def getPaths(): Set[Path] = paths
   }
 
   // This version of the linkage holds
@@ -212,6 +222,12 @@ object PersimmonSyntax {
     def getAllNested(): Map[String, Linkage] = nested
     def getTypes(): Map[String, TypeDefn] = types
     def getAdts(): Map[String, AdtDefn] = adts
+    lazy val paths: Set[Path] = {
+      val nestedPaths = nested.values.flatMap(_.getPaths()).toSet
+      val selfPaths = if (self == null) Set.empty[Path] else Set(concretizePath(self))
+      (selfPaths ++ nestedPaths).filter(_ != null)
+    }
+    def getPaths(): Set[Path] = paths
   }
   
 

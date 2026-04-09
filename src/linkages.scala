@@ -11,12 +11,16 @@ object PersimmonLinkages {
   private var program: String = ""
   private var programTypLinkage: TypingLinkage = null
   private var programDefLinkage: DefinitionLinkage = null
+  private var programTypFragments: List[TypingLinkage] = Nil
+  private var programDefFragments: List[DefinitionLinkage] = Nil
 
   def p = program
   def p_=(aProgram: String) = {
     program = aProgram
     programTypLinkage = null
     programDefLinkage = null
+    programTypFragments = Nil
+    programDefFragments = Nil
   }
   /* ======================== Helpers ======================== */
 
@@ -27,6 +31,56 @@ object PersimmonLinkages {
   enum LinkageType: 
     case TypLink, DefLink
 
+  private def emptyTypLinkage(selfPath: Path = Sp(Prog)): TypingLinkage =
+    TypingLinkage(selfPath, None, Map(), Map(), Map(), Map(), Map(), Map())
+
+  private def emptyDefLinkage(selfPath: Path = Sp(Prog)): DefinitionLinkage =
+    DefinitionLinkage(selfPath, None, Map(), Map(), Map(), Map(), Map(), Map())
+
+  private def emptyInheritedLinkage(opt: LinkageType): Linkage = opt match {
+    case LinkageType.DefLink => emptyDefLinkage(null)
+    case LinkageType.TypLink => emptyTypLinkage(null)
+  }
+
+  private def fragmentId(lkg: Linkage): String =
+    lkg.getAllNested().keys.toList.sorted.mkString("|")
+
+  private def addFragment(ctxM: List[Linkage], fragment: Linkage): List[Linkage] = {
+    val id = fragmentId(fragment)
+    if (ctxM.exists(l => fragmentId(l) == id)) ctxM else fragment :: ctxM
+  }
+
+  private def linkContext(ctxM: List[Linkage], opt: LinkageType): Linkage = {
+    val seed = opt match {
+      case LinkageType.DefLink => emptyDefLinkage()
+      case LinkageType.TypLink => emptyTypLinkage()
+    }
+    ctxM.foldLeft(seed: Linkage) { (acc, fragment) =>
+      concatenateLinkages(acc, fragment)
+    }
+  }
+
+  private def buildFragmentsIfNeeded(): Unit = {
+    if (programDefLinkage == null || programTypLinkage == null) return
+    if (programDefFragments.nonEmpty && programTypFragments.nonEmpty) return
+
+    val topLevelDef = programDefLinkage.nested.toList
+    val topLevelTyp = programTypLinkage.nested.toList
+
+    programDefFragments = topLevelDef.map { case (fam, lkg) =>
+      emptyDefLinkage().copy(nested = Map(fam -> lkg))
+    }
+    programTypFragments = topLevelTyp.map { case (fam, lkg) =>
+      emptyTypLinkage().copy(nested = Map(fam -> lkg))
+    }
+
+    // PATHS are linkage-level metadata; duplicates here imply ambiguous linkage lookups.
+    val allDefPaths = programDefFragments.flatMap(_.getPaths().filter(_ != Sp(Prog)).map(concretizePath))
+    if (allDefPaths.distinct.size != allDefPaths.size) {
+      throw LinkageException("Duplicate family paths detected across linkage fragments.")
+    }
+  }
+
   /* ===================== Linkage Computation Rules ===================== */
   
   // L-Prog-Typ
@@ -36,6 +90,7 @@ object PersimmonLinkages {
     if (canParse(pProgram, p)) {
       // return what was parsed
       programTypLinkage = parseProgramTypLink(p)
+      buildFragmentsIfNeeded()
       programTypLinkage
     } else {
       throw new Exception("L-Prog-Def: Cannot parse the program: "+parse0(pProgram, p))
@@ -49,6 +104,7 @@ object PersimmonLinkages {
     if (canParse(pProgram, p)) {
       // return what was parsed
       programDefLinkage = parseProgramDefLink(p)
+      buildFragmentsIfNeeded()
       programDefLinkage
     } else {
       throw new Exception("L-Prog-Def: Cannot parse the program: "+parse0(pProgram, p))
@@ -56,38 +112,46 @@ object PersimmonLinkages {
   }
 
   // L-Self
-  def computeLSelf(a: Sp, opt: LinkageType): Linkage = {
+  private def computeLSelf(a: Sp, opt: LinkageType, delta: Set[AbsoluteFamily], ctxM: List[Linkage]): Linkage = {
     // can assume shape self(a.A) for path
     a.sp match {
       case SelfFamily(pref, fam) => 
-        computeLNest(AbsoluteFamily(pref, fam), opt)
+        computeLNest(AbsoluteFamily(pref, fam), opt, delta, ctxM)
       case _ => throw new Exception("L-Self: Path shape is incorrect.")
     }
   }
 
+  def computeLSelf(a: Sp, opt: LinkageType): Linkage =
+    computeLSelf(a, opt, Set(), List())
+
   // L-Sub
-  def computeLSub(a: AbsoluteFamily, opt: LinkageType): Linkage = {
-    val lkg = computeLNest(a, opt)
+  private def computeLSub(a: AbsoluteFamily, opt: LinkageType, delta: Set[AbsoluteFamily], ctxM: List[Linkage]): Linkage = {
+    val lkg = computeLNest(a, opt, delta, ctxM)
     pathSub(lkg, a, Sp(SelfFamily(a.pref, a.fam)))
   }
 
+  def computeLSub(a: AbsoluteFamily, opt: LinkageType): Linkage =
+    computeLSub(a, opt, Set(), List())
+
   // L-Nest
-  def computeLNest(a: AbsoluteFamily, opt: LinkageType): Linkage = {
-    val lkgWrap = computeLinkage(a.pref, opt)
+  private def computeLNest(a: AbsoluteFamily, opt: LinkageType, delta: Set[AbsoluteFamily], ctxM: List[Linkage]): Linkage = {
+    val currFragment = getFragment(a, opt)
+    val ctxMWithCurrent = addFragment(ctxM, currFragment)
+    val lkgWrap = computeLinkage(a.pref, opt, delta, ctxMWithCurrent)
     val lkg = lkgWrap.getNestedLinkage(a.fam)
     
     lkg match {
       case Some(lkgA) => 
         val superPath = lkgA.getSuperPath()
         val superLkg = superPath match {
-          case Some(p) => computeLNest(p, opt)
-          case _ => opt match { 
-            // no parent, so return dummy empty linkage
-            case LinkageType.DefLink => 
-              DefinitionLinkage(null, None, Map(), Map(), Map(), Map(), Map(), Map())
-            case LinkageType.TypLink => 
-              TypingLinkage(null, None, Map(), Map(), Map(), Map(), Map(), Map())
-          }
+          case Some(p) =>
+            if (delta.contains(p)) {
+              throw new LinkageException("L-Nest: circular inheritance detected at " + printPath(p))
+            }
+            val superFragment = getFragment(p, opt)
+            val ctxMWithSuper = addFragment(ctxMWithCurrent, superFragment)
+            computeLNest(p, opt, delta + p, ctxMWithSuper)
+          case _ => emptyInheritedLinkage(opt)
         }
         concatenateLinkages(superLkg, lkgA)
       case _ => 
@@ -95,26 +159,72 @@ object PersimmonLinkages {
     }
   }
 
+  def computeLNest(a: AbsoluteFamily, opt: LinkageType): Linkage =
+    computeLNest(a, opt, Set(), List())
+
+  def getFragment(a: Path, opt: LinkageType): Linkage = {
+    // ensure both complete program linkages and fragment sets are available
+    // computeLProgDef()
+    // computeLProgTyp()
+    buildFragmentsIfNeeded()
+
+    val normalized = concretizePath(a)
+    val fragments = opt match {
+      case LinkageType.DefLink => programDefFragments
+      case LinkageType.TypLink => programTypFragments
+    }
+
+    val direct = fragments.find(_.getPaths().map(concretizePath).contains(normalized))
+    direct match {
+      case Some(fragment) => fragment
+      case None =>
+        val fams = pathToFamList(normalized)
+        val topLevel = fams.headOption
+        topLevel match {
+          case Some(topFam) =>
+            fragments.find(_.getAllNested().contains(topFam)) match {
+              case Some(fragment) => fragment
+              case None => throw new LinkageException("No linkage fragment found for path " + printPath(a))
+            }
+          case None =>
+            throw new LinkageException("No linkage fragment found for path " + printPath(a))
+        }
+    }
+  }
+
   // Universal computation function for linkages
   // opt 1 computes typing linkage, 
   // opt 2 computes definition linkage
-  def computeLinkage(a: Path, opt: LinkageType): Linkage = {
+  private def computeLinkage(a: Path, opt: LinkageType, delta: Set[AbsoluteFamily], ctxM: List[Linkage]): Linkage = {
+    // if unparsed
+    if ((programTypLinkage == null || programDefLinkage == null) && canParse(pProgram, p)) {
+      // return what was parsed
+      programTypLinkage = parseProgramTypLink(p)
+      programDefLinkage = parseProgramDefLink(p)
+    }
     a match {
       // a.A ~> L (L-Sub applies)
       case AbsoluteFamily(pref, fam) => 
-        computeLSub(a.asInstanceOf[AbsoluteFamily], opt)
+        computeLSub(a.asInstanceOf[AbsoluteFamily], opt, delta, ctxM)
       // L-Self or L-Prog applies
       case Sp(sp) => sp match {
         case Prog => 
-          opt match {
-            case LinkageType.DefLink => computeLProgDef()
-            case LinkageType.TypLink => computeLProgTyp()
+          if (ctxM.nonEmpty) {
+            linkContext(ctxM, opt)
+          } else {
+            opt match {
+              case LinkageType.DefLink => computeLProgDef()
+              case LinkageType.TypLink => computeLProgTyp()
+            }
           }
         case SelfFamily(pref, fam) => 
-          computeLSelf(a.asInstanceOf[Sp], opt)
+          computeLSelf(a.asInstanceOf[Sp], opt, delta, ctxM)
       }
     }
   }
+
+  def computeLinkage(a: Path, opt: LinkageType): Linkage =
+    computeLinkage(a, opt, Set(), List())
   
   // user friendly computation functions with built-in casting
   def computeTypLinkage(a: Path): TypingLinkage = {

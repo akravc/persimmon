@@ -45,10 +45,13 @@ object PersimmonWF {
     val sup = lkg.sup
 
     if (sup != None && nested(Sp(selfpath), sup.get)) then false
-    else if ancestors(selfpath).contains(selfpath) then false
     else {
        val K_prime = selfpath :: K
-       val L_S = computeTypLinkage(Sp(selfpath))
+       val L_S = try {
+         computeTypLinkage(Sp(selfpath))
+       } catch {
+         case _: LinkageException => return false
+       }
 
        if ((sup != None && wfPath(K, sup.get)) || (sup == None)) {
 
